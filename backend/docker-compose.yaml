@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: splitit-postgres
+    environment:
+      POSTGRES_DB: splitit
+      POSTGRES_USER: splitit
+      POSTGRES_PASSWORD: splitit
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U splitit -d splitit"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.0
+    container_name: splitit-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      # 8080 is taken by the Spring app
+      - "8180:8080"
+    volumes:
+      # Realm is imported on first start of a fresh container (--import-realm skips existing realms)
+      - ./keycloak/split_it-realm.json:/opt/keycloak/data/import/split_it-realm.json:ro
+
+volumes:
+  postgres-data:
