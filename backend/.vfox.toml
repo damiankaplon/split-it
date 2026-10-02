@@ -1,0 +1,3 @@
+[tools]
+java = "25+36"
+gradle = "9.8.0"

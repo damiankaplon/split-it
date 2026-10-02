@@ -5,5 +5,5 @@ import org.springframework.boot.with
 
 
 fun main(args: Array<String>) {
-	fromApplication<SplititApplication>().with(TestcontainersConfiguration::class).run(*args)
+	fromApplication<SplititApplication>().with(PostgreTestContainerConfig::class).run(*args)
 }

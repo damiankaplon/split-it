@@ -28,7 +28,7 @@ services:
       - "8180:8080"
     volumes:
       # Realm is imported on first start of a fresh container (--import-realm skips existing realms)
-      - ./keycloak/split_it-realm.json:/opt/keycloak/data/import/split_it-realm.json:ro
+      - ./src/test/resources/keycloak/split_it-realm.json:/opt/keycloak/data/import/split_it-realm.json:ro
 
 volumes:
   postgres-data:
