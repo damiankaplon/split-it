@@ -9,6 +9,12 @@
   "resetPasswordAllowed": false,
   "verifyEmail": false,
   "accessTokenLifespan": 300,
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "pl",
+    "en"
+  ],
+  "defaultLocale": "pl",
   "clients": [
     {
       "clientId": "localhost",

@@ -3,7 +3,7 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import {defineConfig, globalIgnores} from 'eslint/config'
 
 export default defineConfig([
   globalIgnores(['dist']),
@@ -18,5 +18,10 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+  },
+  {
+    // shadcn/ui components are generated and export their variant helpers alongside components
+    files: ['src/components/ui/**/*.tsx'],
+    rules: {'react-refresh/only-export-components': 'off'},
   },
 ])
