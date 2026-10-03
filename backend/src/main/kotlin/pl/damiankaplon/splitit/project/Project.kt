@@ -14,6 +14,10 @@ class Project(
 
     @Column(name = "name", nullable = false)
     val name: String,
+
+    /** Currency of every expense in the project; stored as its ISO 4217 code. */
+    @Column(name = "currency", nullable = false)
+    val currency: Currency,
 ) {
 	@Id
     val id: UUID = UUID.randomUUID()

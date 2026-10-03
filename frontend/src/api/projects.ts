@@ -1,9 +1,17 @@
 import {apiFetch} from './client'
 
+/** Expense amounts are integers in minor units: the displayed value is `amount / 10 ** minorUnits`. */
+export interface Currency {
+  /** ISO 4217, e.g. PLN; shown as-is next to amounts */
+  code: string
+  minorUnits: number
+}
+
 export interface Project {
   id: string
   name: string
   ownerId: string
+  currency: Currency
 }
 
 export interface ProjectMember {
@@ -23,8 +31,8 @@ export interface InvitationPreview {
 
 export const listProjects = () => apiFetch<Project[]>('/projects')
 
-export const createProject = (name: string) =>
-    apiFetch<Project>('/projects', {method: 'POST', body: JSON.stringify({name})})
+export const createProject = (name: string, currency: string) =>
+    apiFetch<Project>('/projects', {method: 'POST', body: JSON.stringify({name, currency})})
 
 export const listMembers = (projectId: string) => apiFetch<ProjectMember[]>(`/projects/${projectId}`)
 

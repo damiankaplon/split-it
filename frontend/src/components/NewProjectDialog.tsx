@@ -15,15 +15,20 @@ import {
 } from '@/components/ui/dialog'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
+import {PROJECT_CURRENCIES} from '@/lib/money'
+
+const DEFAULT_CURRENCY = 'PLN'
 
 interface NewProjectDialogProps {
   onCreated: (project: Project) => void
 }
 
 export function NewProjectDialog({onCreated}: NewProjectDialogProps) {
-  const {t} = useTranslation()
+  const {t, i18n} = useTranslation()
+  const currencyNames = new Intl.DisplayNames(i18n.language, {type: 'currency'})
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
+  const [currency, setCurrency] = useState(DEFAULT_CURRENCY)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -31,6 +36,7 @@ export function NewProjectDialog({onCreated}: NewProjectDialogProps) {
     setOpen(next)
     if (!next) {
       setName('')
+      setCurrency(DEFAULT_CURRENCY)
       setError(null)
     }
   }
@@ -40,7 +46,7 @@ export function NewProjectDialog({onCreated}: NewProjectDialogProps) {
     setSubmitting(true)
     setError(null)
     try {
-      onCreated(await createProject(name.trim()))
+      onCreated(await createProject(name.trim(), currency))
       onOpenChange(false)
     } catch {
       setError(t('newProject.error'))
@@ -74,6 +80,20 @@ export function NewProjectDialog({onCreated}: NewProjectDialogProps) {
                   autoFocus
                   required
               />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="new-project-currency">{t('newProject.currencyLabel')}</Label>
+              <select
+                  id="new-project-currency"
+                  className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+              >
+                {PROJECT_CURRENCIES.map((code) => (
+                    <option key={code} value={code}>{currencyNames.of(code)} ({code})</option>
+                ))}
+              </select>
+              <p className="text-[13px] text-muted-foreground">{t('newProject.currencyHint')}</p>
               {error && <p className="text-[13px] text-destructive" role="alert">{error}</p>}
             </div>
             <DialogFooter>

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import pl.damiankaplon.splitit.PostgreTestContainerConfig
 import java.util.*
@@ -21,11 +22,13 @@ class ProjectEndpointsIntegrationTest @Autowired constructor(
     private val projectMembers: ProjectMemberRepository,
 ) {
 
+    private fun asUser(id: String) = jwt().jwt { it.subject(id).claim("preferred_username", "alice") }
+
 	@Test
     fun `creating a project requires authentication`() {
         mockMvc.post("/projects") {
             contentType = MediaType.APPLICATION_JSON
-            content = """{"name":"Trip to Rome"}"""
+            content = """{"name":"Trip to Rome","currency":"EUR"}"""
         }.andExpect { status { isUnauthorized() } }
 	}
 
@@ -33,9 +36,9 @@ class ProjectEndpointsIntegrationTest @Autowired constructor(
     fun `creator becomes the owner and a member of the new project`() {
         val userId = UUID.randomUUID().toString()
         val response = mockMvc.post("/projects") {
-            with(jwt().jwt { it.subject(userId).claim("preferred_username", "alice") })
+            with(asUser(userId))
 			contentType = MediaType.APPLICATION_JSON
-            content = """{"name":"Trip to Rome"}"""
+            content = """{"name":"Trip to Rome","currency":"EUR"}"""
 		}.andExpect {
 			status { isCreated() }
 			jsonPath("$.name") { value("Trip to Rome") }
@@ -48,4 +51,54 @@ class ProjectEndpointsIntegrationTest @Autowired constructor(
         assertEquals(userId, members.single().userId)
         assertEquals("alice", members.single().username)
 	}
+
+    @Test
+    fun `project carries its currency code and minor units`() {
+        val userId = UUID.randomUUID().toString()
+        mockMvc.post("/projects") {
+            with(asUser(userId))
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"name":"Zakopane","currency":"pln"}"""
+        }.andExpect {
+            status { isCreated() }
+            jsonPath("$.currency.code") { value("PLN") }
+            jsonPath("$.currency.minorUnits") { value(2) }
+        }
+
+        mockMvc.get("/projects") { with(asUser(userId)) }
+            .andExpect {
+                status { isOk() }
+                jsonPath("$[0].currency.code") { value("PLN") }
+                jsonPath("$[0].currency.minorUnits") { value(2) }
+            }
+    }
+
+    @Test
+    fun `minor units follow the currency`() {
+        mockMvc.post("/projects") {
+            with(asUser(UUID.randomUUID().toString()))
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"name":"Tokyo","currency":"JPY"}"""
+        }.andExpect {
+            status { isCreated() }
+            jsonPath("$.currency.code") { value("JPY") }
+            jsonPath("$.currency.minorUnits") { value(0) }
+        }
+    }
+
+    @Test
+    fun `creating a project requires a known currency`() {
+        // XAU (gold) is a valid ISO code but has no minor units, so amounts couldn't be stored
+        for (body in listOf(
+            """{"name":"Trip"}""",
+            """{"name":"Trip","currency":"ABC"}""",
+            """{"name":"Trip","currency":"XAU"}"""
+        )) {
+            mockMvc.post("/projects") {
+                with(asUser(UUID.randomUUID().toString()))
+                contentType = MediaType.APPLICATION_JSON
+                content = body
+            }.andExpect { status { isBadRequest() } }
+        }
+    }
 }

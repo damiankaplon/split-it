@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import pl.damiankaplon.splitit.PLN
 import pl.damiankaplon.splitit.PostgreTestContainerConfig
 import pl.damiankaplon.splitit.project.Project
 import pl.damiankaplon.splitit.project.ProjectRepository
@@ -20,7 +21,7 @@ class InvitationCommandHandlerIntegrationTest @Autowired constructor(
 ) {
 
     private fun newProject(ownerId: String = UUID.randomUUID().toString()) =
-        projects.save(Project(ownerId, "Trip to Rome"))
+        projects.save(Project(ownerId, "Trip to Rome", PLN))
 
     private fun newInvitation(project: Project, expiresAt: Instant = Instant.now().plusSeconds(3600)) =
         invitations.save(

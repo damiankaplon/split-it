@@ -20,9 +20,13 @@ class ProjectController(
 
     data class CreateProjectRequest(
         @field:NotBlank val name: String,
-    )
+        @field:NotBlank @field:IsoCurrency val currency: String,
+    ) {
+        val currencyCode: Currency by lazy { Currency.getInstance(currency) }
+    }
 
-    data class ProjectResponse(val id: UUID, val name: String, val ownerId: String)
+    data class CurrencyResponse(val code: String, val minorUnits: Int)
+    data class ProjectResponse(val id: UUID, val name: String, val ownerId: String, val currency: CurrencyResponse)
     data class ProjectMemberResponse(val memberId: String, val name: String)
 
     @PostMapping("/projects")
@@ -33,9 +37,9 @@ class ProjectController(
         @AuthenticationPrincipal jwt: Jwt,
     ): ProjectResponse {
         val userId = jwt.subjectOrThrow()
-        val project = projects.save(Project(ownerId = userId, name = request.name))
+        val project = projects.save(Project(ownerId = userId, name = request.name, currency = request.currencyCode))
         projectMembers.save(ProjectMember(project, userId, jwt.usernameOrThrow()))
-        return ProjectResponse(project.id, project.name, project.ownerId)
+        return project.toResponse()
     }
 
     @GetMapping("/projects")
@@ -45,7 +49,7 @@ class ProjectController(
     ): Set<ProjectResponse> {
         return projectMembers.findByUserId(jwt.subjectOrThrow())
             .map { it.project }
-            .mapTo(linkedSetOf()) { ProjectResponse(it.id, it.name, it.ownerId) }
+            .mapTo(linkedSetOf()) { it.toResponse() }
     }
 
     @GetMapping("/projects/{projectId}")
@@ -62,4 +66,9 @@ class ProjectController(
         }
         throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not project=${project.id} member")
     }
+
+    private fun Project.toResponse() = ProjectResponse(
+        id, name, ownerId,
+        CurrencyResponse(currency.currencyCode, currency.defaultFractionDigits),
+    )
 }

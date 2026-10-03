@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.web.servlet.*
+import pl.damiankaplon.splitit.PLN
 import pl.damiankaplon.splitit.PostgreTestContainerConfig
 import pl.damiankaplon.splitit.project.Project
 import pl.damiankaplon.splitit.project.ProjectMember
@@ -30,7 +31,7 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     private fun asUser(id: String) = jwt().jwt { it.subject(id).claim("preferred_username", id) }
 
     private fun projectWithMember(userId: String): Project {
-        val project = projects.save(Project(userId, "Trip to Rome"))
+        val project = projects.save(Project(userId, "Trip to Rome", PLN))
         projectMembers.save(ProjectMember(project, userId, userId))
         return project
     }

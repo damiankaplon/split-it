@@ -29,7 +29,7 @@ export function JoinPage({username}: { username: string }) {
     setJoinFailed(false)
     try {
       await acceptInvitation(invitation)
-      navigate('/', {replace: true})
+      navigate(`/projects/${invitation.projectId}`, {replace: true})
     } catch {
       setJoinFailed(true)
       setJoining(false)

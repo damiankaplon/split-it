@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
+import pl.damiankaplon.splitit.PLN
 import pl.damiankaplon.splitit.PostgreTestContainerConfig
 
 @SpringBootTest
@@ -23,7 +24,7 @@ class ProjectMembersEndpointIntegrationTest @Autowired constructor(
 
     @Test
     fun `project members endpoint returns the members stored in the repository`() {
-        val project = projects.save(Project("alice-id", "Trip to Rome"))
+        val project = projects.save(Project("alice-id", "Trip to Rome", PLN))
         projectMembers.save(ProjectMember(project, "alice-id", "alice"))
         projectMembers.save(ProjectMember(project, "bob-id", "bob"))
 
@@ -38,7 +39,7 @@ class ProjectMembersEndpointIntegrationTest @Autowired constructor(
 
     @Test
     fun `project members endpoint is forbidden for non-members`() {
-        val project = projects.save(Project("alice-id", "Trip to Rome"))
+        val project = projects.save(Project("alice-id", "Trip to Rome", PLN))
         projectMembers.save(ProjectMember(project, "alice-id", "alice"))
 
         mockMvc.get("/projects/${project.id}") { with(asUser("stranger-id")) }
@@ -47,8 +48,8 @@ class ProjectMembersEndpointIntegrationTest @Autowired constructor(
 
     @Test
     fun `project list contains only projects the user is a member of`() {
-        val joined = projects.save(Project("alice-id", "Joined"))
-        val other = projects.save(Project("alice-id", "Other"))
+        val joined = projects.save(Project("alice-id", "Joined", PLN))
+        val other = projects.save(Project("alice-id", "Other", PLN))
         projectMembers.save(ProjectMember(joined, "carol-id", "carol"))
         projectMembers.save(ProjectMember(other, "alice-id", "alice"))
 

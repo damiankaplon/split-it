@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react'
 import {AlertCircle} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
+import {Link} from 'react-router'
 import {listProjects, type Project} from '@/api/projects'
 import {InviteDialog} from '@/components/InviteDialog'
 import {NewProjectDialog} from '@/components/NewProjectDialog'
@@ -54,14 +55,19 @@ export function ProjectsPage({currentUserId}: { currentUserId: string }) {
               {state.projects.map((project) => {
                 const isOwner = project.ownerId === currentUserId
                 return (
-                    <Card key={project.id} className="gap-5 p-5 shadow-xs">
+                    <Card key={project.id}
+                          className="relative gap-5 p-5 shadow-xs transition-colors has-[a:hover]:border-ring">
                       <div className="flex flex-col gap-1">
-                        <span className="text-base font-semibold">{project.name}</span>
+                        {/* Stretched link: the whole card opens the project, while the invite button stays clickable */}
+                        <Link to={`/projects/${project.id}`}
+                              className="text-base font-semibold outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:ring-[3px] focus-visible:after:ring-ring/50">
+                          {project.name}
+                        </Link>
                         <span
-                            className="text-[13px] text-muted-foreground">{isOwner ? t('projects.owner') : t('projects.member')}</span>
+                            className="text-[13px] text-muted-foreground">{isOwner ? t('projects.owner') : t('projects.member')} · {project.currency.code}</span>
                       </div>
                       {isOwner && (
-                          <div className="flex justify-end border-t pt-3.5">
+                          <div className="relative z-10 flex justify-end border-t pt-3.5">
                             <InviteDialog project={project} currentUserId={currentUserId}/>
                           </div>
                       )}
