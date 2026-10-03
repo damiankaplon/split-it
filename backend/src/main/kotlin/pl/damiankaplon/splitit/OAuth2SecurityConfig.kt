@@ -2,11 +2,14 @@ package pl.damiankaplon.splitit
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpStatus
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.web.server.ResponseStatusException
 
 @Configuration(proxyBeanMethods = false)
 class OAuth2SecurityConfig {
@@ -22,3 +25,12 @@ class OAuth2SecurityConfig {
 		return http.build()
 	}
 }
+
+fun Jwt.subjectOrThrow(): String =
+    subject ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "No subject found")
+
+fun Jwt.usernameOrThrow(): String =
+    getClaimAsString("preferred_username") ?: throw ResponseStatusException(
+        HttpStatus.UNAUTHORIZED,
+        "No username found"
+    )
