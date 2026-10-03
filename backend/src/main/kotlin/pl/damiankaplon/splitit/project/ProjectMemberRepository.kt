@@ -10,4 +10,5 @@ interface ProjectMemberRepository : JpaRepository<ProjectMember, UUID> {
     fun findByUserId(userId: String): Set<ProjectMember>
     fun findByProjectId(projectId: UUID): Set<ProjectMember>
     fun findByProject(project: Project): Set<ProjectMember>
+    fun existsByProjectIdAndUserId(projectId: UUID, userId: String): Boolean
 }
