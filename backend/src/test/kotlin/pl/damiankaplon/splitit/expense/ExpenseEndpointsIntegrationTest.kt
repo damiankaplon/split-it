@@ -12,6 +12,8 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.*
 import pl.damiankaplon.splitit.PLN
 import pl.damiankaplon.splitit.PostgreTestContainerConfig
+import pl.damiankaplon.splitit.balancing.Saldo
+import pl.damiankaplon.splitit.balancing.SaldoRepository
 import pl.damiankaplon.splitit.project.Project
 import pl.damiankaplon.splitit.project.ProjectMember
 import pl.damiankaplon.splitit.project.ProjectMemberRepository
@@ -26,6 +28,7 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     private val projects: ProjectRepository,
     private val projectMembers: ProjectMemberRepository,
     private val expenses: ExpenseRepository,
+    private val saldos: SaldoRepository,
 ) {
 
     private fun asUser(id: String) = jwt().jwt { it.subject(id).claim("preferred_username", id) }
@@ -33,6 +36,7 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     private fun projectWithMember(userId: String): Project {
         val project = projects.save(Project(userId, "Trip to Rome", PLN))
         projectMembers.save(ProjectMember(project, userId, userId))
+        saldos.save(Saldo(project.id))
         return project
     }
 

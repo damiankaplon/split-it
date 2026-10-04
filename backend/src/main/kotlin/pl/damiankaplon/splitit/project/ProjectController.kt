@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
+import pl.damiankaplon.splitit.balancing.SaldoProjectEventHandler
 import pl.damiankaplon.splitit.subjectOrThrow
 import pl.damiankaplon.splitit.usernameOrThrow
 import java.util.*
@@ -16,13 +17,14 @@ import java.util.*
 class ProjectController(
     private val projects: ProjectRepository,
     private val projectMembers: ProjectMemberRepository,
+    private val saldoProjectEventHandler: SaldoProjectEventHandler,
 ) {
 
     data class CreateProjectRequest(
         @field:NotBlank val name: String,
         @field:NotBlank @field:IsoCurrency val currency: String,
     ) {
-        val currencyCode: Currency by lazy { Currency.getInstance(currency) }
+        val currencyCode: Currency by lazy { Currency.getInstance(currency.trim().uppercase()) }
     }
 
     data class CurrencyResponse(val code: String, val minorUnits: Int)
@@ -39,6 +41,7 @@ class ProjectController(
         val userId = jwt.subjectOrThrow()
         val project = projects.save(Project(ownerId = userId, name = request.name, currency = request.currencyCode))
         projectMembers.save(ProjectMember(project, userId, jwt.usernameOrThrow()))
+        saldoProjectEventHandler.handle(ProjectEvent.ProjectCreated(project.id))
         return project.toResponse()
     }
 

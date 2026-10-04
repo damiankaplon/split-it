@@ -13,10 +13,13 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
+import pl.damiankaplon.splitit.UserId
+import pl.damiankaplon.splitit.balancing.SaldoExpenseEventHandler
 import pl.damiankaplon.splitit.project.ProjectMemberRepository
 import pl.damiankaplon.splitit.subjectOrThrow
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.math.absoluteValue
 
 @RestController
 @RequestMapping("/projects/{projectId}")
@@ -24,6 +27,7 @@ class ExpenseController(
     private val expenses: ExpenseRepository,
     private val tags: ExpenseTagRepository,
     private val projectMembers: ProjectMemberRepository,
+    private val saldoExpenseEventHandler: SaldoExpenseEventHandler,
 ) {
 
     data class ExpenseRequest(
@@ -58,8 +62,14 @@ class ExpenseController(
             date = request.date,
             amount = request.amount,
             tag = findOrCreateTag(projectId, request.tag),
-            createdBy = userId,
+            createdBy = userId.value,
+        ).also(expenses::save)
+        val event = ExpenseEvent.ExpensesIncreased(
+            projectId = projectId,
+            userId = userId,
+            increasedBy = expense.amount
         )
+        saldoExpenseEventHandler.handle(event)
         return expenses.save(expense).toResponse()
     }
 
@@ -129,10 +139,17 @@ class ExpenseController(
     ): ExpenseResponse {
         requireMember(projectId, jwt)
         val expense = findExpenseOrThrow(projectId, expenseId)
+        // The money was paid by whoever created the expense, whichever member edits it
+        val payer = UserId(expense.createdBy)
+        val amountDiff = request.amount - expense.amount
+        val event = if (amountDiff > 0) ExpenseEvent.ExpensesIncreased(projectId, payer, amountDiff)
+        else if (amountDiff < 0) ExpenseEvent.ExpensesReduced(projectId, payer, amountDiff.absoluteValue)
+        else null
         expense.title = request.title
         expense.date = request.date
         expense.amount = request.amount
         expense.tag = findOrCreateTag(projectId, request.tag)
+        event?.run(saldoExpenseEventHandler::handle)
         return expense.toResponse()
     }
 
@@ -145,7 +162,15 @@ class ExpenseController(
         @AuthenticationPrincipal jwt: Jwt,
     ) {
         requireMember(projectId, jwt)
-        expenses.delete(findExpenseOrThrow(projectId, expenseId))
+        val expense = findExpenseOrThrow(projectId, expenseId)
+        expenses.delete(expense)
+        saldoExpenseEventHandler.handle(
+            ExpenseEvent.ExpensesReduced(
+                expense.projectId,
+                expense.createdBy.let(::UserId),
+                expense.amount
+            )
+        )
     }
 
     /** Tags already used in the project, for the tag drop-down. */
@@ -159,19 +184,22 @@ class ExpenseController(
         return tags.findByProjectIdOrderByNameAsc(projectId).map(ExpenseTag::name)
     }
 
-    private fun requireMember(projectId: UUID, jwt: Jwt): String {
+    private fun requireMember(projectId: UUID, jwt: Jwt): UserId {
         val userId = jwt.subjectOrThrow()
         if (!projectMembers.existsByProjectIdAndUserId(projectId, userId)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not project=$projectId member")
         }
-        return userId
+        return UserId(userId)
     }
 
     private fun findExpenseOrThrow(projectId: UUID, expenseId: UUID): Expense =
         expenses.findByIdAndProjectId(expenseId, projectId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Expense=$expenseId not found in project=$projectId")
 
-    /** Reuses an existing project tag (case-insensitive) or creates a new one; a blank name means no tag. */
+    /**
+     * Reuses an existing project tag (case-insensitive) or creates a new one;
+     * a blank name means no tag.
+     */
     private fun findOrCreateTag(projectId: UUID, name: String?): ExpenseTag? {
         val trimmed = name?.trim()?.takeIf { it.isNotEmpty() } ?: return null
         return tags.findByProjectIdAndNameIgnoreCase(projectId, trimmed)

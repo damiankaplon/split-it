@@ -1,6 +1,7 @@
 package pl.damiankaplon.splitit.project
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -12,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import pl.damiankaplon.splitit.PostgreTestContainerConfig
+import pl.damiankaplon.splitit.balancing.SaldoRepository
 import java.util.*
 
 @SpringBootTest
@@ -20,6 +22,7 @@ import java.util.*
 class ProjectEndpointsIntegrationTest @Autowired constructor(
 	private val mockMvc: MockMvc,
     private val projectMembers: ProjectMemberRepository,
+    private val saldos: SaldoRepository,
 ) {
 
     private fun asUser(id: String) = jwt().jwt { it.subject(id).claim("preferred_username", "alice") }
@@ -50,6 +53,7 @@ class ProjectEndpointsIntegrationTest @Autowired constructor(
         assertEquals(1, members.size)
         assertEquals(userId, members.single().userId)
         assertEquals("alice", members.single().username)
+        assertTrue(saldos.existsById(projectId))
 	}
 
     @Test
