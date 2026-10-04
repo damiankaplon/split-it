@@ -28,4 +28,8 @@ class Expense(
 ) {
     @Id
     val id: UUID = UUID.randomUUID()
+
+    @Version
+    @Column(nullable = false)
+    var version: Long = 0
 }
