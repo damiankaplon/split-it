@@ -29,6 +29,9 @@ class OAuth2SecurityConfig {
 fun Jwt.subjectOrThrow(): String =
     subject ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "No subject found")
 
+fun Jwt.userIdOrThrow(): UserId =
+    subjectOrThrow().let(::UserId)
+
 fun Jwt.usernameOrThrow(): String =
     getClaimAsString("preferred_username") ?: throw ResponseStatusException(
         HttpStatus.UNAUTHORIZED,

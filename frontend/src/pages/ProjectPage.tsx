@@ -6,6 +6,7 @@ import {Temporal} from 'temporal-polyfill'
 import {ApiError} from '@/api/client'
 import {type Expense, listExpenses, listTags} from '@/api/expenses'
 import {type Currency, listMembers, listProjects, type Project, type ProjectMember} from '@/api/projects'
+import {DebtsPanel} from '@/components/DebtsPanel'
 import {ExpenseDialog} from '@/components/ExpenseDialog'
 import {InviteDialog} from '@/components/InviteDialog'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
@@ -105,6 +106,8 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
   const [title, setTitle] = useState('')
   const [tag, setTag] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  // Bumped on every expense change, since any amount change recalculates the debts
+  const [debtsReloadKey, setDebtsReloadKey] = useState(0)
   const [expenses, setExpenses] = useState<ExpensesState>({status: 'loading'})
   const [loadingMore, setLoadingMore] = useState(false)
 
@@ -171,10 +174,12 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
   const onCreated = (expense: Expense) => {
     // The list is ordered by date, so the new expense may belong anywhere; reload from the top.
     setReloadKey((k) => k + 1)
+    setDebtsReloadKey((k) => k + 1)
     refreshTagsIfNew(expense)
   }
 
   const onUpdated = (before: Expense, after: Expense) => {
+    if (after.amount !== before.amount) setDebtsReloadKey((k) => k + 1)
     // A new date may move it elsewhere in the list, and new values may no longer match the filters
     if (after.date !== before.date || filtered) {
       setReloadKey((k) => k + 1)
@@ -216,6 +221,14 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
             />
           </div>
         </div>
+
+        <DebtsPanel
+            projectId={project.id}
+            currency={project.currency}
+            currentUserId={currentUserId}
+            memberName={memberName}
+            reloadKey={debtsReloadKey}
+        />
 
         <div className="flex flex-col gap-3">
           <div className="relative max-w-sm">

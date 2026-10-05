@@ -3,6 +3,7 @@ package pl.damiankaplon.splitit.balancing
 import jakarta.persistence.*
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.expense.ExpenseEvent
+import pl.damiankaplon.splitit.settlement.SettlementEvent
 import java.io.Serializable
 import java.util.*
 
@@ -43,6 +44,19 @@ class Saldo(
         recalculateDebts()
     }
 
+
+    fun handle(event: SettlementEvent.SettlementConfirmed) {
+        val (_, debtor, creditor, amount) = event
+        require(amount > 0) { "Settled amount must be positive, was $amount" }
+        val debt = requireNotNull(debts.singleOrNull { it.debtor == debtor && it.creditor == creditor }) {
+            "${debtor.value} owes nothing to ${creditor.value} in project $projectId"
+        }
+        require(amount <= debt.amount) { "Cannot settle $amount, the debt is only ${debt.amount}" }
+        members.single { it.userId == debtor }.settledAmount += amount
+        members.single { it.userId == creditor }.settledAmount -= amount
+        recalculateDebts()
+    }
+
     /**
      * Updates [debts] in place (instead of replacing the collection) so orphan
      * removal and the (project_id, debtor_id, creditor_id) primary key keep
@@ -60,8 +74,10 @@ class Saldo(
     /**
      * Equal split between all members. Computes net balances (paid - fair
      * share) and greedily settles the biggest debtor with the biggest
-     * creditor, which yields at most (members - 1) transfers. Balances
-     * are scaled by the members count so the math stays exact in Long.
+     * creditor, which yields at most (members - 1) transfers. Balances are
+     * scaled by the members count so the math stays exact in Long. Settlements
+     * count as money paid. Balances below one minor unit are ignored: they are
+     * what is left after paying a rounded-up debt.
      */
     private fun calculateDebts(): Map<DebtId, Int> {
         val membersCount = members.size
@@ -71,9 +87,9 @@ class Saldo(
         val creditors = PriorityQueue<Pair<UserId, Long>>(compareByDescending { it.second })
         val debtors = PriorityQueue<Pair<UserId, Long>>(compareByDescending { it.second })
         members.forEach { member ->
-            val balance = member.totalExpensesAmount * membersCount - total
-            if (balance > 0) creditors.add(member.userId to balance)
-            if (balance < 0) debtors.add(member.userId to -balance)
+            val balance = (member.totalExpensesAmount + member.settledAmount) * membersCount - total
+            if (balance >= membersCount) creditors.add(member.userId to balance)
+            if (balance <= -membersCount) debtors.add(member.userId to -balance)
         }
 
         val result = mutableMapOf<DebtId, Int>()
@@ -106,6 +122,10 @@ class Saldo(
         @Column(name = "total_expenses_amount", nullable = false)
         var totalExpensesAmount: Long,
     ) {
+        /** Paid to other members to settle debts, minus received from them. */
+        @Column(name = "settled_amount", nullable = false)
+        var settledAmount: Long = 0
+
         val userId: UserId get() = id.userId
 
         override fun equals(other: Any?): Boolean {
