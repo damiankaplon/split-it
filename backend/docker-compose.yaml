@@ -10,6 +10,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      # Creates the keycloak database next to splitit on a fresh volume
+      - ./docker/postgres/init-keycloak-db.sql:/docker-entrypoint-initdb.d/init-keycloak-db.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U splitit -d splitit"]
       interval: 5s
@@ -23,12 +25,19 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
     ports:
       # 8080 is taken by the Spring app
       - "8180:8080"
     volumes:
-      # Realm is imported on first start of a fresh container (--import-realm skips existing realms)
+      # Realm is imported only if it does not exist yet in the database (--import-realm skips existing realms)
       - ./src/test/resources/keycloak/split_it-realm.json:/opt/keycloak/data/import/split_it-realm.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres-data:
