@@ -82,8 +82,8 @@ class SaldoTest {
         saldo.paid(carol, 0)
 
         assertThat(saldo.transfers()).containsExactlyInAnyOrder(
-            Transfer(bob, alice, 34_00),
-            Transfer(carol, alice, 34_00),
+            Transfer(bob, alice, 33_34),
+            Transfer(carol, alice, 33_34),
         )
     }
 

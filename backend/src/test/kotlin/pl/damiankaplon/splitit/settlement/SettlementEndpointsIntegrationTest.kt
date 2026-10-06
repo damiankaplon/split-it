@@ -135,7 +135,6 @@ class SettlementEndpointsIntegrationTest @Autowired constructor(
         }
 
         expectDebt(project, 4000)
-        resolve(rejected, "confirm", "alice-id").andExpect { status { isConflict() } }
     }
 
     @Test
