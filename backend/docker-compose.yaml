@@ -18,6 +18,18 @@ services:
       timeout: 5s
       retries: 10
 
+  adminer:
+    image: adminer:latest
+    container_name: splitit-adminer
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      # Login: System=PostgreSQL, Server=postgres, user/password/db = splitit
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.8.0
     container_name: splitit-keycloak
