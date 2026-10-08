@@ -204,7 +204,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
               {expenses.status === 'loaded' && !filtered && ` · ${t('project.expenseCount', {count: expenses.total})}`}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             {isOwner && <InviteDialog project={project} currentUserId={currentUserId}/>}
             <ExpenseDialog
                 projectId={project.id}
@@ -212,7 +212,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
                 tags={tags}
                 onSaved={onCreated}
                 trigger={
-                  <Button size="lg" className="rounded-lg px-4">
+                  <Button className="rounded-lg">
                     <Plus/>
                     {t('expenseDialog.add')}
                   </Button>
