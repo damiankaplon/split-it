@@ -99,7 +99,7 @@ class SettlementController(
         val currentUserId = jwt.userIdOrThrow()
         val settlement = settlements.findByIdAndCreditorOrThrow(settlementId, currentUserId)
         val settlementConfirmed = settlement.confirm(time.now())
-        returnConflictOnError { saldoSettlementEventHandler.handle(settlementConfirmed) }
+        throwConflictOnError { saldoSettlementEventHandler.handle(settlementConfirmed) }
         return settlement.toResponse()
     }
 
@@ -129,7 +129,7 @@ class SettlementController(
         return settlement.toResponse()
     }
 
-    private fun returnConflictOnError(action: () -> Unit) {
+    private fun throwConflictOnError(action: () -> Unit) {
         try {
             action()
         } catch (e: IllegalStateException) {

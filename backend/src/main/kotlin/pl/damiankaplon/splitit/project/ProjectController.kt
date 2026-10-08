@@ -16,7 +16,6 @@ import java.util.*
 @RestController
 class ProjectController(
     private val projects: ProjectRepository,
-    private val projectMembers: ProjectMemberRepository,
     private val saldoProjectEventHandler: SaldoProjectEventHandler,
 ) {
 
@@ -27,9 +26,22 @@ class ProjectController(
         val currencyCode: Currency by lazy { Currency.getInstance(currency.trim().uppercase()) }
     }
 
-    data class CurrencyResponse(val code: String, val minorUnits: Int)
-    data class ProjectResponse(val id: UUID, val name: String, val ownerId: String, val currency: CurrencyResponse)
-    data class ProjectMemberResponse(val memberId: String, val name: String)
+    data class CurrencyResponse(
+        val code: String,
+        val minorUnits: Int,
+    )
+
+    data class ProjectResponse(
+        val id: UUID,
+        val name: String,
+        val ownerId: String,
+        val currency: CurrencyResponse,
+    )
+
+    data class ProjectMemberResponse(
+        val memberId: String,
+        val name: String,
+    )
 
     @PostMapping("/projects")
     @ResponseStatus(HttpStatus.CREATED)
@@ -38,10 +50,10 @@ class ProjectController(
         @Valid @RequestBody request: CreateProjectRequest,
         @AuthenticationPrincipal jwt: Jwt,
     ): ProjectResponse {
-        val userId = jwt.subjectOrThrow()
-        val project = projects.save(Project(ownerId = userId, name = request.name, currency = request.currencyCode))
-        projectMembers.save(ProjectMember(project, userId, jwt.usernameOrThrow()))
-        saldoProjectEventHandler.handle(ProjectEvent.ProjectCreated(project.id))
+        val owner = ProjectMember(userId = jwt.subjectOrThrow(), username = jwt.usernameOrThrow())
+        val project = Project(owner = owner, name = request.name, currency = request.currencyCode)
+        projects.save(project)
+        saldoProjectEventHandler.handle(ProjectEvent.ProjectCreated(project.id, owner.userId))
         return project.toResponse()
     }
 
@@ -50,8 +62,7 @@ class ProjectController(
     fun list(
         @AuthenticationPrincipal jwt: Jwt,
     ): Set<ProjectResponse> {
-        return projectMembers.findByUserId(jwt.subjectOrThrow())
-            .map { it.project }
+        return projects.findByMemberUserId(jwt.subjectOrThrow())
             .mapTo(linkedSetOf()) { it.toResponse() }
     }
 
@@ -62,16 +73,16 @@ class ProjectController(
         @AuthenticationPrincipal jwt: Jwt,
     ): Set<ProjectMemberResponse> {
         val project = projects.findByIdOrThrow(projectId)
-        val projectMembers = projectMembers.findByProject(project)
-        val isProjectMember = projectMembers.map(ProjectMember::userId).contains(jwt.subjectOrThrow())
-        if (isProjectMember) {
-            return projectMembers.mapTo(linkedSetOf()) { ProjectMemberResponse(it.userId, it.username) }
+        if (project.hasMember(jwt.subjectOrThrow())) {
+            return project.members.mapTo(linkedSetOf()) { ProjectMemberResponse(it.userId, it.username) }
         }
         throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not project=${project.id} member")
     }
 
     private fun Project.toResponse() = ProjectResponse(
-        id, name, ownerId,
-        CurrencyResponse(currency.currencyCode, currency.defaultFractionDigits),
+        id = id,
+        name = name,
+        ownerId = ownerId,
+        currency = CurrencyResponse(currency.currencyCode, currency.defaultFractionDigits),
     )
 }

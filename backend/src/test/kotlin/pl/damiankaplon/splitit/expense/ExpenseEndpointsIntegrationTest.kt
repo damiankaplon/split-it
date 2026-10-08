@@ -16,7 +16,6 @@ import pl.damiankaplon.splitit.balancing.Saldo
 import pl.damiankaplon.splitit.balancing.SaldoRepository
 import pl.damiankaplon.splitit.project.Project
 import pl.damiankaplon.splitit.project.ProjectMember
-import pl.damiankaplon.splitit.project.ProjectMemberRepository
 import pl.damiankaplon.splitit.project.ProjectRepository
 import java.util.*
 
@@ -26,7 +25,6 @@ import java.util.*
 class ExpenseEndpointsIntegrationTest @Autowired constructor(
     private val mockMvc: MockMvc,
     private val projects: ProjectRepository,
-    private val projectMembers: ProjectMemberRepository,
     private val expenses: ExpenseRepository,
     private val saldos: SaldoRepository,
 ) {
@@ -34,8 +32,8 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     private fun asUser(id: String) = jwt().jwt { it.subject(id).claim("preferred_username", id) }
 
     private fun projectWithMember(userId: String): Project {
-        val project = projects.save(Project(userId, "Trip to Rome", PLN))
-        projectMembers.save(ProjectMember(project, userId, userId))
+        val project = Project("Trip to Rome", ProjectMember(userId, userId), PLN)
+        projects.save(project)
         saldos.save(Saldo(project.id))
         return project
     }
@@ -221,7 +219,7 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     @Test
     fun `any member updates an expense`() {
         val project = projectWithMember("alice-id")
-        projectMembers.save(ProjectMember(project, "bob-id", "bob"))
+        projects.save(project.apply { add(ProjectMember("bob-id", "bob")) })
         val expenseId = createExpense(
             project, "alice-id",
             """{"title":"Dinner","date":"2026-10-03T19:30:00","amount":100,"tag":"Food"}"""

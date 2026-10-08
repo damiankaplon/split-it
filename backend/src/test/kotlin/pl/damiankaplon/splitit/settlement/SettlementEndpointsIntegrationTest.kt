@@ -17,7 +17,6 @@ import pl.damiankaplon.splitit.balancing.Saldo
 import pl.damiankaplon.splitit.balancing.SaldoRepository
 import pl.damiankaplon.splitit.project.Project
 import pl.damiankaplon.splitit.project.ProjectMember
-import pl.damiankaplon.splitit.project.ProjectMemberRepository
 import pl.damiankaplon.splitit.project.ProjectRepository
 
 @SpringBootTest
@@ -26,15 +25,15 @@ import pl.damiankaplon.splitit.project.ProjectRepository
 class SettlementEndpointsIntegrationTest @Autowired constructor(
     private val mockMvc: MockMvc,
     private val projects: ProjectRepository,
-    private val projectMembers: ProjectMemberRepository,
     private val saldos: SaldoRepository,
 ) {
 
     private fun asUser(id: String) = jwt().jwt { it.subject(id).claim("preferred_username", id) }
 
     private fun projectWith(vararg userIds: String): Project {
-        val project = projects.save(Project(userIds.first(), "Trip to Rome", PLN))
-        userIds.forEach { projectMembers.save(ProjectMember(project, it, it)) }
+        val project = Project("Trip to Rome", ProjectMember(userIds.first(), userIds.first()), PLN)
+        userIds.drop(1).forEach { project.add(ProjectMember(it, it)) }
+        projects.save(project)
         saldos.save(Saldo(project.id))
         return project
     }
@@ -140,7 +139,7 @@ class SettlementEndpointsIntegrationTest @Autowired constructor(
     @Test
     fun `only both sides see the pending settlement`() {
         val project = bobOwesAlice4000()
-        projectMembers.save(ProjectMember(project, "settlement-dave-id", "dave"))
+        projects.save(project.apply { add(ProjectMember("settlement-dave-id", "dave")) })
         val id = requestSettlement(project, "bob-id", """{"creditorId":"alice-id","amount":4000}""").settlementId()
         // A pending settlement in another project of the same members is not listed
         val otherProject = bobOwesAlice4000()

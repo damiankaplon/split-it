@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.invitation
+package pl.damiankaplon.splitit.invitation
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

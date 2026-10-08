@@ -17,16 +17,16 @@ import pl.damiankaplon.splitit.PostgreTestContainerConfig
 class ProjectMembersEndpointIntegrationTest @Autowired constructor(
     private val mockMvc: MockMvc,
     private val projects: ProjectRepository,
-    private val projectMembers: ProjectMemberRepository,
 ) {
 
     private fun asUser(id: String) = jwt().jwt { it.subject(id).claim("preferred_username", id) }
 
     @Test
     fun `project members endpoint returns the members stored in the repository`() {
-        val project = projects.save(Project("alice-id", "Trip to Rome", PLN))
-        projectMembers.save(ProjectMember(project, "alice-id", "alice"))
-        projectMembers.save(ProjectMember(project, "bob-id", "bob"))
+        val project = projects.save(Project("Trip to Rome", ProjectMember("alice-id", "alice"), PLN))
+        projects.save(project.apply {
+            add(ProjectMember("bob-id", "bob"))
+        })
 
         mockMvc.get("/projects/${project.id}") { with(asUser("bob-id")) }
             .andExpect {
@@ -39,8 +39,7 @@ class ProjectMembersEndpointIntegrationTest @Autowired constructor(
 
     @Test
     fun `project members endpoint is forbidden for non-members`() {
-        val project = projects.save(Project("alice-id", "Trip to Rome", PLN))
-        projectMembers.save(ProjectMember(project, "alice-id", "alice"))
+        val project = projects.save(Project("Trip to Rome", ProjectMember("alice-id", "alice"), PLN))
 
         mockMvc.get("/projects/${project.id}") { with(asUser("stranger-id")) }
             .andExpect { status { isForbidden() } }
@@ -48,10 +47,9 @@ class ProjectMembersEndpointIntegrationTest @Autowired constructor(
 
     @Test
     fun `project list contains only projects the user is a member of`() {
-        val joined = projects.save(Project("alice-id", "Joined", PLN))
-        val other = projects.save(Project("alice-id", "Other", PLN))
-        projectMembers.save(ProjectMember(joined, "carol-id", "carol"))
-        projectMembers.save(ProjectMember(other, "alice-id", "alice"))
+        val joined = projects.save(Project("Joined", ProjectMember("alice-id", "alice"), PLN))
+        val other = projects.save(Project("Other", ProjectMember("alice-id", "alice"), PLN))
+        projects.save(joined.apply { add(ProjectMember("carol-id", "carol")) })
 
         mockMvc.get("/projects") { with(asUser("carol-id")) }
             .andExpect {

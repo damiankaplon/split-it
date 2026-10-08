@@ -6,6 +6,8 @@ import java.util.*
 
 @Repository
 interface ExpenseTagRepository : JpaRepository<ExpenseTag, UUID> {
+
     fun findByProjectIdAndNameIgnoreCase(projectId: UUID, name: String): ExpenseTag?
+
     fun findByProjectIdOrderByNameAsc(projectId: UUID): List<ExpenseTag>
 }

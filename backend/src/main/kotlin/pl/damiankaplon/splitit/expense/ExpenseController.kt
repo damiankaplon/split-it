@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.balancing.SaldoExpenseEventHandler
-import pl.damiankaplon.splitit.project.ProjectMemberRepository
+import pl.damiankaplon.splitit.project.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
 import java.time.LocalDateTime
 import java.util.*
@@ -26,7 +26,7 @@ import kotlin.math.absoluteValue
 class ExpenseController(
     private val expenses: ExpenseRepository,
     private val tags: ExpenseTagRepository,
-    private val projectMembers: ProjectMemberRepository,
+    private val projects: ProjectRepository,
     private val saldoExpenseEventHandler: SaldoExpenseEventHandler,
 ) {
 
@@ -126,7 +126,7 @@ class ExpenseController(
         @AuthenticationPrincipal jwt: Jwt,
     ): ExpenseResponse {
         requireMember(projectId, jwt)
-        return findExpenseOrThrow(projectId, expenseId).toResponse()
+        return expenses.findByIdAndProjectIdOrThrow(expenseId, projectId).toResponse()
     }
 
     @PutMapping("/expenses/{expenseId}")
@@ -138,7 +138,7 @@ class ExpenseController(
         @AuthenticationPrincipal jwt: Jwt,
     ): ExpenseResponse {
         requireMember(projectId, jwt)
-        val expense = findExpenseOrThrow(projectId, expenseId)
+        val expense = expenses.findByIdAndProjectIdOrThrow(expenseId, projectId)
         // The money was paid by whoever created the expense, whichever member edits it
         val payer = UserId(expense.createdBy)
         val amountDiff = request.amount - expense.amount
@@ -162,7 +162,7 @@ class ExpenseController(
         @AuthenticationPrincipal jwt: Jwt,
     ) {
         requireMember(projectId, jwt)
-        val expense = findExpenseOrThrow(projectId, expenseId)
+        val expense = expenses.findByIdAndProjectIdOrThrow(expenseId, projectId)
         expenses.delete(expense)
         saldoExpenseEventHandler.handle(
             ExpenseEvent.ExpensesReduced(
@@ -186,15 +186,11 @@ class ExpenseController(
 
     private fun requireMember(projectId: UUID, jwt: Jwt): UserId {
         val userId = jwt.subjectOrThrow()
-        if (!projectMembers.existsByProjectIdAndUserId(projectId, userId)) {
+        if (!projects.existsByIdAndMemberUserId(projectId, userId)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not project=$projectId member")
         }
         return UserId(userId)
     }
-
-    private fun findExpenseOrThrow(projectId: UUID, expenseId: UUID): Expense =
-        expenses.findByIdAndProjectId(expenseId, projectId)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Expense=$expenseId not found in project=$projectId")
 
     /**
      * Reuses an existing project tag (case-insensitive) or creates a new one;

@@ -21,8 +21,8 @@ import java.util.*
 @Import(PostgreTestContainerConfig::class)
 class ProjectEndpointsIntegrationTest @Autowired constructor(
 	private val mockMvc: MockMvc,
-    private val projectMembers: ProjectMemberRepository,
     private val saldos: SaldoRepository,
+    private val projects: ProjectRepository,
 ) {
 
     private fun asUser(id: String) = jwt().jwt { it.subject(id).claim("preferred_username", "alice") }
@@ -36,6 +36,7 @@ class ProjectEndpointsIntegrationTest @Autowired constructor(
 	}
 
 	@Test
+    @org.springframework.transaction.annotation.Transactional
     fun `creator becomes the owner and a member of the new project`() {
         val userId = UUID.randomUUID().toString()
         val response = mockMvc.post("/projects") {
@@ -49,7 +50,7 @@ class ProjectEndpointsIntegrationTest @Autowired constructor(
         }.andReturn().response.contentAsString
 
         val projectId = UUID.fromString(Regex("\"id\":\"([^\"]+)\"").find(response)!!.groupValues[1])
-        val members = projectMembers.findByProjectId(projectId)
+        val members = projects.findByIdOrThrow(projectId).members
         assertEquals(1, members.size)
         assertEquals(userId, members.single().userId)
         assertEquals("alice", members.single().username)

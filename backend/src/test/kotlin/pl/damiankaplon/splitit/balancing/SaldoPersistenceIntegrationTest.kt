@@ -13,6 +13,7 @@ import pl.damiankaplon.splitit.PostgreTestContainerConfig
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.expense.ExpenseEvent
 import pl.damiankaplon.splitit.project.Project
+import pl.damiankaplon.splitit.project.ProjectMember
 import pl.damiankaplon.splitit.project.ProjectRepository
 
 @SpringBootTest
@@ -25,7 +26,8 @@ class SaldoPersistenceIntegrationTest @Autowired constructor(
     private val alice = UserId("alice")
     private val bob = UserId("bob")
 
-    private fun newSaldo() = saldos.save(Saldo(projects.save(Project("owner-id", "Trip", PLN)).id))
+    private fun newSaldo() =
+        saldos.save(Saldo(projects.save(Project("Trip", ProjectMember("owner-id", "owner"), PLN)).id))
 
     private fun update(projectId: java.util.UUID, event: ExpenseEvent) = tx.executeWithoutResult {
         val saldo = saldos.findByProjectIdOrThrow(projectId)

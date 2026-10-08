@@ -1,10 +1,11 @@
-package pl.damiankaplon.splitit.project.invitation
+package pl.damiankaplon.splitit.invitation
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import pl.damiankaplon.splitit.Time
-import pl.damiankaplon.splitit.project.ProjectMemberRepository
+import pl.damiankaplon.splitit.project.ProjectEvent
+import pl.damiankaplon.splitit.project.ProjectMember
 import pl.damiankaplon.splitit.project.ProjectRepository
 import java.security.SecureRandom
 import java.time.Duration
@@ -17,7 +18,6 @@ private val logger = KotlinLogging.logger {}
 class InvitationCommandHandler(
     private val projects: ProjectRepository,
     private val invitations: ProjectInvitationRepository,
-    private val projectMembers: ProjectMemberRepository,
     private val time: Time,
 ) {
 
@@ -35,9 +35,8 @@ class InvitationCommandHandler(
         val token: String,
     )
 
-    fun handle(command: CreateInvitation): Result<ProjectInvitationEvent.ProjectInvitationCreated> {
+    fun handle(command: CreateInvitation): ProjectInvitationEvent.ProjectInvitationCreated {
         logger.info { "Received command: $command" }
-        return runCatching {
             val project = projects.findByIdOrThrow(command.projectId)
             require(project.ownerId == command.userId)
             fun newToken(): String {
@@ -51,27 +50,21 @@ class InvitationCommandHandler(
                 expiresAt = time.now().plus(Duration.ofDays(5)),
                 createdAt = time.now(),
             ).also(invitations::save)
-            ProjectInvitationEvent.ProjectInvitationCreated(
+        return ProjectInvitationEvent.ProjectInvitationCreated(
                 invitation.id,
                 invitation.token,
                 invitation.projectId
             )
-        }
     }
 
-    fun handle(command: AcceptInvitation): Result<ProjectInvitationEvent.ProjectInvitationAccepted> {
+    fun handle(command: AcceptInvitation): ProjectEvent.MemberJoined {
         logger.info { "Received command: $command" }
-        return runCatching {
-            val invitation = invitations.findByProjectIdAndTokenOrThrow(command.projectId, command.token)
-            require(invitation.isAccepted.not()) { "$invitation is already accepted" }
-            require(time.now().isBefore(invitation.expiresAt)) { "$invitation is expired" }
-            invitation.acceptedBy = command.userId
-            ProjectInvitationEvent.ProjectInvitationAccepted(
-                invitation.id,
-                userId = command.userId,
-                username = command.username,
-                projectId = command.projectId,
-            )
-        }
+        val invitation = invitations.findByProjectIdAndTokenOrThrow(command.projectId, command.token)
+        require(invitation.isAccepted.not()) { "$invitation is already accepted" }
+        require(time.now().isBefore(invitation.expiresAt)) { "$invitation is expired" }
+        invitation.acceptedBy = command.userId
+        val project = projects.findByIdOrThrow(invitation.projectId)
+        project.add(ProjectMember(command.userId, command.username))
+        return ProjectEvent.MemberJoined(command.projectId, command.userId)
     }
 }

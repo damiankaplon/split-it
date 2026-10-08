@@ -2,6 +2,7 @@ package pl.damiankaplon.splitit.balancing
 
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.project.ProjectEvent
 
 @Component
@@ -11,8 +12,18 @@ class SaldoProjectEventHandler(
 ) {
 
     fun handle(event: ProjectEvent.ProjectCreated) {
-        if (!saldos.existsById(event.projectId)) {
-            saldos.save(Saldo(event.projectId))
-        }
+        val saldo = Saldo(event.projectId)
+        val member = Saldo.Member(
+            id = Saldo.MemberId(event.projectId, event.userId.let(::UserId)),
+            totalExpensesAmount = 0
+        )
+        saldo.members += member
+        saldos.save(saldo)
+    }
+
+    fun handle(event: ProjectEvent.MemberJoined) {
+        val saldo = saldos.findByProjectIdOrThrow(event.projectId)
+        saldo.handle(event)
+        saldos.save(saldo)
     }
 }

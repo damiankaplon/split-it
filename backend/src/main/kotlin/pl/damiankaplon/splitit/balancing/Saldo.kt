@@ -3,6 +3,7 @@ package pl.damiankaplon.splitit.balancing
 import jakarta.persistence.*
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.expense.ExpenseEvent
+import pl.damiankaplon.splitit.project.ProjectEvent
 import pl.damiankaplon.splitit.settlement.SettlementEvent
 import java.io.Serializable
 import java.util.*
@@ -54,6 +55,15 @@ class Saldo(
         require(amount <= debt.amount) { "Cannot settle $amount, the debt is only ${debt.amount}" }
         members.single { it.userId == debtor }.settledAmount += amount
         members.single { it.userId == creditor }.settledAmount -= amount
+        recalculateDebts()
+    }
+
+    fun handle(event: ProjectEvent.MemberJoined) {
+        val member = Member(
+            id = MemberId(event.projectId, event.userId.let(::UserId)),
+            totalExpensesAmount = 0
+        )
+        members += member
         recalculateDebts()
     }
 

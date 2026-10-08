@@ -7,5 +7,11 @@ sealed interface ProjectEvent {
 
     data class ProjectCreated(
         override val projectId: UUID,
+        val userId: String,
+    ) : ProjectEvent
+
+    data class MemberJoined(
+        override val projectId: UUID,
+        val userId: String,
     ) : ProjectEvent
 }

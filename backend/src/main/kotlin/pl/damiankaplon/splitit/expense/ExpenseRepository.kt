@@ -1,5 +1,6 @@
 package pl.damiankaplon.splitit.expense
 
+import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
@@ -17,4 +18,9 @@ interface ExpenseRepository : JpaRepository<Expense, UUID>, JpaSpecificationExec
 
     @EntityGraph(attributePaths = ["tag"])
     fun findByIdAndProjectId(id: UUID, projectId: UUID): Expense?
+
+    @EntityGraph(attributePaths = ["tag"])
+    fun findByIdAndProjectIdOrThrow(id: UUID, projectId: UUID): Expense =
+        findByIdAndProjectId(id, projectId)
+            ?: throw EntityNotFoundException("${Expense::class.qualifiedName} not found by id=$id, projectId=$projectId")
 }
