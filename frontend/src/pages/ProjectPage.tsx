@@ -15,7 +15,6 @@ import {Card} from '@/components/ui/card'
 import {Input} from '@/components/ui/input'
 import {initials} from '@/lib/initials'
 import {formatAmount} from '@/lib/money'
-import {cn} from '@/lib/utils'
 
 const PAGE_SIZE = 20
 const SEARCH_DEBOUNCE_MS = 300
@@ -244,14 +243,17 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
             />
           </div>
           {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('project.filterByTag')}>
-                <TagChip selected={tag === null} onClick={() => setTag(null)}>{t('project.allTags')}</TagChip>
+              <select
+                  aria-label={t('project.filterByTag')}
+                  className="h-10 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm"
+                  value={tag ?? ''}
+                  onChange={(e) => setTag(e.target.value === '' ? null : e.target.value)}
+              >
+                <option value="">{t('project.allTags')}</option>
                 {tags.map((name) => (
-                    <TagChip key={name} selected={tag === name} onClick={() => setTag(tag === name ? null : name)}>
-                      {name}
-                    </TagChip>
+                    <option key={name} value={name}>{name}</option>
                 ))}
-              </div>
+              </select>
           )}
         </div>
 
@@ -355,25 +357,5 @@ function ExpenseRow({expense, author, isMine, currency, locale, action}: {
         <span className="shrink-0 font-semibold tabular-nums">{formatAmount(expense.amount, currency, locale)}</span>
         {action}
       </li>
-  )
-}
-
-function TagChip({selected, onClick, children}: {
-  selected: boolean
-  onClick: () => void
-  children: ReactNode
-}) {
-  return (
-      <button
-          type="button"
-          aria-pressed={selected}
-          onClick={onClick}
-          className={cn(
-              'h-7 rounded-full border px-3 text-[13px] transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
-              selected ? 'border-primary bg-primary text-primary-foreground' : 'bg-card hover:bg-accent',
-          )}
-      >
-        {children}
-      </button>
   )
 }
