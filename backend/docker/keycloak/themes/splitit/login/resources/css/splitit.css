@@ -1,0 +1,368 @@
+/*
+ * SplitIt! look for the keycloak.v2 (PatternFly 5) login pages.
+ * Tokens mirror frontend/src/index.css (shadcn/ui Zinc, Geist, radius 0.5rem); keep them in sync.
+ */
+
+@font-face {
+  font-family: "Geist Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../fonts/geist-latin-ext-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Geist Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../fonts/geist-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  /* Frontend tokens */
+  --splitit-radius: 0.5rem;
+  --splitit-background: #fafafa;
+  --splitit-foreground: #18181b;
+  --splitit-card: #ffffff;
+  --splitit-primary: #0f6e5a;
+  --splitit-primary-hover: #277c6b; /* bg-primary/90 on white */
+  --splitit-primary-foreground: #ffffff;
+  --splitit-muted: #f4f4f5;
+  --splitit-muted-foreground: #6b6b74;
+  --splitit-accent: #f4f4f5;
+  --splitit-destructive: #b91c1c;
+  --splitit-border: #e4e4e7;
+  --splitit-ring: rgb(15 110 90 / 0.5);
+  --splitit-success-muted: #e6f2ef;
+  --splitit-font: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --splitit-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+
+  /* PatternFly globals */
+  --pf-v5-global--FontFamily--text: var(--splitit-font);
+  --pf-v5-global--FontFamily--text--vf: var(--splitit-font);
+  --pf-v5-global--FontFamily--heading: var(--splitit-font);
+  --pf-v5-global--FontFamily--heading--vf: var(--splitit-font);
+  --pf-v5-global--FontSize--md: 0.875rem;
+  --pf-v5-global--LineHeight--md: 1.45;
+  --pf-v5-global--primary-color--100: var(--splitit-primary);
+  --pf-v5-global--primary-color--200: var(--splitit-primary-hover);
+  --pf-v5-global--active-color--100: var(--splitit-primary);
+  --pf-v5-global--link--Color: var(--splitit-primary);
+  --pf-v5-global--link--Color--hover: var(--splitit-primary);
+  --pf-v5-global--link--Color--visited: var(--splitit-primary);
+  --pf-v5-global--danger-color--100: var(--splitit-destructive);
+  --pf-v5-global--Color--100: var(--splitit-foreground);
+  --pf-v5-global--Color--200: var(--splitit-muted-foreground);
+  --pf-v5-global--BackgroundColor--100: var(--splitit-card);
+  --pf-v5-global--BorderRadius--sm: calc(var(--splitit-radius) - 2px);
+
+  /* keycloak.v2 styles.css */
+  --keycloak-card-top-color: transparent;
+}
+
+/* Page */
+
+.login-pf body {
+  background: var(--splitit-background);
+  color: var(--splitit-foreground);
+  font-family: var(--splitit-font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.pf-v5-c-login {
+  /* 25rem card (frontend SignInPage max-w-[400px]) + side padding */
+  --pf-v5-c-login__container--MaxWidth: 28rem;
+  --pf-v5-c-login__container--PaddingLeft: 1.5rem;
+  --pf-v5-c-login__container--PaddingRight: 1.5rem;
+  --pf-v5-c-login__main--BoxShadow: var(--splitit-shadow-xs);
+  --pf-v5-c-login__main--BackgroundColor: var(--splitit-card);
+}
+
+.pf-v5-c-login__container {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Brand: logo mark + "SplitIt!" above the card */
+
+#kc-header-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--splitit-foreground) !important;
+  font-family: var(--splitit-font);
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  line-height: 1.2;
+}
+
+#kc-header-wrapper::before {
+  content: "";
+  width: 2.75rem;
+  height: 2.75rem;
+  background: url("../img/logo-mark.svg") no-repeat center / contain;
+}
+
+/* Card */
+
+.pf-v5-c-login__main {
+  border: 1px solid var(--splitit-border);
+  border-radius: calc(var(--splitit-radius) + 4px);
+}
+
+.pf-v5-c-login__main-header {
+  border-top: 0;
+  padding: 2rem 2rem 1rem;
+  align-items: center;
+}
+
+.pf-v5-c-login__main-body,
+.pf-v5-c-login__main-footer-band {
+  padding-inline: 2rem;
+}
+
+.pf-v5-c-login__main-body {
+  padding-bottom: 2rem;
+}
+
+.pf-v5-c-login__main-body > .pf-v5-c-login__main-footer {
+  padding-bottom: 0;
+}
+
+/* The page-level footer below the body is usually empty */
+.pf-v5-c-login__main > .pf-v5-c-login__main-footer:not(:has(*)) {
+  display: none;
+}
+
+#kc-page-title {
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.pf-v5-c-login__main-footer-band {
+  border-top-color: var(--splitit-border);
+  color: var(--splitit-muted-foreground);
+}
+
+#kc-registration a,
+.pf-v5-c-login__main-footer-band a {
+  font-weight: 500;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Forms */
+
+.pf-v5-c-form {
+  --pf-v5-c-form--GridGap: 1rem;
+}
+
+.pf-v5-c-form__label,
+.pf-v5-c-form__label-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--splitit-foreground);
+}
+
+.pf-v5-c-form__label-required,
+.pf-v5-c-check__label-required {
+  color: var(--splitit-destructive);
+}
+
+.pf-v5-c-form-control {
+  --pf-v5-c-form-control--PaddingTop: 0.4375rem;
+  --pf-v5-c-form-control--PaddingBottom: 0.4375rem;
+  --pf-v5-c-form-control--PaddingLeft: 0.75rem;
+  --pf-v5-c-form-control--PaddingRight: 0.75rem;
+  --pf-v5-c-form-control--m-readonly--BackgroundColor: var(--splitit-muted);
+  border-radius: calc(var(--splitit-radius) - 2px);
+  box-shadow: var(--splitit-shadow-xs);
+  transition: box-shadow 150ms;
+}
+
+/* One plain 1px border instead of PatternFly's bottom-accent underline */
+.pf-v5-c-form-control::before {
+  border: 1px solid var(--splitit-border);
+  border-radius: inherit;
+}
+
+.pf-v5-c-form-control::after {
+  display: none;
+}
+
+.pf-v5-c-form-control > :is(input, select, textarea) {
+  outline: none;
+}
+
+.pf-v5-c-form-control > :is(input, textarea)::placeholder {
+  color: var(--splitit-muted-foreground);
+}
+
+.pf-v5-c-form-control:focus-within {
+  box-shadow: 0 0 0 3px var(--splitit-ring);
+}
+
+.pf-v5-c-form-control:focus-within::before {
+  border-color: var(--splitit-primary);
+}
+
+.pf-v5-c-form-control.pf-m-error::before {
+  border-color: var(--splitit-destructive);
+}
+
+.pf-v5-c-form-control.pf-m-error:focus-within {
+  box-shadow: 0 0 0 3px rgb(185 28 28 / 0.2);
+}
+
+.pf-v5-c-form-control.pf-m-readonly:focus-within {
+  box-shadow: var(--splitit-shadow-xs);
+}
+
+.pf-v5-c-form-control.pf-m-readonly:focus-within::before {
+  border-color: var(--splitit-border);
+}
+
+/* Input + trailing control button (password visibility, restart login) */
+
+.pf-v5-c-input-group {
+  border-radius: calc(var(--splitit-radius) - 2px);
+}
+
+.pf-v5-c-input-group > .pf-v5-c-input-group__item:not(:last-child) .pf-v5-c-form-control {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.pf-v5-c-input-group > .pf-v5-c-input-group__item:last-child > .pf-v5-c-button.pf-m-control {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  margin-inline-start: -1px;
+}
+
+.pf-v5-c-button.pf-m-control {
+  --pf-v5-c-button--m-control--BackgroundColor: var(--splitit-card);
+  --pf-v5-c-button--m-control--hover--BackgroundColor: var(--splitit-accent);
+  --pf-v5-c-button--m-control--focus--BackgroundColor: var(--splitit-accent);
+  --pf-v5-c-button--m-control--active--BackgroundColor: var(--splitit-accent);
+  --pf-v5-c-button--m-control--Color: var(--splitit-muted-foreground);
+  --pf-v5-c-button--m-control--hover--Color: var(--splitit-foreground);
+  border-radius: calc(var(--splitit-radius) - 2px);
+  box-shadow: var(--splitit-shadow-xs);
+}
+
+.pf-v5-c-button.pf-m-control::after {
+  border: 1px solid var(--splitit-border) !important;
+  border-radius: inherit;
+}
+
+/* Checkboxes */
+
+.pf-v5-c-check__input {
+  accent-color: var(--splitit-primary);
+}
+
+.pf-v5-c-check__label {
+  font-size: 0.875rem;
+}
+
+/* Buttons */
+
+.pf-v5-c-button {
+  --pf-v5-c-button--FontWeight: 500;
+  --pf-v5-c-button--BorderRadius: calc(var(--splitit-radius) - 2px);
+  --pf-v5-c-button--after--BorderRadius: calc(var(--splitit-radius) - 2px);
+  font-size: 0.875rem;
+  transition: background-color 150ms, color 150ms, box-shadow 150ms;
+}
+
+.pf-v5-c-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--splitit-ring);
+}
+
+/* Matches the frontend's "Continue with Keycloak" button: h-11 rounded-lg */
+.pf-v5-c-button.pf-m-primary {
+  --pf-v5-c-button--m-primary--Color: var(--splitit-primary-foreground);
+  --pf-v5-c-button--m-primary--hover--Color: var(--splitit-primary-foreground);
+  min-height: 2.75rem;
+  border-radius: var(--splitit-radius);
+}
+
+.pf-v5-c-button.pf-m-primary::after {
+  border-radius: var(--splitit-radius);
+}
+
+/* shadcn "outline" button */
+.pf-v5-c-button.pf-m-secondary {
+  --pf-v5-c-button--m-secondary--Color: var(--splitit-foreground);
+  --pf-v5-c-button--m-secondary--hover--Color: var(--splitit-foreground);
+  --pf-v5-c-button--m-secondary--focus--Color: var(--splitit-foreground);
+  --pf-v5-c-button--m-secondary--active--Color: var(--splitit-foreground);
+  --pf-v5-c-button--m-secondary--BackgroundColor: var(--splitit-card);
+  --pf-v5-c-button--m-secondary--hover--BackgroundColor: var(--splitit-accent);
+  --pf-v5-c-button--m-secondary--focus--BackgroundColor: var(--splitit-accent);
+  --pf-v5-c-button--m-secondary--active--BackgroundColor: var(--splitit-accent);
+  --pf-v5-c-button--m-secondary--after--BorderColor: var(--splitit-border);
+  --pf-v5-c-button--m-secondary--hover--after--BorderColor: var(--splitit-border);
+  --pf-v5-c-button--m-secondary--focus--after--BorderColor: var(--splitit-border);
+  --pf-v5-c-button--m-secondary--active--after--BorderColor: var(--splitit-border);
+  --pf-v5-c-button--hover--after--BorderWidth: 1px;
+  --pf-v5-c-button--focus--after--BorderWidth: 1px;
+  --pf-v5-c-button--active--after--BorderWidth: 1px;
+  box-shadow: var(--splitit-shadow-xs);
+}
+
+.pf-v5-c-button.pf-m-link {
+  --pf-v5-c-button--m-link--Color: var(--splitit-primary);
+  --pf-v5-c-button--m-link--hover--Color: var(--splitit-primary);
+}
+
+/* Alerts */
+
+.pf-v5-c-alert {
+  border-radius: var(--splitit-radius);
+  box-shadow: none;
+  border: 1px solid var(--splitit-border);
+  font-size: 0.8125rem;
+}
+
+.pf-v5-c-alert.pf-m-danger {
+  --pf-v5-c-alert--m-danger__icon--Color: var(--splitit-destructive);
+  --pf-v5-c-alert--m-danger__title--Color: var(--splitit-destructive);
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+.pf-v5-c-alert.pf-m-success,
+.pf-v5-c-alert.pf-m-info {
+  --pf-v5-c-alert--m-success__icon--Color: var(--splitit-primary);
+  --pf-v5-c-alert--m-success__title--Color: var(--splitit-primary);
+  --pf-v5-c-alert--m-info__icon--Color: var(--splitit-primary);
+  --pf-v5-c-alert--m-info__title--Color: var(--splitit-primary);
+  background-color: var(--splitit-success-muted);
+  border-color: #c6e1da;
+}
+
+.pf-v5-c-helper-text__item.pf-m-error,
+.pf-v5-c-helper-text__item-text.pf-m-error {
+  color: var(--splitit-destructive);
+  font-size: 0.8125rem;
+}
+
+/* Language select in the card header */
+
+#login-select-toggle {
+  font-size: 0.8125rem;
+  color: var(--splitit-muted-foreground);
+}

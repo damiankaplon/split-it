@@ -1,6 +1,9 @@
 {
   "realm": "split_it",
   "enabled": true,
+  "displayName": "SplitIt!",
+  "displayNameHtml": "SplitIt!",
+  "loginTheme": "splitit",
   "sslRequired": "external",
   "registrationAllowed": true,
   "registrationEmailAsUsername": false,

@@ -47,6 +47,8 @@ services:
     volumes:
       # Realm is imported only if it does not exist yet in the database (--import-realm skips existing realms)
       - ./src/test/resources/keycloak/split_it-realm.json:/opt/keycloak/data/import/split_it-realm.json:ro
+      # SplitIt! login/registration theme; start-dev disables theme caching, so edits show on page reload
+      - ./docker/keycloak/themes/splitit:/opt/keycloak/themes/splitit:ro
     depends_on:
       postgres:
         condition: service_healthy
