@@ -1,10 +1,13 @@
 package pl.damiankaplon.splitit.expense
 
 import jakarta.persistence.*
+import org.hibernate.annotations.BatchSize
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity
+// Loads the expenses behind a page of personal expense shares together
+@BatchSize(size = 100)
 @Table(name = "expense")
 class Expense(
     @Column(name = "project_id", nullable = false)

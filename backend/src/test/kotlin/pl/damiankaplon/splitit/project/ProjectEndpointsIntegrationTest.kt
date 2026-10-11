@@ -92,6 +92,40 @@ class ProjectEndpointsIntegrationTest @Autowired constructor(
     }
 
     @Test
+    fun `split policy defaults to equal share`() {
+        val userId = UUID.randomUUID().toString()
+        mockMvc.post("/projects") {
+            with(asUser(userId))
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"name":"Zakopane","currency":"PLN"}"""
+        }.andExpect {
+            status { isCreated() }
+            jsonPath("$.splitPolicy") { value("EQUAL_SHARE") }
+        }
+
+        mockMvc.get("/projects") { with(asUser(userId)) }
+            .andExpect { jsonPath("$[0].splitPolicy") { value("EQUAL_SHARE") } }
+    }
+
+    @Test
+    fun `split policy can be chosen from the available ones`() {
+        mockMvc.post("/projects") {
+            with(asUser(UUID.randomUUID().toString()))
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"name":"Zakopane","currency":"PLN","splitPolicy":"EQUAL_SHARE"}"""
+        }.andExpect {
+            status { isCreated() }
+            jsonPath("$.splitPolicy") { value("EQUAL_SHARE") }
+        }
+
+        mockMvc.post("/projects") {
+            with(asUser(UUID.randomUUID().toString()))
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"name":"Zakopane","currency":"PLN","splitPolicy":"WHOEVER_PAYS"}"""
+        }.andExpect { status { isBadRequest() } }
+    }
+
+    @Test
     fun `creating a project requires a known currency`() {
         // XAU (gold) is a valid ISO code but has no minor units, so amounts couldn't be stored
         for (body in listOf(

@@ -1,6 +1,7 @@
 import {Languages, LogOut} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
-import {Link} from 'react-router'
+import type {ReactNode} from 'react'
+import {Link, useLocation} from 'react-router'
 import {Avatar, AvatarFallback} from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -18,6 +19,7 @@ import {
 import {LogoMark} from '@/components/Logo'
 import {changeLanguage, currentLanguage, type Language, LANGUAGES} from '@/i18n'
 import {initials} from '@/lib/initials'
+import {cn} from '@/lib/utils'
 
 interface AppHeaderProps {
   username: string
@@ -26,6 +28,8 @@ interface AppHeaderProps {
 
 export function AppHeader({username, onSignOut}: AppHeaderProps) {
   const {t} = useTranslation()
+  // Project pages belong to the Projects tab too
+  const {pathname} = useLocation()
 
   return (
       <header className="border-b bg-card">
@@ -34,6 +38,10 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
             <LogoMark/>
             SplitIt!
           </Link>
+          <nav aria-label={t('header.navigation')} className="ml-4 flex items-center gap-1">
+            <HeaderTab to="/" active={!pathname.startsWith('/personal')}>{t('header.projects')}</HeaderTab>
+            <HeaderTab to="/personal" active={pathname.startsWith('/personal')}>{t('header.personal')}</HeaderTab>
+          </nav>
           <div className="grow"/>
           <DropdownMenu>
             <DropdownMenuTrigger
@@ -78,5 +86,20 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
           </DropdownMenu>
         </div>
       </header>
+  )
+}
+
+function HeaderTab({to, active, children}: { to: string; active: boolean; children: ReactNode }) {
+  return (
+      <Link
+          to={to}
+          aria-current={active ? 'page' : undefined}
+          className={cn(
+              'rounded-lg px-3 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50',
+              active ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground',
+          )}
+      >
+        {children}
+      </Link>
   )
 }

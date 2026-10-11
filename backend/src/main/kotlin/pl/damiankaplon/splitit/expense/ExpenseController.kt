@@ -14,12 +14,10 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.UserId
-import pl.damiankaplon.splitit.balancing.SaldoExpenseEventHandler
 import pl.damiankaplon.splitit.project.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.math.absoluteValue
 
 @RestController
 @RequestMapping("/projects/{projectId}")
@@ -27,7 +25,7 @@ class ExpenseController(
     private val expenses: ExpenseRepository,
     private val tags: ExpenseTagRepository,
     private val projects: ProjectRepository,
-    private val saldoExpenseEventHandler: SaldoExpenseEventHandler,
+    private val expenseService: ExpenseService,
 ) {
 
     data class ExpenseRequest(
@@ -56,21 +54,7 @@ class ExpenseController(
         @AuthenticationPrincipal jwt: Jwt,
     ): ExpenseResponse {
         val userId = requireMember(projectId, jwt)
-        val expense = Expense(
-            projectId = projectId,
-            title = request.title,
-            date = request.date,
-            amount = request.amount,
-            tag = findOrCreateTag(projectId, request.tag),
-            createdBy = userId.value,
-        ).also(expenses::save)
-        val event = ExpenseEvent.ExpensesIncreased(
-            projectId = projectId,
-            userId = userId,
-            increasedBy = expense.amount
-        )
-        saldoExpenseEventHandler.handle(event)
-        return expenses.save(expense).toResponse()
+        return expenseService.create(projectId, userId, request.toDetails()).toResponse()
     }
 
     data class ExpensePage(
@@ -138,19 +122,7 @@ class ExpenseController(
         @AuthenticationPrincipal jwt: Jwt,
     ): ExpenseResponse {
         requireMember(projectId, jwt)
-        val expense = expenses.findByIdAndProjectIdOrThrow(expenseId, projectId)
-        // The money was paid by whoever created the expense, whichever member edits it
-        val payer = UserId(expense.createdBy)
-        val amountDiff = request.amount - expense.amount
-        val event = if (amountDiff > 0) ExpenseEvent.ExpensesIncreased(projectId, payer, amountDiff)
-        else if (amountDiff < 0) ExpenseEvent.ExpensesReduced(projectId, payer, amountDiff.absoluteValue)
-        else null
-        expense.title = request.title
-        expense.date = request.date
-        expense.amount = request.amount
-        expense.tag = findOrCreateTag(projectId, request.tag)
-        event?.run(saldoExpenseEventHandler::handle)
-        return expense.toResponse()
+        return expenseService.update(projectId, expenseId, request.toDetails()).toResponse()
     }
 
     @DeleteMapping("/expenses/{expenseId}")
@@ -162,15 +134,7 @@ class ExpenseController(
         @AuthenticationPrincipal jwt: Jwt,
     ) {
         requireMember(projectId, jwt)
-        val expense = expenses.findByIdAndProjectIdOrThrow(expenseId, projectId)
-        expenses.delete(expense)
-        saldoExpenseEventHandler.handle(
-            ExpenseEvent.ExpensesReduced(
-                expense.projectId,
-                expense.createdBy.let(::UserId),
-                expense.amount
-            )
-        )
+        expenseService.delete(projectId, expenseId)
     }
 
     /** Tags already used in the project, for the tag drop-down. */
@@ -192,15 +156,7 @@ class ExpenseController(
         return UserId(userId)
     }
 
-    /**
-     * Reuses an existing project tag (case-insensitive) or creates a new one;
-     * a blank name means no tag.
-     */
-    private fun findOrCreateTag(projectId: UUID, name: String?): ExpenseTag? {
-        val trimmed = name?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-        return tags.findByProjectIdAndNameIgnoreCase(projectId, trimmed)
-            ?: tags.save(ExpenseTag(projectId, trimmed))
-    }
+    private fun ExpenseRequest.toDetails() = ExpenseService.ExpenseDetails(title, date, amount, tag)
 
     private fun Expense.toResponse() = ExpenseResponse(id, projectId, title, date, amount, tag?.name, createdBy)
 

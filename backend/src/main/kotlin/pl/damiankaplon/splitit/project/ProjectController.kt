@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.balancing.SaldoProjectEventHandler
+import pl.damiankaplon.splitit.policy.SplitPolicyType
 import pl.damiankaplon.splitit.subjectOrThrow
 import pl.damiankaplon.splitit.usernameOrThrow
 import java.util.*
@@ -22,6 +23,7 @@ class ProjectController(
     data class CreateProjectRequest(
         @field:NotBlank val name: String,
         @field:NotBlank @field:IsoCurrency val currency: String,
+        val splitPolicy: SplitPolicyType = SplitPolicyType.EQUAL_SHARE,
     ) {
         val currencyCode: Currency by lazy { Currency.getInstance(currency.trim().uppercase()) }
     }
@@ -36,6 +38,7 @@ class ProjectController(
         val name: String,
         val ownerId: String,
         val currency: CurrencyResponse,
+        val splitPolicy: SplitPolicyType,
     )
 
     data class ProjectMemberResponse(
@@ -51,7 +54,12 @@ class ProjectController(
         @AuthenticationPrincipal jwt: Jwt,
     ): ProjectResponse {
         val owner = ProjectMember(userId = jwt.subjectOrThrow(), username = jwt.usernameOrThrow())
-        val project = Project(owner = owner, name = request.name, currency = request.currencyCode)
+        val project = Project(
+            owner = owner,
+            name = request.name,
+            currency = request.currencyCode,
+            splitPolicy = request.splitPolicy,
+        )
         projects.save(project)
         saldoProjectEventHandler.handle(ProjectEvent.ProjectCreated(project.id, owner.userId))
         return project.toResponse()
@@ -84,5 +92,6 @@ class ProjectController(
         name = name,
         ownerId = ownerId,
         currency = CurrencyResponse(currency.currencyCode, currency.defaultFractionDigits),
+        splitPolicy = splitPolicy,
     )
 }

@@ -1,6 +1,7 @@
 package pl.damiankaplon.splitit.project
 
 import jakarta.persistence.*
+import pl.damiankaplon.splitit.policy.SplitPolicyType
 import java.util.*
 
 @Entity
@@ -15,6 +16,11 @@ class Project private constructor(
     /** Currency of every expense in the project; stored as its ISO 4217 code. */
     @Column(name = "currency", nullable = false)
     val currency: Currency,
+
+    /** How every expense in the project is divided among its members. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "split_policy", nullable = false)
+    val splitPolicy: SplitPolicyType,
 ) {
     @Id
     val id: UUID = UUID.randomUUID()
@@ -23,10 +29,12 @@ class Project private constructor(
         name: String,
         owner: ProjectMember,
         currency: Currency,
+        splitPolicy: SplitPolicyType = SplitPolicyType.EQUAL_SHARE,
     ) : this(
         owner.userId,
         name,
-        currency
+        currency,
+        splitPolicy,
     ) {
         _members.add(owner)
     }

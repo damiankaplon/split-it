@@ -6,6 +6,15 @@ const MAX_MINOR_UNITS = 2_147_483_647
 /** Currencies offered when creating a project; the backend accepts any ISO 4217 code with minor units. */
 export const PROJECT_CURRENCIES = ['PLN', 'EUR', 'USD', 'GBP', 'CHF', 'CZK', 'SEK', 'NOK', 'DKK', 'HUF', 'UAH', 'JPY']
 
+/** Minor units come from the browser's ISO 4217 data, matching what the backend reports (e.g. JPY has none). */
+export const currencyOf = (code: string): Currency => ({
+  code,
+  minorUnits: new Intl.NumberFormat('en', {
+    style: 'currency',
+    currency: code
+  }).resolvedOptions().maximumFractionDigits ?? 2,
+})
+
 /** Formats minor units in the locale's number style, labelled with the currency code (e.g. "120,50 PLN"). */
 export function formatAmount(minorUnits: number, currency: Currency, locale: string): string {
   return new Intl.NumberFormat(locale, {
