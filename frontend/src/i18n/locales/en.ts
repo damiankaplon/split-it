@@ -18,6 +18,8 @@ const en: Translations = {
     signedInAs: 'Signed in as',
     signOut: 'Sign out',
     navigation: 'Main navigation',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu',
     projects: 'Projects',
     personal: 'My expenses',
   },

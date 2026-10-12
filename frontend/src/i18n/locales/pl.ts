@@ -17,6 +17,8 @@ const pl = {
     signedInAs: 'Zalogowano jako',
     signOut: 'Wyloguj się',
     navigation: 'Nawigacja główna',
+    openMenu: 'Otwórz menu',
+    closeMenu: 'Zamknij menu',
     projects: 'Projekty',
     personal: 'Moje wydatki',
   },
