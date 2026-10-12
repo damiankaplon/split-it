@@ -8,6 +8,7 @@ export interface Expense {
   date: string
   amount: number
   tag: string | null
+  tagColor: string | null
   createdBy: string
 }
 

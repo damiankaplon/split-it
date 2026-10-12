@@ -31,6 +31,8 @@ class ProjectPersonalExpense(
 
     override val tag: String? get() = expense.tag?.name
 
+    override val tagColor: String? get() = expense.tag?.color
+
     val projectId: UUID get() = expense.projectId
 
     companion object {

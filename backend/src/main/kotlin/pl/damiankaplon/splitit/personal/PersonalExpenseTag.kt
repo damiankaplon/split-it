@@ -5,6 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.BatchSize
+import pl.damiankaplon.splitit.TagColors
 import pl.damiankaplon.splitit.UserId
 import java.util.*
 
@@ -21,6 +22,10 @@ class PersonalExpenseTag(
 
     @Column(nullable = false)
     val name: String,
+
+    /** `#rrggbb`, picked at random when the tag is created. */
+    @Column(nullable = false)
+    val color: String = TagColors.random(),
 ) {
     @Id
     val id: UUID = UUID.randomUUID()

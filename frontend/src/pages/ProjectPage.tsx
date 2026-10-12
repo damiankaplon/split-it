@@ -1,3 +1,4 @@
+import {TagBadge} from '@/components/TagBadge'
 import {type ReactNode, useEffect, useState} from 'react'
 import {AlertCircle, ArrowLeft, Pencil, Plus, Search} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
@@ -365,7 +366,7 @@ function ExpenseRow({expense, author, isMine, currency, locale, action}: {
             <span aria-hidden>·</span>
             <span>{date}</span>
             {expense.tag && (
-                <span className="rounded-full border bg-background px-2 py-px text-xs">{expense.tag}</span>
+                <TagBadge name={expense.tag} color={expense.tagColor}/>
             )}
           </span>
         </div>

@@ -40,4 +40,7 @@ abstract class PersonalExpense(
 
     /** Name of the tag, if any. */
     abstract val tag: String?
+
+    /** Color (`#rrggbb`) of the tag, if any. */
+    abstract val tagColor: String?
 }

@@ -60,6 +60,7 @@ class PersonalExpenseController(
         val amount: Int,
         val currency: CurrencyResponse,
         val tag: String?,
+        val tagColor: String?,
         val source: Source,
         /** The project of the expense this is a share of; null for manual ones. */
         val projectId: UUID?,
@@ -202,6 +203,7 @@ class PersonalExpenseController(
         amount = amount,
         currency = CurrencyResponse(currency.currencyCode, currency.defaultFractionDigits),
         tag = tag,
+        tagColor = tagColor,
         source = when (this) {
             is ManualPersonalExpense -> Source.MANUAL
             is ProjectPersonalExpense -> Source.PROJECT

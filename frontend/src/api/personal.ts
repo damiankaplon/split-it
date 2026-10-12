@@ -12,6 +12,7 @@ export interface PersonalExpense {
   amount: number
   currency: Currency
   tag: string | null
+  tagColor: string | null
 }
 
 export interface PersonalExpenseRequest {

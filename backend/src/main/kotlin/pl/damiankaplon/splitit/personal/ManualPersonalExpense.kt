@@ -28,6 +28,8 @@ class ManualPersonalExpense(
 
     override val tag: String? get() = personalTag?.name
 
+    override val tagColor: String? get() = personalTag?.color
+
     companion object {
         const val KIND = "MANUAL"
     }

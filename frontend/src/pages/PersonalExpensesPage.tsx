@@ -1,3 +1,4 @@
+import {TagBadge} from '@/components/TagBadge'
 import {type ReactNode, useEffect, useState} from 'react'
 import {AlertCircle, Pencil, Plus, Search, Trash2} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
@@ -261,7 +262,7 @@ function PersonalExpenseRow({expense, locale, actions}: {
           <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
             <span>{date}</span>
             {expense.tag && (
-                <span className="rounded-full border bg-background px-2 py-px text-xs">{expense.tag}</span>
+                <TagBadge name={expense.tag} color={expense.tagColor}/>
             )}
           </span>
         </div>

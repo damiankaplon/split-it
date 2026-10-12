@@ -42,6 +42,7 @@ class ExpenseController(
         val date: LocalDateTime,
         val amount: Int,
         val tag: String?,
+        val tagColor: String?,
         val createdBy: String,
     )
 
@@ -160,7 +161,8 @@ class ExpenseController(
 
     private fun ExpenseRequest.toDetails() = ExpenseService.ExpenseDetails(title, date, amount, tag)
 
-    private fun Expense.toResponse() = ExpenseResponse(id, projectId, title, date, amount, tag?.name, createdBy)
+    private fun Expense.toResponse() =
+        ExpenseResponse(id, projectId, title, date, amount, tag?.name, tag?.color, createdBy)
 
     companion object {
         const val DEFAULT_PAGE_SIZE = 20
