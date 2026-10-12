@@ -32,6 +32,7 @@ export interface ExpenseQuery {
   size?: number
   tag?: string
   title?: string
+  createdBy?: string
 }
 
 /** Newest first. Blank filters are left out so the backend doesn't apply them. */

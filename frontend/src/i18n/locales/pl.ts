@@ -77,6 +77,8 @@ const pl = {
     search: 'Szukaj wydatków',
     filterByTag: 'Filtruj po tagu',
     allTags: 'Wszystkie',
+    filterByCreator: 'Filtruj po autorze',
+    allCreators: 'Wszyscy',
     loadingExpenses: 'Wczytywanie wydatków…',
     expensesError: 'Nie udało się wczytać wydatków',
     retry: 'Spróbuj ponownie',

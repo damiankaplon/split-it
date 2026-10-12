@@ -79,6 +79,8 @@ const en: Translations = {
     search: 'Search expenses',
     filterByTag: 'Filter by tag',
     allTags: 'All',
+    filterByCreator: 'Filter by creator',
+    allCreators: 'Everyone',
     loadingExpenses: 'Loading expenses…',
     expensesError: "Couldn't load expenses",
     retry: 'Try again',

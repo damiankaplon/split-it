@@ -104,6 +104,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
   const [searchInput, setSearchInput] = useState('')
   const [title, setTitle] = useState('')
   const [tag, setTag] = useState<string | null>(null)
+  const [creator, setCreator] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
   // Bumped on every expense change, since any amount change recalculates the debts
   const [debtsReloadKey, setDebtsReloadKey] = useState(0)
@@ -118,7 +119,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
   // First page; refetched whenever a filter changes or an expense is added. Stale results are dropped.
   useEffect(() => {
     let cancelled = false
-    listExpenses(project.id, {page: 0, size: PAGE_SIZE, title, tag: tag ?? undefined})
+    listExpenses(project.id, {page: 0, size: PAGE_SIZE, title, tag: tag ?? undefined, createdBy: creator ?? undefined})
         .then((page) => {
           if (!cancelled) {
             setExpenses({
@@ -136,7 +137,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
     return () => {
       cancelled = true
     }
-  }, [project.id, title, tag, reloadKey])
+  }, [project.id, title, tag, creator, reloadKey])
 
   const loadMore = async () => {
     if (expenses.status !== 'loaded') return
@@ -146,7 +147,8 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
         page: expenses.page + 1,
         size: PAGE_SIZE,
         title,
-        tag: tag ?? undefined
+        tag: tag ?? undefined,
+        createdBy: creator ?? undefined
       })
       setExpenses((s) => s.status === 'loaded'
           ? {
@@ -164,7 +166,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
     }
   }
 
-  const filtered = title !== '' || tag !== null
+  const filtered = title !== '' || tag !== null || creator !== null
 
   const refreshTagsIfNew = (expense: Expense) => {
     if (expense.tag && !tags.some((name) => name.toLowerCase() === expense.tag?.toLowerCase())) onTagsChanged()
@@ -252,6 +254,19 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
                 <option value="">{t('project.allTags')}</option>
                 {tags.map((name) => (
                     <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+          )}
+          {members.length > 1 && (
+              <select
+                  aria-label={t('project.filterByCreator')}
+                  className="h-10 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm"
+                  value={creator ?? ''}
+                  onChange={(e) => setCreator(e.target.value === '' ? null : e.target.value)}
+              >
+                <option value="">{t('project.allCreators')}</option>
+                {members.map((m) => (
+                    <option key={m.memberId} value={m.memberId}>{m.name}</option>
                 ))}
               </select>
           )}

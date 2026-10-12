@@ -16,7 +16,14 @@ object ExpenseSpecifications {
         cb.equal(cb.lower(tagName), tag.lowercase())
     }
 
-    /** Case-insensitive "contains" match on the title; `%` and `_` in the input are matched literally. */
+    fun createdBy(userId: String) = Specification<Expense> { root, _, cb ->
+        cb.equal(root.get<String>(Expense::createdBy.name), userId)
+    }
+
+    /**
+     * Case-insensitive "contains" match on the title; `%` and `_` in the input
+     * are matched literally.
+     */
     fun titleContains(text: String) = Specification<Expense> { root, _, cb ->
         val escaped = text.lowercase().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
         cb.like(cb.lower(root.get(Expense::title.name)), "%$escaped%", '\\')

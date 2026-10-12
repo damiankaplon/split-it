@@ -74,6 +74,7 @@ class ExpenseController(
         @RequestParam(defaultValue = "$DEFAULT_PAGE_SIZE") size: Int,
         @RequestParam(required = false) tag: String?,
         @RequestParam(required = false) title: String?,
+        @RequestParam(required = false) createdBy: String?,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: LocalDateTime?,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: LocalDateTime?,
         @AuthenticationPrincipal jwt: Jwt,
@@ -87,6 +88,7 @@ class ExpenseController(
             ExpenseSpecifications.inProject(projectId),
             tag?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::hasTag),
             title?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::titleContains),
+            createdBy?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::createdBy),
             from?.let(ExpenseSpecifications::dateFrom),
             to?.let(ExpenseSpecifications::dateTo),
         ).fold(Specification.unrestricted<Expense>()) { acc, next -> acc.and(next) }
