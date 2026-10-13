@@ -4,7 +4,14 @@ import {AlertCircle, Pencil, Plus, Search, Trash2} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {useSearchParams} from 'react-router'
 import {Temporal} from 'temporal-polyfill'
-import {getPersonalTotalsByTag, listPersonalExpenses, listPersonalTags, type PersonalExpense} from '@/api/personal'
+import {
+  getPersonalExpensesTotal,
+  getPersonalTotalsByTag,
+  listPersonalExpenses,
+  listPersonalTags,
+  type PersonalExpense,
+  type PersonalExpenseSum
+} from '@/api/personal'
 import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DeletePersonalExpenseDialog} from '@/components/DeletePersonalExpenseDialog'
 import {PersonalExpenseDialog} from '@/components/PersonalExpenseDialog'
@@ -37,6 +44,7 @@ export function PersonalExpensesPage() {
   const [reloadKey, setReloadKey] = useState(0)
   const [expenses, setExpenses] = useState<ExpensesState>({status: 'loading'})
   const [loadingMore, setLoadingMore] = useState(false)
+  const [sums, setSums] = useState<PersonalExpenseSum[] | null>(null)
   // New expenses default to the currency used last
   const [lastCurrency, setLastCurrency] = useState<string | null>(null)
   // Bumped on every expense change, since any of them may move a sum between tags
@@ -72,6 +80,21 @@ export function PersonalExpensesPage() {
         })
         .catch(() => {
           if (!cancelled) setExpenses({status: 'error'})
+        })
+    return () => {
+      cancelled = true
+    }
+  }, [title, tag, dates, reloadKey])
+
+  // Refetched when a filter changes or an expense changes, not with every page
+  useEffect(() => {
+    let cancelled = false
+    getPersonalExpensesTotal({title, tag: tag ?? undefined, ...dateRangeQuery(dates)}).then(
+        (result) => {
+          if (!cancelled) setSums(result)
+        },
+        () => {
+          if (!cancelled) setSums(null)
         })
     return () => {
       cancelled = true
@@ -122,7 +145,7 @@ export function PersonalExpensesPage() {
   const onUpdated = (before: PersonalExpense, after: PersonalExpense) => {
     setChartsReloadKey((k) => k + 1)
     // A new date may move it elsewhere in the list, and new values may no longer match the filters
-    if (after.date !== before.date || filtered) {
+    if (after.date !== before.date || after.amount !== before.amount || after.currency.code !== before.currency.code || filtered) {
       setReloadKey((k) => k + 1)
     } else {
       setExpenses((s) => s.status === 'loaded'
@@ -137,6 +160,8 @@ export function PersonalExpensesPage() {
     setExpenses((s) => s.status === 'loaded'
         ? {...s, items: s.items.filter((item) => item.id !== expense.id), total: s.total - 1}
         : s)
+    // The sums are computed by the backend
+    setReloadKey((k) => k + 1)
   }
 
   return (
@@ -147,6 +172,8 @@ export function PersonalExpensesPage() {
             <p className="text-muted-foreground">
               {t('personal.subtitle')}
               {expenses.status === 'loaded' && !filtered && ` · ${t('project.expenseCount', {count: expenses.total})}`}
+              {sums !== null && sums.length > 0 &&
+                  ` · ${t('project.totalExpenses', {amount: sums.map((s) => formatAmount(s.total, s.currency, i18n.language)).join(' + ')})}`}
             </p>
           </div>
           <PersonalExpenseDialog

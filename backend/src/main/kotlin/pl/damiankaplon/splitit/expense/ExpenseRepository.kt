@@ -18,9 +18,6 @@ interface ExpenseRepository : JpaRepository<Expense, UUID>, JpaSpecificationExec
     @EntityGraph(attributePaths = ["tag"])
     override fun findAll(spec: Specification<Expense>, pageable: Pageable): Page<Expense>
 
-    @Query("select coalesce(sum(e.amount), 0) from Expense e where e.projectId = :projectId")
-    fun sumAmountByProjectId(projectId: UUID): Long
-
     /**
      * Sums per tag of the expenses dated in [from, until); untagged ones are
      * summed under a null tag.

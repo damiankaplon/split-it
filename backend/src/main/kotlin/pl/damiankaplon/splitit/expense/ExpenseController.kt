@@ -86,14 +86,7 @@ class ExpenseController(
         if (size !in 1..MAX_PAGE_SIZE) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "size must be between 1 and $MAX_PAGE_SIZE")
         }
-        val spec = listOfNotNull(
-            ExpenseSpecifications.inProject(projectId),
-            tag?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::hasTag),
-            title?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::titleContains),
-            createdBy?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::createdBy),
-            from?.let(ExpenseSpecifications::dateFrom),
-            to?.let(ExpenseSpecifications::dateTo),
-        ).fold(Specification.unrestricted<Expense>()) { acc, next -> acc.and(next) }
+        val spec = filterSpec(projectId, tag, title, createdBy, from, to)
         val pageRequest = PageRequest.of(page, size, Sort.by(Sort.Order.desc("date"), Sort.Order.desc("id")))
         val result = expenses.findAll(spec, pageRequest)
         return ExpensePage(
@@ -108,18 +101,40 @@ class ExpenseController(
 
     data class ExpenseTotal(val total: Long)
 
+    private fun filterSpec(
+        projectId: UUID,
+        tag: String?,
+        title: String?,
+        createdBy: String?,
+        from: LocalDateTime?,
+        to: LocalDateTime?,
+    ): Specification<Expense> = listOfNotNull(
+        ExpenseSpecifications.inProject(projectId),
+        tag?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::hasTag),
+        title?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::titleContains),
+        createdBy?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::createdBy),
+        from?.let(ExpenseSpecifications::dateFrom),
+        to?.let(ExpenseSpecifications::dateTo),
+    ).fold(Specification.unrestricted<Expense>()) { acc, next -> acc.and(next) }
+
     /**
-     * Sum of all the project's expenses in minor units; a Long since the sum
-     * can exceed an Int.
+     * Sum of the project's expenses matching the same optional filters as the
+     * list, in minor units; a Long since the sum can exceed an Int.
      */
     @GetMapping("/expenses/total")
     @Transactional(readOnly = true)
     fun total(
         @PathVariable projectId: UUID,
+        @RequestParam(required = false) tag: String?,
+        @RequestParam(required = false) title: String?,
+        @RequestParam(required = false) createdBy: String?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: LocalDateTime?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: LocalDateTime?,
         @AuthenticationPrincipal jwt: Jwt,
     ): ExpenseTotal {
         requireMember(projectId, jwt)
-        return ExpenseTotal(expenses.sumAmountByProjectId(projectId))
+        val spec = filterSpec(projectId, tag, title, createdBy, from, to)
+        return ExpenseTotal(expenses.findAll(spec).sumOf { it.amount.toLong() })
     }
 
     /**

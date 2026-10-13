@@ -39,14 +39,18 @@ export interface ExpenseQuery {
   to?: string
 }
 
-/** Newest first. Blank filters are left out so the backend doesn't apply them. */
-export const listExpenses = (projectId: string, query: ExpenseQuery = {}) => {
+/** Blank filters are left out so the backend doesn't apply them. */
+const toParams = (query: object) => {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query)) {
     if (value !== undefined && value !== '') params.set(key, String(value))
   }
-  return apiFetch<ExpensePage>(`/projects/${projectId}/expenses?${params.toString()}`)
+  return params.toString()
 }
+
+/** Newest first. */
+export const listExpenses = (projectId: string, query: ExpenseQuery = {}) =>
+    apiFetch<ExpensePage>(`/projects/${projectId}/expenses?${toParams(query)}`)
 
 export const createExpense = (projectId: string, expense: ExpenseRequest) =>
     apiFetch<Expense>(`/projects/${projectId}/expenses`, {method: 'POST', body: JSON.stringify(expense)})
@@ -55,9 +59,9 @@ export const createExpense = (projectId: string, expense: ExpenseRequest) =>
 export const updateExpense = (projectId: string, expenseId: string, expense: ExpenseRequest) =>
     apiFetch<Expense>(`/projects/${projectId}/expenses/${expenseId}`, {method: 'PUT', body: JSON.stringify(expense)})
 
-/** Sum of all the project's expenses in minor units, regardless of any list filters. */
-export const getExpensesTotal = (projectId: string) =>
-    apiFetch<{ total: number }>(`/projects/${projectId}/expenses/total`).then((r) => r.total)
+/** Sum in minor units of the project's expenses matching the filters; paging is ignored. */
+export const getExpensesTotal = (projectId: string, query: Omit<ExpenseQuery, 'page' | 'size'> = {}) =>
+    apiFetch<{ total: number }>(`/projects/${projectId}/expenses/total?${toParams(query)}`).then((r) => r.total)
 
 /** Sum of a tag's expenses in minor units; a null tag stands for the untagged ones. */
 export interface TagTotal {

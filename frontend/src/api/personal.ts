@@ -44,14 +44,28 @@ export interface PersonalExpenseQuery {
   to?: string
 }
 
-/** Newest first. Blank filters are left out so the backend doesn't apply them. */
-export const listPersonalExpenses = (query: PersonalExpenseQuery = {}) => {
+/** Blank filters are left out so the backend doesn't apply them. */
+const toParams = (query: PersonalExpenseQuery) => {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query)) {
     if (value !== undefined && value !== '') params.set(key, String(value))
   }
-  return apiFetch<PersonalExpensePage>(`/personal/expenses?${params.toString()}`)
+  return params.toString()
 }
+
+/** Newest first. */
+export const listPersonalExpenses = (query: PersonalExpenseQuery = {}) =>
+    apiFetch<PersonalExpensePage>(`/personal/expenses?${toParams(query)}`)
+
+export interface PersonalExpenseSum {
+  currency: Currency
+  /** In the currency's minor units */
+  total: number
+}
+
+/** Per-currency sums of the expenses matching the filters; paging is ignored. */
+export const getPersonalExpensesTotal = (query: Omit<PersonalExpenseQuery, 'page' | 'size'> = {}) =>
+    apiFetch<PersonalExpenseSum[]>(`/personal/expenses/total?${toParams(query)}`)
 
 export const createPersonalExpense = (expense: PersonalExpenseRequest) =>
     apiFetch<PersonalExpense>('/personal/expenses', {method: 'POST', body: JSON.stringify(expense)})

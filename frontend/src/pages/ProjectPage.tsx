@@ -122,10 +122,14 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
   const [searchParams, setSearchParams] = useSearchParams()
   const tab = searchParams.get('tab') === 'charts' ? 'charts' : 'feed'
 
-  // Refetched with the debts: any expense change that alters an amount alters the total too
+  // Refetched when a filter changes or an expense changes, not with every page
   useEffect(() => {
     let cancelled = false
-    getExpensesTotal(project.id).then(
+    getExpensesTotal(project.id, {
+      title,
+      tag: tag ?? undefined,
+      createdBy: creator ?? undefined, ...dateRangeQuery(dates)
+    }).then(
         (sum) => {
           if (!cancelled) setTotal(sum)
         },
@@ -135,7 +139,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
     return () => {
       cancelled = true
     }
-  }, [project.id, debtsReloadKey])
+  }, [project.id, title, tag, creator, dates, reloadKey, debtsReloadKey])
 
   useEffect(() => {
     const timeout = setTimeout(() => setTitle(searchInput.trim()), SEARCH_DEBOUNCE_MS)
@@ -218,7 +222,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
     if (after.amount !== before.amount) setDebtsReloadKey((k) => k + 1)
     setChartsReloadKey((k) => k + 1)
     // A new date may move it elsewhere in the list, and new values may no longer match the filters
-    if (after.date !== before.date || filtered) {
+    if (after.date !== before.date || after.amount !== before.amount || filtered) {
       setReloadKey((k) => k + 1)
     } else {
       setExpenses((s) => s.status === 'loaded'

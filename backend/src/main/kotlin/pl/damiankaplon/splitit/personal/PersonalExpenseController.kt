@@ -105,15 +105,8 @@ class PersonalExpenseController(
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: LocalDateTime?,
         @AuthenticationPrincipal jwt: Jwt,
     ): PersonalExpensePage {
-        val ownerId = jwt.userIdOrThrow()
-        val spec = listOfNotNull(
-            PersonalExpenseSpecifications.ownedBy(ownerId),
-            tag?.trim()?.takeIf { it.isNotEmpty() }?.let(PersonalExpenseSpecifications::hasTag),
-            title?.trim()?.takeIf { it.isNotEmpty() }?.let(PersonalExpenseSpecifications::titleContains),
-            from?.let(PersonalExpenseSpecifications::dateFrom),
-            to?.let(PersonalExpenseSpecifications::dateTo),
-            PersonalExpenseSpecifications.newestFirst(),
-        ).fold(Specification.unrestricted<PersonalExpense>()) { acc, next -> acc.and(next) }
+        val spec =
+            filterSpec(jwt.userIdOrThrow(), tag, title, from, to).and(PersonalExpenseSpecifications.newestFirst())
         val result = expenses.findAll(spec, PageRequest.of(page, size))
         return PersonalExpensePage(
             items = result.content.map { it.toResponse() },
@@ -124,6 +117,49 @@ class PersonalExpenseController(
             hasNext = result.hasNext(),
         )
     }
+
+    private fun filterSpec(
+        ownerId: UserId,
+        tag: String?,
+        title: String?,
+        from: LocalDateTime?,
+        to: LocalDateTime?,
+    ): Specification<PersonalExpense> = listOfNotNull(
+        PersonalExpenseSpecifications.ownedBy(ownerId),
+        tag?.trim()?.takeIf { it.isNotEmpty() }?.let(PersonalExpenseSpecifications::hasTag),
+        title?.trim()?.takeIf { it.isNotEmpty() }?.let(PersonalExpenseSpecifications::titleContains),
+        from?.let(PersonalExpenseSpecifications::dateFrom),
+        to?.let(PersonalExpenseSpecifications::dateTo),
+    ).fold(Specification.unrestricted()) { acc, next -> acc.and(next) }
+
+    data class CurrencySum(
+        val currency: CurrencyResponse,
+        /** In the currency's minor units. */
+        val total: Long,
+    )
+
+    /**
+     * Sums of the expenses matching the same optional filters as the list; one
+     * per currency, by code.
+     */
+    @GetMapping("/expenses/total")
+    @Transactional(readOnly = true)
+    fun total(
+        @RequestParam(required = false) tag: String?,
+        @RequestParam(required = false) title: String?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: LocalDateTime?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: LocalDateTime?,
+        @AuthenticationPrincipal jwt: Jwt,
+    ): List<CurrencySum> =
+        expenses.findAll(filterSpec(jwt.userIdOrThrow(), tag, title, from, to))
+            .groupBy { it.currency }
+            .map { (currency, group) ->
+                CurrencySum(
+                    currency = CurrencyResponse(currency.currencyCode, currency.defaultFractionDigits),
+                    total = group.sumOf { it.amount.toLong() },
+                )
+            }
+            .sortedBy { it.currency.code }
 
     data class TagTotalResponse(
         val tag: String?,
