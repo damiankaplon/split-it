@@ -4,12 +4,14 @@ import {AlertCircle, Pencil, Plus, Search, Trash2} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {Temporal} from 'temporal-polyfill'
 import {listPersonalExpenses, listPersonalTags, type PersonalExpense} from '@/api/personal'
+import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DeletePersonalExpenseDialog} from '@/components/DeletePersonalExpenseDialog'
 import {PersonalExpenseDialog} from '@/components/PersonalExpenseDialog'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Button} from '@/components/ui/button'
 import {Card} from '@/components/ui/card'
 import {Input} from '@/components/ui/input'
+import {type DateRange, dateRangeQuery, EMPTY_DATE_RANGE, isDateRangeSet} from '@/lib/dateRange'
 import {formatAmount} from '@/lib/money'
 
 const PAGE_SIZE = 20
@@ -28,6 +30,7 @@ export function PersonalExpensesPage() {
   const [searchInput, setSearchInput] = useState('')
   const [title, setTitle] = useState('')
   const [tag, setTag] = useState<string | null>(null)
+  const [dates, setDates] = useState<DateRange>(EMPTY_DATE_RANGE)
   const [reloadKey, setReloadKey] = useState(0)
   const [expenses, setExpenses] = useState<ExpensesState>({status: 'loading'})
   const [loadingMore, setLoadingMore] = useState(false)
@@ -48,7 +51,7 @@ export function PersonalExpensesPage() {
   // First page; refetched whenever a filter changes or an expense is added or removed. Stale results are dropped.
   useEffect(() => {
     let cancelled = false
-    listPersonalExpenses({page: 0, size: PAGE_SIZE, title, tag: tag ?? undefined})
+    listPersonalExpenses({page: 0, size: PAGE_SIZE, title, tag: tag ?? undefined, ...dateRangeQuery(dates)})
         .then((page) => {
           if (cancelled) return
           setExpenses({
@@ -66,13 +69,19 @@ export function PersonalExpensesPage() {
     return () => {
       cancelled = true
     }
-  }, [title, tag, reloadKey])
+  }, [title, tag, dates, reloadKey])
 
   const loadMore = async () => {
     if (expenses.status !== 'loaded') return
     setLoadingMore(true)
     try {
-      const next = await listPersonalExpenses({page: expenses.page + 1, size: PAGE_SIZE, title, tag: tag ?? undefined})
+      const next = await listPersonalExpenses({
+        page: expenses.page + 1,
+        size: PAGE_SIZE,
+        title,
+        tag: tag ?? undefined,
+        ...dateRangeQuery(dates)
+      })
       setExpenses((s) => s.status === 'loaded'
           ? {
             ...s,
@@ -89,7 +98,7 @@ export function PersonalExpensesPage() {
     }
   }
 
-  const filtered = title !== '' || tag !== null
+  const filtered = title !== '' || tag !== null || isDateRangeSet(dates)
 
   const refreshTagsIfNew = (expense: PersonalExpense) => {
     if (expense.tag && !tags.some((name) => name.toLowerCase() === expense.tag?.toLowerCase())) void reloadTags()
@@ -169,6 +178,7 @@ export function PersonalExpensesPage() {
                 ))}
               </select>
           )}
+          <DateRangeFilter value={dates} onChange={setDates}/>
         </div>
 
         {expenses.status === 'loading' && <p className="text-muted-foreground">{t('project.loadingExpenses')}</p>}

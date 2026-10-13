@@ -7,6 +7,7 @@ import {Temporal} from 'temporal-polyfill'
 import {ApiError} from '@/api/client'
 import {type Expense, getExpensesTotal, listExpenses, listTags} from '@/api/expenses'
 import {type Currency, listMembers, listProjects, type Project, type ProjectMember} from '@/api/projects'
+import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DebtsPanel} from '@/components/DebtsPanel'
 import {ExpenseDialog} from '@/components/ExpenseDialog'
 import {InviteDialog} from '@/components/InviteDialog'
@@ -15,6 +16,7 @@ import {Button} from '@/components/ui/button'
 import {Card} from '@/components/ui/card'
 import {Input} from '@/components/ui/input'
 import {initials} from '@/lib/initials'
+import {type DateRange, dateRangeQuery, EMPTY_DATE_RANGE, isDateRangeSet} from '@/lib/dateRange'
 import {formatAmount} from '@/lib/money'
 
 const PAGE_SIZE = 20
@@ -106,6 +108,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
   const [title, setTitle] = useState('')
   const [tag, setTag] = useState<string | null>(null)
   const [creator, setCreator] = useState<string | null>(null)
+  const [dates, setDates] = useState<DateRange>(EMPTY_DATE_RANGE)
   const [reloadKey, setReloadKey] = useState(0)
   // Bumped on every expense change, since any amount change recalculates the debts
   const [debtsReloadKey, setDebtsReloadKey] = useState(0)
@@ -136,7 +139,14 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
   // First page; refetched whenever a filter changes or an expense is added. Stale results are dropped.
   useEffect(() => {
     let cancelled = false
-    listExpenses(project.id, {page: 0, size: PAGE_SIZE, title, tag: tag ?? undefined, createdBy: creator ?? undefined})
+    listExpenses(project.id, {
+      page: 0,
+      size: PAGE_SIZE,
+      title,
+      tag: tag ?? undefined,
+      createdBy: creator ?? undefined,
+      ...dateRangeQuery(dates)
+    })
         .then((page) => {
           if (!cancelled) {
             setExpenses({
@@ -154,7 +164,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
     return () => {
       cancelled = true
     }
-  }, [project.id, title, tag, creator, reloadKey])
+  }, [project.id, title, tag, creator, dates, reloadKey])
 
   const loadMore = async () => {
     if (expenses.status !== 'loaded') return
@@ -165,7 +175,8 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
         size: PAGE_SIZE,
         title,
         tag: tag ?? undefined,
-        createdBy: creator ?? undefined
+        createdBy: creator ?? undefined,
+        ...dateRangeQuery(dates)
       })
       setExpenses((s) => s.status === 'loaded'
           ? {
@@ -183,7 +194,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
     }
   }
 
-  const filtered = title !== '' || tag !== null || creator !== null
+  const filtered = title !== '' || tag !== null || creator !== null || isDateRangeSet(dates)
 
   const refreshTagsIfNew = (expense: Expense) => {
     if (expense.tag && !tags.some((name) => name.toLowerCase() === expense.tag?.toLowerCase())) onTagsChanged()
@@ -288,6 +299,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
                 ))}
               </select>
           )}
+          <DateRangeFilter value={dates} onChange={setDates}/>
         </div>
 
         {expenses.status === 'loading' && <p className="text-muted-foreground">{t('project.loadingExpenses')}</p>}

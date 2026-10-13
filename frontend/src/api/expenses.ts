@@ -34,6 +34,9 @@ export interface ExpenseQuery {
   tag?: string
   title?: string
   createdBy?: string
+  /** Zone-less ISO local date-times, both inclusive */
+  from?: string
+  to?: string
 }
 
 /** Newest first. Blank filters are left out so the backend doesn't apply them. */
