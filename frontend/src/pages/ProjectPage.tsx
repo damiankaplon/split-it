@@ -2,19 +2,21 @@ import {TagBadge} from '@/components/TagBadge'
 import {type ReactNode, useEffect, useState} from 'react'
 import {AlertCircle, ArrowLeft, Pencil, Plus, Search} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
-import {Link, useParams} from 'react-router'
+import {Link, useParams, useSearchParams} from 'react-router'
 import {Temporal} from 'temporal-polyfill'
 import {ApiError} from '@/api/client'
-import {type Expense, getExpensesTotal, listExpenses, listTags} from '@/api/expenses'
+import {type Expense, getExpensesTotal, getTotalsByTag, listExpenses, listTags} from '@/api/expenses'
 import {type Currency, listMembers, listProjects, type Project, type ProjectMember} from '@/api/projects'
 import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DebtsPanel} from '@/components/DebtsPanel'
 import {ExpenseDialog} from '@/components/ExpenseDialog'
 import {InviteDialog} from '@/components/InviteDialog'
+import {TagTotalsCharts} from '@/components/TagTotalsChart'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Button} from '@/components/ui/button'
 import {Card} from '@/components/ui/card'
 import {Input} from '@/components/ui/input'
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
 import {initials} from '@/lib/initials'
 import {type DateRange, dateRangeQuery, EMPTY_DATE_RANGE, isDateRangeSet} from '@/lib/dateRange'
 import {formatAmount} from '@/lib/money'
@@ -115,6 +117,10 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
   const [expenses, setExpenses] = useState<ExpensesState>({status: 'loading'})
   const [loadingMore, setLoadingMore] = useState(false)
   const [total, setTotal] = useState<number | null>(null)
+  // Bumped on every expense change, since any of them may move a sum between tags
+  const [chartsReloadKey, setChartsReloadKey] = useState(0)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tab = searchParams.get('tab') === 'charts' ? 'charts' : 'feed'
 
   // Refetched with the debts: any expense change that alters an amount alters the total too
   useEffect(() => {
@@ -204,11 +210,13 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
     // The list is ordered by date, so the new expense may belong anywhere; reload from the top.
     setReloadKey((k) => k + 1)
     setDebtsReloadKey((k) => k + 1)
+    setChartsReloadKey((k) => k + 1)
     refreshTagsIfNew(expense)
   }
 
   const onUpdated = (before: Expense, after: Expense) => {
     if (after.amount !== before.amount) setDebtsReloadKey((k) => k + 1)
+    setChartsReloadKey((k) => k + 1)
     // A new date may move it elsewhere in the list, and new values may no longer match the filters
     if (after.date !== before.date || filtered) {
       setReloadKey((k) => k + 1)
@@ -252,13 +260,29 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
           </div>
         </div>
 
-        <DebtsPanel
-            projectId={project.id}
-            currency={project.currency}
-            currentUserId={currentUserId}
-            memberName={memberName}
-            reloadKey={debtsReloadKey}
-        />
+        <Tabs value={tab}
+              onValueChange={(value) => setSearchParams(value === 'charts' ? {tab: value} : {}, {replace: true})}>
+          <TabsList>
+            <TabsTrigger value="feed">{t('tabs.feed')}</TabsTrigger>
+            <TabsTrigger value="charts">{t('tabs.charts')}</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="charts">
+            <TagTotalsCharts
+                load={(from, to) => getTotalsByTag(project.id, from, to)
+                    .then((totals) => totals.map((item) => ({...item, currency: project.currency})))}
+                reloadKey={chartsReloadKey}
+            />
+          </TabsContent>
+
+          <TabsContent value="feed">
+            <DebtsPanel
+                projectId={project.id}
+                currency={project.currency}
+                currentUserId={currentUserId}
+                memberName={memberName}
+                reloadKey={debtsReloadKey}
+            />
 
         <div className="flex flex-col gap-3">
           <div className="relative max-w-sm">
@@ -302,67 +326,70 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
           <DateRangeFilter value={dates} onChange={setDates}/>
         </div>
 
-        {expenses.status === 'loading' && <p className="text-muted-foreground">{t('project.loadingExpenses')}</p>}
+            {expenses.status === 'loading' && <p className="text-muted-foreground">{t('project.loadingExpenses')}</p>}
 
-        {expenses.status === 'error' && (
-            <Alert variant="destructive" className="max-w-xl">
-              <AlertCircle/>
-              <AlertTitle>{t('project.expensesError')}</AlertTitle>
-              <AlertDescription>
-                <Button variant="link" className="h-auto p-0 text-destructive underline"
-                        onClick={() => setReloadKey((k) => k + 1)}>
-                  {t('project.retry')}
-                </Button>
-              </AlertDescription>
-            </Alert>
-        )}
+            {expenses.status === 'error' && (
+                <Alert variant="destructive" className="max-w-xl">
+                  <AlertCircle/>
+                  <AlertTitle>{t('project.expensesError')}</AlertTitle>
+                  <AlertDescription>
+                    <Button variant="link" className="h-auto p-0 text-destructive underline"
+                            onClick={() => setReloadKey((k) => k + 1)}>
+                      {t('project.retry')}
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+            )}
 
-        {expenses.status === 'loaded' && expenses.items.length === 0 && (
-            <Card className="items-center gap-2 px-6 py-12 text-center shadow-xs">
-              <span className="font-medium">{filtered ? t('project.noMatches') : t('project.noExpenses')}</span>
-              {!filtered && <span className="text-muted-foreground">{t('project.noExpensesHint')}</span>}
-            </Card>
-        )}
+            {expenses.status === 'loaded' && expenses.items.length === 0 && (
+                <Card className="items-center gap-2 px-6 py-12 text-center shadow-xs">
+                  <span className="font-medium">{filtered ? t('project.noMatches') : t('project.noExpenses')}</span>
+                  {!filtered && <span className="text-muted-foreground">{t('project.noExpensesHint')}</span>}
+                </Card>
+            )}
 
-        {expenses.status === 'loaded' && expenses.items.length > 0 && (
-            <div className="flex flex-col gap-5">
-              <Card className="gap-0 py-0 shadow-xs">
-                <ul className="divide-y">
-                  {expenses.items.map((expense) => (
-                      <ExpenseRow
-                          key={expense.id}
-                          expense={expense}
-                          author={memberName(expense.createdBy)}
-                          isMine={expense.createdBy === currentUserId}
-                          currency={project.currency}
-                          locale={i18n.language}
-                          action={
-                            <ExpenseDialog
-                                projectId={project.id}
-                                currency={project.currency}
-                                tags={tags}
-                                expense={expense}
-                                onSaved={(updated) => onUpdated(expense, updated)}
-                                trigger={
-                                  <Button variant="ghost" size="icon-sm" className="rounded-lg text-muted-foreground"
-                                          aria-label={t('expenseDialog.edit', {title: expense.title})}>
-                                    <Pencil/>
-                                  </Button>
-                                }
-                            />
-                          }
-                      />
-                  ))}
-                </ul>
-              </Card>
-              {expenses.hasNext && (
-                  <Button variant="outline" size="lg" className="self-center rounded-lg px-4" disabled={loadingMore}
-                          onClick={() => void loadMore()}>
-                    {loadingMore ? t('project.loadingExpenses') : t('project.loadMore')}
-                  </Button>
-              )}
-            </div>
-        )}
+            {expenses.status === 'loaded' && expenses.items.length > 0 && (
+                <div className="flex flex-col gap-5">
+                  <Card className="gap-0 py-0 shadow-xs">
+                    <ul className="divide-y">
+                      {expenses.items.map((expense) => (
+                          <ExpenseRow
+                              key={expense.id}
+                              expense={expense}
+                              author={memberName(expense.createdBy)}
+                              isMine={expense.createdBy === currentUserId}
+                              currency={project.currency}
+                              locale={i18n.language}
+                              action={
+                                <ExpenseDialog
+                                    projectId={project.id}
+                                    currency={project.currency}
+                                    tags={tags}
+                                    expense={expense}
+                                    onSaved={(updated) => onUpdated(expense, updated)}
+                                    trigger={
+                                      <Button variant="ghost" size="icon-sm"
+                                              className="rounded-lg text-muted-foreground"
+                                              aria-label={t('expenseDialog.edit', {title: expense.title})}>
+                                        <Pencil/>
+                                      </Button>
+                                    }
+                                />
+                              }
+                          />
+                      ))}
+                    </ul>
+                  </Card>
+                  {expenses.hasNext && (
+                      <Button variant="outline" size="lg" className="self-center rounded-lg px-4" disabled={loadingMore}
+                              onClick={() => void loadMore()}>
+                        {loadingMore ? t('project.loadingExpenses') : t('project.loadMore')}
+                      </Button>
+                  )}
+                </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </PageShell>
   )
 }

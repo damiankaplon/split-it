@@ -1,4 +1,5 @@
 import {apiFetch} from './client'
+import type {TagTotal} from './expenses'
 import type {Currency} from './projects'
 
 /**
@@ -60,6 +61,18 @@ export const updatePersonalExpense = (expenseId: string, expense: PersonalExpens
 
 export const deletePersonalExpense = (expenseId: string) =>
     apiFetch<void>(`/personal/expenses/${expenseId}`, {method: 'DELETE'})
+
+/** Sum of a tag's expenses in one currency; a null tag stands for the untagged ones. */
+export interface PersonalTagTotal extends TagTotal {
+  currency: Currency
+}
+
+/**
+ * Per-currency and per-tag sums of the user's expenses between two ISO dates (YYYY-MM-DD), both inclusive;
+ * ordered by currency code, then largest first.
+ */
+export const getPersonalTotalsByTag = (from: string, to: string) =>
+    apiFetch<PersonalTagTotal[]>(`/personal/expenses/totals-by-tag?${new URLSearchParams({from, to}).toString()}`)
 
 /** Tags the user has already used on personal expenses, sorted by name. */
 export const listPersonalTags = () => apiFetch<string[]>('/personal/tags')

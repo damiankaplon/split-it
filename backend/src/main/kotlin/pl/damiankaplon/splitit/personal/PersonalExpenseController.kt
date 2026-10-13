@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.project.IsoCurrency
 import pl.damiankaplon.splitit.userIdOrThrow
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -122,6 +123,48 @@ class PersonalExpenseController(
             totalPages = result.totalPages,
             hasNext = result.hasNext(),
         )
+    }
+
+    data class TagTotalResponse(
+        val tag: String?,
+        val tagColor: String?,
+        val currency: CurrencyResponse,
+        /** In the currency's minor units. */
+        val total: Long,
+    )
+
+    /**
+     * Sums of the user's expenses per currency and tag between [from] and
+     * [to], both days inclusive; largest first within a currency. Tags match
+     * case-insensitively, since a manual and a project tag may share a name.
+     */
+    @GetMapping("/expenses/totals-by-tag")
+    @Transactional(readOnly = true)
+    fun totalsByTag(
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) from: LocalDate,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) to: LocalDate,
+        @AuthenticationPrincipal jwt: Jwt,
+    ): List<TagTotalResponse> {
+        if (from.isAfter(to)) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "from must not be after to")
+        val spec = PersonalExpenseSpecifications.ownedBy(jwt.userIdOrThrow())
+            .and(PersonalExpenseSpecifications.dateFrom(from.atStartOfDay()))
+            .and(PersonalExpenseSpecifications.dateBefore(to.plusDays(1).atStartOfDay()))
+        return expenses.findAll(spec)
+            .groupBy { it.currency to it.tag?.lowercase() }
+            .map { (key, group) ->
+                val (currency) = key
+                TagTotalResponse(
+                    tag = group.first().tag,
+                    tagColor = group.first().tagColor,
+                    currency = CurrencyResponse(currency.currencyCode, currency.defaultFractionDigits),
+                    total = group.sumOf { it.amount.toLong() },
+                )
+            }
+            .sortedWith(
+                compareBy<TagTotalResponse> { it.currency.code }
+                    .thenByDescending { it.total }
+                    .thenBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.tag }
+            )
     }
 
     @GetMapping("/expenses/{expenseId}")

@@ -188,6 +188,20 @@ const pl = {
     notNow: 'Nie teraz',
     join: 'Dołącz do projektu',
   },
+  tabs: {
+    feed: 'Tablica',
+    charts: 'Wykresy',
+  },
+  charts: {
+    title: 'Wydatki według tagów',
+    from: 'Od',
+    to: 'Do',
+    untagged: 'Bez tagu',
+    loading: 'Wczytywanie wykresu…',
+    error: 'Nie udało się wczytać wykresu',
+    empty: 'Brak wydatków w tym okresie.',
+    invalidRange: 'Data początkowa nie może być późniejsza niż końcowa.',
+  },
 }
 
 export type Translations = typeof pl

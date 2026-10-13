@@ -59,5 +59,16 @@ export const updateExpense = (projectId: string, expenseId: string, expense: Exp
 export const getExpensesTotal = (projectId: string) =>
     apiFetch<{ total: number }>(`/projects/${projectId}/expenses/total`).then((r) => r.total)
 
+/** Sum of a tag's expenses in minor units; a null tag stands for the untagged ones. */
+export interface TagTotal {
+  tag: string | null
+  tagColor: string | null
+  total: number
+}
+
+/** Per-tag sums of the expenses between two ISO dates (YYYY-MM-DD), both inclusive; largest first. */
+export const getTotalsByTag = (projectId: string, from: string, to: string) =>
+    apiFetch<TagTotal[]>(`/projects/${projectId}/expenses/totals-by-tag?${new URLSearchParams({from, to}).toString()}`)
+
 /** Tags already used in the project, sorted by name. */
 export const listTags = (projectId: string) => apiFetch<string[]>(`/projects/${projectId}/tags`)

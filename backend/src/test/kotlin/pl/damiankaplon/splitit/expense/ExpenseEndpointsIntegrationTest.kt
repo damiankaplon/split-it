@@ -234,6 +234,45 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     }
 
     @Test
+    fun `totals by tag sum the expenses within the inclusive day range, largest first`() {
+        val project = projectWithMember("alice-id")
+        val other = projectWithMember("alice-id")
+        testData.createExpense(project, "alice-id", "Before", "2026-09-30T23:59:59", 1000, "Food")
+        testData.createExpense(project, "alice-id", "Pizza", "2026-10-01T00:00:00", 100, "Food")
+        testData.createExpense(project, "alice-id", "Pasta", "2026-10-31T23:59:59", 200, "food")
+        testData.createExpense(project, "alice-id", "Museum", "2026-10-15T10:00:00", 500, "Culture")
+        testData.createExpense(project, "alice-id", "Taxi", "2026-10-15T10:00:00", 50)
+        testData.createExpense(project, "alice-id", "After", "2026-11-01T00:00:00", 1000, "Food")
+        testData.createExpense(other, "alice-id", "Elsewhere", "2026-10-15T10:00:00", 1000, "Food")
+
+        mockMvc.get("/projects/${project.id}/expenses/totals-by-tag") {
+            with(asUser("alice-id"))
+            param("from", "2026-10-01")
+            param("to", "2026-10-31")
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.length()") { value(3) }
+            jsonPath("$[0].tag") { value("Culture") }
+            jsonPath("$[0].total") { value(500) }
+            jsonPath("$[0].tagColor") { exists() }
+            jsonPath("$[1].tag") { value("Food") }
+            jsonPath("$[1].total") { value(300) }
+            jsonPath("$[2].tag") { doesNotExist() }
+            jsonPath("$[2].total") { value(50) }
+        }
+        mockMvc.get("/projects/${project.id}/expenses/totals-by-tag") {
+            with(asUser("alice-id"))
+            param("from", "2026-10-02")
+            param("to", "2026-10-01")
+        }.andExpect { status { isBadRequest() } }
+        mockMvc.get("/projects/${project.id}/expenses/totals-by-tag") {
+            with(asUser("stranger-id"))
+            param("from", "2026-10-01")
+            param("to", "2026-10-31")
+        }.andExpect { status { isForbidden() } }
+    }
+
+    @Test
     fun `member deletes an expense`() {
         val project = projectWithMember("alice-id")
         val expenseId = testData.createExpense(project, "alice-id", "A", "2026-10-01T10:00:00", 1)

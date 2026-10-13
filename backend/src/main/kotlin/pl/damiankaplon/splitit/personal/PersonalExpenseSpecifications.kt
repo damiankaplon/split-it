@@ -51,6 +51,11 @@ object PersonalExpenseSpecifications {
         cb.lessThanOrEqualTo(root.date(cb), to)
     }
 
+    /** Strictly before [until], for day ranges that end at the next midnight. */
+    fun dateBefore(until: LocalDateTime) = Specification<PersonalExpense> { root, _, cb ->
+        cb.lessThan(root.date(cb), until)
+    }
+
     /**
      * Orders by date, newest first, with the id as a tie-breaker so pages
      * never overlap. Applied here since a pageable's sort can only name

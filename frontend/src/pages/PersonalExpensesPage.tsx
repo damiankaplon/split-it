@@ -2,16 +2,19 @@ import {TagBadge} from '@/components/TagBadge'
 import {type ReactNode, useEffect, useState} from 'react'
 import {AlertCircle, Pencil, Plus, Search, Trash2} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
+import {useSearchParams} from 'react-router'
 import {Temporal} from 'temporal-polyfill'
-import {listPersonalExpenses, listPersonalTags, type PersonalExpense} from '@/api/personal'
+import {getPersonalTotalsByTag, listPersonalExpenses, listPersonalTags, type PersonalExpense} from '@/api/personal'
 import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DeletePersonalExpenseDialog} from '@/components/DeletePersonalExpenseDialog'
 import {PersonalExpenseDialog} from '@/components/PersonalExpenseDialog'
+import {TagTotalsCharts} from '@/components/TagTotalsChart'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Button} from '@/components/ui/button'
 import {Card} from '@/components/ui/card'
 import {Input} from '@/components/ui/input'
 import {type DateRange, dateRangeQuery, EMPTY_DATE_RANGE, isDateRangeSet} from '@/lib/dateRange'
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
 import {formatAmount} from '@/lib/money'
 
 const PAGE_SIZE = 20
@@ -36,6 +39,10 @@ export function PersonalExpensesPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   // New expenses default to the currency used last
   const [lastCurrency, setLastCurrency] = useState<string | null>(null)
+  // Bumped on every expense change, since any of them may move a sum between tags
+  const [chartsReloadKey, setChartsReloadKey] = useState(0)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tab = searchParams.get('tab') === 'charts' ? 'charts' : 'feed'
 
   const reloadTags = () => listPersonalTags().then(setTags, () => undefined)
 
@@ -108,10 +115,12 @@ export function PersonalExpensesPage() {
     // The list is ordered by date, so the new expense may belong anywhere; reload from the top.
     setReloadKey((k) => k + 1)
     setLastCurrency(expense.currency.code)
+    setChartsReloadKey((k) => k + 1)
     refreshTagsIfNew(expense)
   }
 
   const onUpdated = (before: PersonalExpense, after: PersonalExpense) => {
+    setChartsReloadKey((k) => k + 1)
     // A new date may move it elsewhere in the list, and new values may no longer match the filters
     if (after.date !== before.date || filtered) {
       setReloadKey((k) => k + 1)
@@ -124,6 +133,7 @@ export function PersonalExpensesPage() {
   }
 
   const onDeleted = (expense: PersonalExpense) => {
+    setChartsReloadKey((k) => k + 1)
     setExpenses((s) => s.status === 'loaded'
         ? {...s, items: s.items.filter((item) => item.id !== expense.id), total: s.total - 1}
         : s)
@@ -152,7 +162,19 @@ export function PersonalExpensesPage() {
           />
         </div>
 
-        <div className="flex flex-col gap-3">
+        <Tabs value={tab}
+              onValueChange={(value) => setSearchParams(value === 'charts' ? {tab: value} : {}, {replace: true})}>
+          <TabsList>
+            <TabsTrigger value="feed">{t('tabs.feed')}</TabsTrigger>
+            <TabsTrigger value="charts">{t('tabs.charts')}</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="charts">
+            <TagTotalsCharts load={getPersonalTotalsByTag} reloadKey={chartsReloadKey}/>
+          </TabsContent>
+
+          <TabsContent value="feed">
+            <div className="flex flex-col gap-3">
           <div className="relative max-w-sm">
             <Search
                 className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"/>
@@ -181,76 +203,79 @@ export function PersonalExpensesPage() {
           <DateRangeFilter value={dates} onChange={setDates}/>
         </div>
 
-        {expenses.status === 'loading' && <p className="text-muted-foreground">{t('project.loadingExpenses')}</p>}
+            {expenses.status === 'loading' && <p className="text-muted-foreground">{t('project.loadingExpenses')}</p>}
 
-        {expenses.status === 'error' && (
-            <Alert variant="destructive" className="max-w-xl">
-              <AlertCircle/>
-              <AlertTitle>{t('project.expensesError')}</AlertTitle>
-              <AlertDescription>
-                <Button variant="link" className="h-auto p-0 text-destructive underline"
-                        onClick={() => setReloadKey((k) => k + 1)}>
-                  {t('project.retry')}
-                </Button>
-              </AlertDescription>
-            </Alert>
-        )}
+            {expenses.status === 'error' && (
+                <Alert variant="destructive" className="max-w-xl">
+                  <AlertCircle/>
+                  <AlertTitle>{t('project.expensesError')}</AlertTitle>
+                  <AlertDescription>
+                    <Button variant="link" className="h-auto p-0 text-destructive underline"
+                            onClick={() => setReloadKey((k) => k + 1)}>
+                      {t('project.retry')}
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+            )}
 
-        {expenses.status === 'loaded' && expenses.items.length === 0 && (
-            <Card className="items-center gap-2 px-6 py-12 text-center shadow-xs">
-              <span className="font-medium">{filtered ? t('project.noMatches') : t('project.noExpenses')}</span>
-              {!filtered && <span className="text-muted-foreground">{t('personal.noExpensesHint')}</span>}
-            </Card>
-        )}
+            {expenses.status === 'loaded' && expenses.items.length === 0 && (
+                <Card className="items-center gap-2 px-6 py-12 text-center shadow-xs">
+                  <span className="font-medium">{filtered ? t('project.noMatches') : t('project.noExpenses')}</span>
+                  {!filtered && <span className="text-muted-foreground">{t('personal.noExpensesHint')}</span>}
+                </Card>
+            )}
 
-        {expenses.status === 'loaded' && expenses.items.length > 0 && (
-            <div className="flex flex-col gap-5">
-              <Card className="gap-0 py-0 shadow-xs">
-                <ul className="divide-y">
-                  {expenses.items.map((expense) => (
-                      <PersonalExpenseRow
-                          key={expense.id}
-                          expense={expense}
-                          locale={i18n.language}
-                          actions={
-                            <>
-                              <PersonalExpenseDialog
-                                  defaultCurrency={expense.currency.code}
-                                  tags={tags}
-                                  expense={expense}
-                                  onSaved={(updated) => onUpdated(expense, updated)}
-                                  trigger={
-                                    <Button variant="ghost" size="icon-sm" className="rounded-lg text-muted-foreground"
-                                            aria-label={t('personalExpenseDialog.edit', {title: expense.title})}>
-                                      <Pencil/>
-                                    </Button>
-                                  }
-                              />
-                              <DeletePersonalExpenseDialog
-                                  expense={expense}
-                                  onDeleted={onDeleted}
-                                  trigger={
-                                    <Button variant="ghost" size="icon-sm"
-                                            className="rounded-lg text-muted-foreground hover:text-destructive"
-                                            aria-label={t('personalDeleteDialog.trigger', {title: expense.title})}>
-                                      <Trash2/>
-                                    </Button>
-                                  }
-                              />
-                            </>
-                          }
-                      />
-                  ))}
-                </ul>
-              </Card>
-              {expenses.hasNext && (
-                  <Button variant="outline" size="lg" className="self-center rounded-lg px-4" disabled={loadingMore}
-                          onClick={() => void loadMore()}>
-                    {loadingMore ? t('project.loadingExpenses') : t('project.loadMore')}
-                  </Button>
-              )}
-            </div>
-        )}
+            {expenses.status === 'loaded' && expenses.items.length > 0 && (
+                <div className="flex flex-col gap-5">
+                  <Card className="gap-0 py-0 shadow-xs">
+                    <ul className="divide-y">
+                      {expenses.items.map((expense) => (
+                          <PersonalExpenseRow
+                              key={expense.id}
+                              expense={expense}
+                              locale={i18n.language}
+                              actions={
+                                <>
+                                  <PersonalExpenseDialog
+                                      defaultCurrency={expense.currency.code}
+                                      tags={tags}
+                                      expense={expense}
+                                      onSaved={(updated) => onUpdated(expense, updated)}
+                                      trigger={
+                                        <Button variant="ghost" size="icon-sm"
+                                                className="rounded-lg text-muted-foreground"
+                                                aria-label={t('personalExpenseDialog.edit', {title: expense.title})}>
+                                          <Pencil/>
+                                        </Button>
+                                      }
+                                  />
+                                  <DeletePersonalExpenseDialog
+                                      expense={expense}
+                                      onDeleted={onDeleted}
+                                      trigger={
+                                        <Button variant="ghost" size="icon-sm"
+                                                className="rounded-lg text-muted-foreground hover:text-destructive"
+                                                aria-label={t('personalDeleteDialog.trigger', {title: expense.title})}>
+                                          <Trash2/>
+                                        </Button>
+                                      }
+                                  />
+                                </>
+                              }
+                          />
+                      ))}
+                    </ul>
+                  </Card>
+                  {expenses.hasNext && (
+                      <Button variant="outline" size="lg" className="self-center rounded-lg px-4" disabled={loadingMore}
+                              onClick={() => void loadMore()}>
+                        {loadingMore ? t('project.loadingExpenses') : t('project.loadMore')}
+                      </Button>
+                  )}
+                </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
   )
 }

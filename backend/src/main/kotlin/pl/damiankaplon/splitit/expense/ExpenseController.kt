@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.project.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -119,6 +120,24 @@ class ExpenseController(
     ): ExpenseTotal {
         requireMember(projectId, jwt)
         return ExpenseTotal(expenses.sumAmountByProjectId(projectId))
+    }
+
+    /**
+     * Sums of the project's expenses per tag between [from] and [to], both
+     * days inclusive; largest first.
+     */
+    @GetMapping("/expenses/totals-by-tag")
+    @Transactional(readOnly = true)
+    fun totalsByTag(
+        @PathVariable projectId: UUID,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) from: LocalDate,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) to: LocalDate,
+        @AuthenticationPrincipal jwt: Jwt,
+    ): List<TagTotal> {
+        requireMember(projectId, jwt)
+        if (from.isAfter(to)) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "from must not be after to")
+        return expenses.sumAmountByTag(projectId, from.atStartOfDay(), to.plusDays(1).atStartOfDay())
+            .sortedWith(compareByDescending<TagTotal> { it.total }.thenBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.tag })
     }
 
     @GetMapping("/expenses/{expenseId}")

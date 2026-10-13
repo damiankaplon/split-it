@@ -190,6 +190,20 @@ const en: Translations = {
     notNow: 'Not now',
     join: 'Join project',
   },
+  tabs: {
+    feed: 'Feed',
+    charts: 'Charts',
+  },
+  charts: {
+    title: 'Expenses by tag',
+    from: 'From',
+    to: 'To',
+    untagged: 'No tag',
+    loading: 'Loading chart…',
+    error: "Couldn't load the chart",
+    empty: 'No expenses in this period.',
+    invalidRange: "The start date can't be after the end date.",
+  },
 }
 
 export default en

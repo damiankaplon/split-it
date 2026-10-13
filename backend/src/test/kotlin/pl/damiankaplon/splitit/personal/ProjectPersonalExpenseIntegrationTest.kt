@@ -1,5 +1,6 @@
 package pl.damiankaplon.splitit.personal
 
+import org.hamcrest.Matchers.equalToIgnoringCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
@@ -160,5 +161,51 @@ class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
             .andExpect { status { isConflict() } }
 
         assertEquals(listOf("Dinner"), personalTitles(alice))
+    }
+
+    @Test
+    fun `totals by tag combine manual expenses and project shares per currency`() {
+        val alice = newUser()
+        val bob = newUser()
+        val project = project(alice, bob)
+        createManualExpense(
+            alice,
+            """{"title":"Groceries","date":"2026-10-05T10:00:00","amount":300,"currency":"PLN","tag":"Food"}"""
+        )
+        createManualExpense(
+            alice,
+            """{"title":"Croissant","date":"2026-10-06T10:00:00","amount":10,"currency":"EUR","tag":"Food"}"""
+        )
+        createManualExpense(
+            alice,
+            """{"title":"Later","date":"2026-11-01T00:00:00","amount":999,"currency":"PLN","tag":"Food"}"""
+        )
+        createManualExpense(alice, """{"title":"Bus","date":"2026-10-31T23:59:59","amount":40,"currency":"PLN"}""")
+        testData.createExpense(project, alice, "Dinner", "2026-10-07T19:00:00", 1000, "food")
+
+        mockMvc.get("/personal/expenses/totals-by-tag") {
+            with(asUser(alice))
+            param("from", "2026-10-01")
+            param("to", "2026-10-31")
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.length()") { value(3) }
+            jsonPath("$[0].currency.code") { value("EUR") }
+            jsonPath("$[0].total") { value(10) }
+            jsonPath("$[1].currency.code") { value("PLN") }
+            jsonPath("$[1].tag") { value(equalToIgnoringCase("food")) }
+            // Alice's 500 share of the project dinner plus her own 300
+            jsonPath("$[1].total") { value(800) }
+            jsonPath("$[2].tag") { doesNotExist() }
+            jsonPath("$[2].total") { value(40) }
+        }
+        mockMvc.get("/personal/expenses/totals-by-tag") {
+            with(asUser(bob))
+            param("from", "2026-10-01")
+            param("to", "2026-10-31")
+        }.andExpect {
+            jsonPath("$.length()") { value(1) }
+            jsonPath("$[0].total") { value(500) }
+        }
     }
 }
