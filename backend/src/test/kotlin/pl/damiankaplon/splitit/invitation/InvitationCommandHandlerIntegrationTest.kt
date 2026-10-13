@@ -5,11 +5,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Import
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
+import pl.damiankaplon.splitit.IntegrationTest
 import pl.damiankaplon.splitit.PLN
-import pl.damiankaplon.splitit.PostgreTestContainerConfig
 import pl.damiankaplon.splitit.project.Project
 import pl.damiankaplon.splitit.project.ProjectEvent
 import pl.damiankaplon.splitit.project.ProjectMember
@@ -17,13 +15,11 @@ import pl.damiankaplon.splitit.project.ProjectRepository
 import java.time.Instant
 import java.util.*
 
-@SpringBootTest
-@Import(PostgreTestContainerConfig::class)
 class InvitationCommandHandlerIntegrationTest @Autowired constructor(
     private val handler: InvitationCommandHandler,
     private val projects: ProjectRepository,
     private val invitations: ProjectInvitationRepository,
-) {
+) : IntegrationTest() {
 
     private fun newProject(ownerId: String = UUID.randomUUID().toString()) =
         projects.save(Project("Trip to Rome", ProjectMember(ownerId, "owner"), PLN))

@@ -4,24 +4,17 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
-import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
-import org.springframework.test.web.servlet.*
-import pl.damiankaplon.splitit.PostgreTestContainerConfig
+import org.springframework.test.web.servlet.delete
+import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.put
+import pl.damiankaplon.splitit.RollbackIntegrationTest
 import java.util.*
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Import(PostgreTestContainerConfig::class)
 class PersonalExpenseEndpointsIntegrationTest @Autowired constructor(
-    private val mockMvc: MockMvc,
     private val expenses: PersonalExpenseRepository,
-) {
-
-    private fun asUser(id: String) = jwt().jwt { it.subject(id).claim("preferred_username", id) }
+) : RollbackIntegrationTest() {
 
     /**
      * Each test uses its own user, since personal expenses are scoped to the

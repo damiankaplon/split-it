@@ -78,6 +78,7 @@ const en: Translations = {
     expenseCount_few: '{{count}} expenses',
     expenseCount_many: '{{count}} expenses',
     expenseCount_other: '{{count}} expenses',
+    totalExpenses: 'Total: {{amount}}',
     search: 'Search expenses',
     filterByTag: 'Filter by tag',
     allTags: 'All',

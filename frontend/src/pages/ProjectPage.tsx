@@ -5,7 +5,7 @@ import {useTranslation} from 'react-i18next'
 import {Link, useParams} from 'react-router'
 import {Temporal} from 'temporal-polyfill'
 import {ApiError} from '@/api/client'
-import {type Expense, listExpenses, listTags} from '@/api/expenses'
+import {type Expense, getExpensesTotal, listExpenses, listTags} from '@/api/expenses'
 import {type Currency, listMembers, listProjects, type Project, type ProjectMember} from '@/api/projects'
 import {DebtsPanel} from '@/components/DebtsPanel'
 import {ExpenseDialog} from '@/components/ExpenseDialog'
@@ -111,6 +111,22 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
   const [debtsReloadKey, setDebtsReloadKey] = useState(0)
   const [expenses, setExpenses] = useState<ExpensesState>({status: 'loading'})
   const [loadingMore, setLoadingMore] = useState(false)
+  const [total, setTotal] = useState<number | null>(null)
+
+  // Refetched with the debts: any expense change that alters an amount alters the total too
+  useEffect(() => {
+    let cancelled = false
+    getExpensesTotal(project.id).then(
+        (sum) => {
+          if (!cancelled) setTotal(sum)
+        },
+        () => {
+          if (!cancelled) setTotal(null)
+        })
+    return () => {
+      cancelled = true
+    }
+  }, [project.id, debtsReloadKey])
 
   useEffect(() => {
     const timeout = setTimeout(() => setTitle(searchInput.trim()), SEARCH_DEBOUNCE_MS)
@@ -205,6 +221,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
             <p className="text-muted-foreground">
               {t('project.memberCount', {count: members.length})}
               {expenses.status === 'loaded' && !filtered && ` · ${t('project.expenseCount', {count: expenses.total})}`}
+              {total !== null && ` · ${t('project.totalExpenses', {amount: formatAmount(total, project.currency, i18n.language)})}`}
             </p>
           </div>
           <div className="flex items-center gap-2">

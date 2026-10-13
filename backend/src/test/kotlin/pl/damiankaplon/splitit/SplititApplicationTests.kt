@@ -1,12 +1,8 @@
 package pl.damiankaplon.splitit
 
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Import
 
-@Import(PostgreTestContainerConfig::class)
-@SpringBootTest
-class SplititApplicationTests {
+class SplititApplicationTests : IntegrationTest() {
 
 	@Test
 	fun contextLoads() {

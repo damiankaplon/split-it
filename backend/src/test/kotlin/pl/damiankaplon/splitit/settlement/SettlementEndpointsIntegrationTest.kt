@@ -1,48 +1,23 @@
 package pl.damiankaplon.splitit.settlement
 
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
-import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
-import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActionsDsl
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
-import pl.damiankaplon.splitit.PLN
-import pl.damiankaplon.splitit.PostgreTestContainerConfig
-import pl.damiankaplon.splitit.balancing.Saldo
-import pl.damiankaplon.splitit.balancing.SaldoRepository
+import pl.damiankaplon.splitit.RollbackIntegrationTest
 import pl.damiankaplon.splitit.project.Project
-import pl.damiankaplon.splitit.project.ProjectMember
-import pl.damiankaplon.splitit.project.ProjectRepository
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Import(PostgreTestContainerConfig::class)
-class SettlementEndpointsIntegrationTest @Autowired constructor(
-    private val mockMvc: MockMvc,
-    private val projects: ProjectRepository,
-    private val saldos: SaldoRepository,
-) {
+class SettlementEndpointsIntegrationTest : RollbackIntegrationTest() {
 
-    private fun asUser(id: String) = jwt().jwt { it.subject(id).claim("preferred_username", id) }
-
-    private fun projectWith(vararg userIds: String): Project {
-        val project = Project("Trip to Rome", ProjectMember(userIds.first(), userIds.first()), PLN)
-        userIds.drop(1).forEach { project.add(ProjectMember(it, it)) }
-        projects.save(project)
-        saldos.save(Saldo(project.id))
-        return project
-    }
+    private fun projectWith(vararg userIds: String): Project =
+        testData.createProject(userIds.first(), *userIds.drop(1).toTypedArray())
 
     /** alice paid 100.00 and bob 20.00, so bob owes alice 40.00. */
     private fun bobOwesAlice4000(): Project {
         val project = projectWith("alice-id", "bob-id")
-        addExpense(project, "alice-id", 10000)
-        addExpense(project, "bob-id", 2000)
+        testData.createExpense(project, "alice-id", amount = 10000)
+        testData.createExpense(project, "bob-id", amount = 2000)
         return project
     }
 
@@ -139,7 +114,7 @@ class SettlementEndpointsIntegrationTest @Autowired constructor(
     @Test
     fun `only both sides see the pending settlement`() {
         val project = bobOwesAlice4000()
-        projects.save(project.apply { add(ProjectMember("settlement-dave-id", "dave")) })
+        testData.addMember(project, "settlement-dave-id", "dave")
         val id = requestSettlement(project, "bob-id", """{"creditorId":"alice-id","amount":4000}""").settlementId()
         // A pending settlement in another project of the same members is not listed
         val otherProject = bobOwesAlice4000()
@@ -212,7 +187,7 @@ class SettlementEndpointsIntegrationTest @Autowired constructor(
         val project = bobOwesAlice4000()
         val id = requestSettlement(project, "bob-id", """{"creditorId":"alice-id","amount":4000}""").settlementId()
 
-        addExpense(project, "bob-id", 2000)
+        testData.createExpense(project, "bob-id", amount = 2000)
 
         resolve(id, "confirm", "alice-id").andExpect { status { isConflict() } }
         expectDebt(project, 3000)

@@ -2,36 +2,20 @@ package pl.damiankaplon.splitit.personal
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
-import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
-import org.springframework.test.web.servlet.*
-import pl.damiankaplon.splitit.PLN
-import pl.damiankaplon.splitit.PostgreTestContainerConfig
-import pl.damiankaplon.splitit.balancing.Saldo
-import pl.damiankaplon.splitit.balancing.SaldoRepository
+import org.springframework.test.web.servlet.delete
+import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.put
+import pl.damiankaplon.splitit.RollbackIntegrationTest
 import pl.damiankaplon.splitit.project.Project
-import pl.damiankaplon.splitit.project.ProjectMember
-import pl.damiankaplon.splitit.project.ProjectRepository
 import java.util.*
 
 /**
  * Project expenses show up among every member's personal expenses as their
  * share.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-@Import(PostgreTestContainerConfig::class)
-class ProjectPersonalExpenseIntegrationTest @Autowired constructor(
-    private val mockMvc: MockMvc,
-    private val projects: ProjectRepository,
-    private val saldos: SaldoRepository,
-) {
-
-    private fun asUser(id: String) = jwt().jwt { it.subject(id).claim("preferred_username", id) }
+class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
 
     /**
      * Each test uses its own users, since personal expenses are scoped to the
@@ -39,22 +23,7 @@ class ProjectPersonalExpenseIntegrationTest @Autowired constructor(
      */
     private fun newUser() = "user-${UUID.randomUUID()}"
 
-    private fun project(owner: String, vararg others: String): Project {
-        val project = Project("Trip to Rome", ProjectMember(owner, owner), PLN)
-        others.forEach { project.add(ProjectMember(it, it)) }
-        projects.save(project)
-        saldos.save(Saldo(project.id))
-        return project
-    }
-
-    private fun idOf(response: String) = Regex("\"id\":\"([^\"]+)\"").find(response)!!.groupValues[1]
-
-    private fun createExpense(project: Project, userId: String, body: String): String =
-        mockMvc.post("/projects/${project.id}/expenses") {
-            with(asUser(userId))
-            contentType = MediaType.APPLICATION_JSON
-            content = body
-        }.andExpect { status { isCreated() } }.andReturn().response.contentAsString.let(::idOf)
+    private fun project(owner: String, vararg others: String): Project = testData.createProject(owner, *others)
 
     private fun createManualExpense(userId: String, body: String): String =
         mockMvc.post("/personal/expenses") {
@@ -77,10 +46,11 @@ class ProjectPersonalExpenseIntegrationTest @Autowired constructor(
         val bob = newUser()
         val project = project(alice, bob)
 
-        createExpense(
-            project, alice,
-            """{"title":"Dinner","date":"2026-10-03T19:30:00","amount":1000,"tag":"Food"}"""
-        )
+        mockMvc.post("/projects/${project.id}/expenses") {
+            with(asUser(alice))
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"title":"Dinner","date":"2026-10-03T19:30:00","amount":1000,"tag":"Food"}"""
+        }.andExpect { status { isCreated() } }
 
         for (member in listOf(alice, bob)) {
             mockMvc.get("/personal/expenses") { with(asUser(member)) }
@@ -103,10 +73,7 @@ class ProjectPersonalExpenseIntegrationTest @Autowired constructor(
         val alice = newUser()
         val bob = newUser()
         val project = project(alice, bob)
-        val expenseId = createExpense(
-            project, alice,
-            """{"title":"Dinner","date":"2026-10-03T19:30:00","amount":1000,"tag":"Food"}"""
-        )
+        val expenseId = testData.createExpense(project, alice, "Dinner", "2026-10-03T19:30:00", 1000, "Food")
 
         mockMvc.put("/projects/${project.id}/expenses/$expenseId") {
             with(asUser(bob))
@@ -132,7 +99,7 @@ class ProjectPersonalExpenseIntegrationTest @Autowired constructor(
         val bob = newUser()
         val project = project(alice, bob)
         val expenseId =
-            createExpense(project, alice, """{"title":"Dinner","date":"2026-10-03T19:30:00","amount":1000}""")
+            testData.createExpense(project, alice, "Dinner", "2026-10-03T19:30:00", 1000)
 
         mockMvc.delete("/projects/${project.id}/expenses/$expenseId") { with(asUser(alice)) }
             .andExpect { status { isNoContent() } }
@@ -151,11 +118,7 @@ class ProjectPersonalExpenseIntegrationTest @Autowired constructor(
             """{"title":"Pizza at home","date":"2026-10-01T19:00:00","amount":1,"currency":"PLN","tag":"Food"}"""
         )
         createManualExpense(bob, """{"title":"Cinema","date":"2026-10-02T20:00:00","amount":1,"currency":"PLN"}""")
-        createExpense(
-            project,
-            alice,
-            """{"title":"Pizza in Rome","date":"2026-10-03T19:00:00","amount":2,"tag":"food"}"""
-        )
+        testData.createExpense(project, alice, "Pizza in Rome", "2026-10-03T19:00:00", 2, "food")
 
         assertEquals(listOf("Pizza in Rome", "Cinema", "Pizza at home"), personalTitles(bob))
         assertEquals(listOf("Pizza in Rome", "Pizza at home"), personalTitles(bob, "title" to "PIZZA"))
@@ -178,7 +141,7 @@ class ProjectPersonalExpenseIntegrationTest @Autowired constructor(
     fun `project shares can be read but only changed through the project expense`() {
         val alice = newUser()
         val project = project(alice)
-        createExpense(project, alice, """{"title":"Dinner","date":"2026-10-03T19:30:00","amount":1000}""")
+        testData.createExpense(project, alice, "Dinner", "2026-10-03T19:30:00", 1000)
         val shareId = mockMvc.get("/personal/expenses") { with(asUser(alice)) }
             .andReturn().response.contentAsString.let(::idOf)
 

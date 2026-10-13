@@ -1,32 +1,15 @@
 package pl.damiankaplon.splitit.project
 
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
-import org.springframework.context.annotation.Import
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
-import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
-import pl.damiankaplon.splitit.PLN
-import pl.damiankaplon.splitit.PostgreTestContainerConfig
+import pl.damiankaplon.splitit.RollbackIntegrationTest
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Import(PostgreTestContainerConfig::class)
-class ProjectMembersEndpointIntegrationTest @Autowired constructor(
-    private val mockMvc: MockMvc,
-    private val projects: ProjectRepository,
-) {
-
-    private fun asUser(id: String) = jwt().jwt { it.subject(id).claim("preferred_username", id) }
+class ProjectMembersEndpointIntegrationTest : RollbackIntegrationTest() {
 
     @Test
     fun `project members endpoint returns the members stored in the repository`() {
-        val project = projects.save(Project("Trip to Rome", ProjectMember("alice-id", "alice"), PLN))
-        projects.save(project.apply {
-            add(ProjectMember("bob-id", "bob"))
-        })
+        val project = testData.createProject("alice-id", ownerName = "alice")
+        testData.addMember(project, "bob-id", "bob")
 
         mockMvc.get("/projects/${project.id}") { with(asUser("bob-id")) }
             .andExpect {
@@ -39,7 +22,7 @@ class ProjectMembersEndpointIntegrationTest @Autowired constructor(
 
     @Test
     fun `project members endpoint is forbidden for non-members`() {
-        val project = projects.save(Project("Trip to Rome", ProjectMember("alice-id", "alice"), PLN))
+        val project = testData.createProject("alice-id", ownerName = "alice")
 
         mockMvc.get("/projects/${project.id}") { with(asUser("stranger-id")) }
             .andExpect { status { isForbidden() } }
@@ -47,9 +30,9 @@ class ProjectMembersEndpointIntegrationTest @Autowired constructor(
 
     @Test
     fun `project list contains only projects the user is a member of`() {
-        val joined = projects.save(Project("Joined", ProjectMember("alice-id", "alice"), PLN))
-        val other = projects.save(Project("Other", ProjectMember("alice-id", "alice"), PLN))
-        projects.save(joined.apply { add(ProjectMember("carol-id", "carol")) })
+        val joined = testData.createProject("alice-id", name = "Joined", ownerName = "alice")
+        testData.createProject("alice-id", name = "Other", ownerName = "alice")
+        testData.addMember(joined, "carol-id", "carol")
 
         mockMvc.get("/projects") { with(asUser("carol-id")) }
             .andExpect {

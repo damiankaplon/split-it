@@ -4,57 +4,29 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
-import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
-import org.springframework.test.web.servlet.*
-import pl.damiankaplon.splitit.PLN
-import pl.damiankaplon.splitit.PostgreTestContainerConfig
-import pl.damiankaplon.splitit.balancing.Saldo
-import pl.damiankaplon.splitit.balancing.SaldoRepository
+import org.springframework.test.web.servlet.delete
+import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.put
+import pl.damiankaplon.splitit.RollbackIntegrationTest
 import pl.damiankaplon.splitit.project.Project
-import pl.damiankaplon.splitit.project.ProjectMember
-import pl.damiankaplon.splitit.project.ProjectRepository
-import java.util.*
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Import(PostgreTestContainerConfig::class)
 class ExpenseEndpointsIntegrationTest @Autowired constructor(
-    private val mockMvc: MockMvc,
-    private val projects: ProjectRepository,
     private val expenses: ExpenseRepository,
-    private val saldos: SaldoRepository,
-) {
+) : RollbackIntegrationTest() {
 
-    private fun asUser(id: String) = jwt().jwt { it.subject(id).claim("preferred_username", id) }
-
-    private fun projectWithMember(userId: String): Project {
-        val project = Project("Trip to Rome", ProjectMember(userId, userId), PLN)
-        projects.save(project)
-        saldos.save(Saldo(project.id))
-        return project
-    }
-
-    private fun createExpense(project: Project, userId: String, body: String): String =
-        mockMvc.post("/projects/${project.id}/expenses") {
-            with(asUser(userId))
-            contentType = MediaType.APPLICATION_JSON
-            content = body
-        }.andExpect { status { isCreated() } }
-            .andReturn().response.contentAsString
-            .let { Regex("\"id\":\"([^\"]+)\"").find(it)!!.groupValues[1] }
+    private fun projectWithMember(userId: String): Project = testData.createProject(userId)
 
     @Test
     fun `member creates and reads an expense`() {
         val project = projectWithMember("alice-id")
 
-        val expenseId = createExpense(
-            project, "alice-id",
-            """{"title":"Dinner","date":"2026-10-03T19:30:00","amount":12050,"tag":"Food"}"""
-        )
+        val expenseId = mockMvc.post("/projects/${project.id}/expenses") {
+            with(asUser("alice-id"))
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"title":"Dinner","date":"2026-10-03T19:30:00","amount":12050,"tag":"Food"}"""
+        }.andExpect { status { isCreated() } }.andReturn().response.contentAsString.let(::idOf)
 
         mockMvc.get("/projects/${project.id}/expenses/$expenseId") { with(asUser("alice-id")) }
             .andExpect {
@@ -71,10 +43,11 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     fun `tag is optional`() {
         val project = projectWithMember("alice-id")
 
-        val expenseId = createExpense(
-            project, "alice-id",
-            """{"title":"Taxi","date":"2026-10-03T10:00:00","amount":3000}"""
-        )
+        val expenseId = mockMvc.post("/projects/${project.id}/expenses") {
+            with(asUser("alice-id"))
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"title":"Taxi","date":"2026-10-03T10:00:00","amount":3000}"""
+        }.andExpect { status { isCreated() } }.andReturn().response.contentAsString.let(::idOf)
 
         mockMvc.get("/projects/${project.id}/expenses/$expenseId") { with(asUser("alice-id")) }
             .andExpect { jsonPath("$.tag") { doesNotExist() } }
@@ -100,8 +73,8 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     @Test
     fun `expenses are listed newest first`() {
         val project = projectWithMember("alice-id")
-        createExpense(project, "alice-id", """{"title":"Older","date":"2026-10-01T10:00:00","amount":100}""")
-        createExpense(project, "alice-id", """{"title":"Newer","date":"2026-10-02T10:00:00","amount":200}""")
+        testData.createExpense(project, "alice-id", "Older", "2026-10-01T10:00:00", 100)
+        testData.createExpense(project, "alice-id", "Newer", "2026-10-02T10:00:00", 200)
 
         mockMvc.get("/projects/${project.id}/expenses") { with(asUser("alice-id")) }
             .andExpect {
@@ -121,7 +94,7 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
         // Two expenses share a date so the id tie-breaker is exercised across a page boundary
         val dates = listOf("2026-10-05", "2026-10-04", "2026-10-04", "2026-10-03", "2026-10-02")
         dates.forEachIndexed { i, date ->
-            createExpense(project, "alice-id", """{"title":"E$i","date":"${date}T10:00:00","amount":1}""")
+            testData.createExpense(project, "alice-id", "E$i", "${date}T10:00:00", 1)
         }
 
         val seen = (0..2).flatMap { page ->
@@ -159,10 +132,10 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     @Test
     fun `list filters are optional and combined`() {
         val project = projectWithMember("alice-id")
-        createExpense(project, "alice-id", """{"title":"Pizza dinner","date":"2026-10-01T19:00:00","amount":1,"tag":"Food"}""")
-        createExpense(project, "alice-id", """{"title":"Pizza lunch","date":"2026-10-03T12:00:00","amount":1,"tag":"Food"}""")
-        createExpense(project, "alice-id", """{"title":"Museum","date":"2026-10-02T10:00:00","amount":1,"tag":"Culture"}""")
-        createExpense(project, "alice-id", """{"title":"Taxi 100%","date":"2026-10-02T11:00:00","amount":1}""")
+        testData.createExpense(project, "alice-id", "Pizza dinner", "2026-10-01T19:00:00", 1, "Food")
+        testData.createExpense(project, "alice-id", "Pizza lunch", "2026-10-03T12:00:00", 1, "Food")
+        testData.createExpense(project, "alice-id", "Museum", "2026-10-02T10:00:00", 1, "Culture")
+        testData.createExpense(project, "alice-id", "Taxi 100%", "2026-10-02T11:00:00", 1)
 
         fun titles(vararg params: Pair<String, String>): List<String> {
             val body = mockMvc.get("/projects/${project.id}/expenses") {
@@ -191,9 +164,9 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     @Test
     fun `tags are reused case-insensitively and listed for the drop-down`() {
         val project = projectWithMember("alice-id")
-        createExpense(project, "alice-id", """{"title":"A","date":"2026-10-01T10:00:00","amount":1,"tag":"Food"}""")
-        createExpense(project, "alice-id", """{"title":"B","date":"2026-10-01T10:00:00","amount":1,"tag":" food "}""")
-        createExpense(project, "alice-id", """{"title":"C","date":"2026-10-01T10:00:00","amount":1,"tag":"Bars"}""")
+        testData.createExpense(project, "alice-id", "A", "2026-10-01T10:00:00", 1, "Food")
+        testData.createExpense(project, "alice-id", "B", "2026-10-01T10:00:00", 1, " food ")
+        testData.createExpense(project, "alice-id", "C", "2026-10-01T10:00:00", 1, "Bars")
 
         mockMvc.get("/projects/${project.id}/tags") { with(asUser("alice-id")) }
             .andExpect {
@@ -210,7 +183,7 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     fun `tags are scoped to the project`() {
         val rome = projectWithMember("alice-id")
         val paris = projectWithMember("alice-id")
-        createExpense(rome, "alice-id", """{"title":"A","date":"2026-10-01T10:00:00","amount":1,"tag":"Food"}""")
+        testData.createExpense(rome, "alice-id", "A", "2026-10-01T10:00:00", 1, "Food")
 
         mockMvc.get("/projects/${paris.id}/tags") { with(asUser("alice-id")) }
             .andExpect { jsonPath("$.length()") { value(0) } }
@@ -219,11 +192,8 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     @Test
     fun `any member updates an expense`() {
         val project = projectWithMember("alice-id")
-        projects.save(project.apply { add(ProjectMember("bob-id", "bob")) })
-        val expenseId = createExpense(
-            project, "alice-id",
-            """{"title":"Dinner","date":"2026-10-03T19:30:00","amount":100,"tag":"Food"}"""
-        )
+        testData.addMember(project, "bob-id", "bob")
+        val expenseId = testData.createExpense(project, "alice-id", "Dinner", "2026-10-03T19:30:00", 100, "Food")
 
         mockMvc.put("/projects/${project.id}/expenses/$expenseId") {
             with(asUser("bob-id"))
@@ -243,14 +213,35 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     }
 
     @Test
+    fun `total sums all expenses of the project only`() {
+        val project = projectWithMember("alice-id")
+        val other = projectWithMember("alice-id")
+
+        mockMvc.get("/projects/${project.id}/expenses/total") { with(asUser("alice-id")) }
+            .andExpect { jsonPath("$.total") { value(0) } }
+
+        testData.createExpense(project, "alice-id", "A", "2026-10-01T10:00:00", 2000000000)
+        testData.createExpense(project, "alice-id", "B", "2026-10-02T10:00:00", 2000000000, "Food")
+        testData.createExpense(other, "alice-id", "C", "2026-10-02T10:00:00", 5)
+
+        mockMvc.get("/projects/${project.id}/expenses/total") { with(asUser("alice-id")) }
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.total") { value(4000000000) }
+            }
+        mockMvc.get("/projects/${project.id}/expenses/total") { with(asUser("stranger-id")) }
+            .andExpect { status { isForbidden() } }
+    }
+
+    @Test
     fun `member deletes an expense`() {
         val project = projectWithMember("alice-id")
-        val expenseId = createExpense(project, "alice-id", """{"title":"A","date":"2026-10-01T10:00:00","amount":1}""")
+        val expenseId = testData.createExpense(project, "alice-id", "A", "2026-10-01T10:00:00", 1)
 
         mockMvc.delete("/projects/${project.id}/expenses/$expenseId") { with(asUser("alice-id")) }
             .andExpect { status { isNoContent() } }
 
-        assertFalse(expenses.existsById(UUID.fromString(expenseId)))
+        assertFalse(expenses.existsById(expenseId))
         mockMvc.get("/projects/${project.id}/expenses/$expenseId") { with(asUser("alice-id")) }
             .andExpect { status { isNotFound() } }
     }
@@ -259,7 +250,7 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     fun `expense of another project is not found`() {
         val rome = projectWithMember("alice-id")
         val paris = projectWithMember("alice-id")
-        val expenseId = createExpense(rome, "alice-id", """{"title":"A","date":"2026-10-01T10:00:00","amount":1}""")
+        val expenseId = testData.createExpense(rome, "alice-id", "A", "2026-10-01T10:00:00", 1)
 
         mockMvc.get("/projects/${paris.id}/expenses/$expenseId") { with(asUser("alice-id")) }
             .andExpect { status { isNotFound() } }
@@ -270,7 +261,7 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     @Test
     fun `non-members are forbidden`() {
         val project = projectWithMember("alice-id")
-        val expenseId = createExpense(project, "alice-id", """{"title":"A","date":"2026-10-01T10:00:00","amount":1}""")
+        val expenseId = testData.createExpense(project, "alice-id", "A", "2026-10-01T10:00:00", 1)
         val stranger = asUser("stranger-id")
 
         mockMvc.post("/projects/${project.id}/expenses") {

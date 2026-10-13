@@ -4,25 +4,25 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Import
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.transaction.support.TransactionTemplate
+import pl.damiankaplon.splitit.IntegrationTest
 import pl.damiankaplon.splitit.PLN
-import pl.damiankaplon.splitit.PostgreTestContainerConfig
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.expense.ExpenseEvent
 import pl.damiankaplon.splitit.project.Project
 import pl.damiankaplon.splitit.project.ProjectMember
 import pl.damiankaplon.splitit.project.ProjectRepository
 
-@SpringBootTest
-@Import(PostgreTestContainerConfig::class)
+/**
+ * Needs real commits (stale updates across transactions), hence not a
+ * [pl.damiankaplon.splitit.RollbackIntegrationTest].
+ */
 class SaldoPersistenceIntegrationTest @Autowired constructor(
     private val saldos: SaldoRepository,
     private val projects: ProjectRepository,
     private val tx: TransactionTemplate,
-) {
+) : IntegrationTest() {
     private val alice = UserId("alice")
     private val bob = UserId("bob")
 

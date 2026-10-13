@@ -76,6 +76,7 @@ const pl = {
     expenseCount_few: '{{count}} wydatki',
     expenseCount_many: '{{count}} wydatków',
     expenseCount_other: '{{count}} wydatku',
+    totalExpenses: 'Suma: {{amount}}',
     search: 'Szukaj wydatków',
     filterByTag: 'Filtruj po tagu',
     allTags: 'Wszystkie',

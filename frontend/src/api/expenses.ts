@@ -52,5 +52,9 @@ export const createExpense = (projectId: string, expense: ExpenseRequest) =>
 export const updateExpense = (projectId: string, expenseId: string, expense: ExpenseRequest) =>
     apiFetch<Expense>(`/projects/${projectId}/expenses/${expenseId}`, {method: 'PUT', body: JSON.stringify(expense)})
 
+/** Sum of all the project's expenses in minor units, regardless of any list filters. */
+export const getExpensesTotal = (projectId: string) =>
+    apiFetch<{ total: number }>(`/projects/${projectId}/expenses/total`).then((r) => r.total)
+
 /** Tags already used in the project, sorted by name. */
 export const listTags = (projectId: string) => apiFetch<string[]>(`/projects/${projectId}/tags`)

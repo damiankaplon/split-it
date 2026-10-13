@@ -105,6 +105,22 @@ class ExpenseController(
         )
     }
 
+    data class ExpenseTotal(val total: Long)
+
+    /**
+     * Sum of all the project's expenses in minor units; a Long since the sum
+     * can exceed an Int.
+     */
+    @GetMapping("/expenses/total")
+    @Transactional(readOnly = true)
+    fun total(
+        @PathVariable projectId: UUID,
+        @AuthenticationPrincipal jwt: Jwt,
+    ): ExpenseTotal {
+        requireMember(projectId, jwt)
+        return ExpenseTotal(expenses.sumAmountByProjectId(projectId))
+    }
+
     @GetMapping("/expenses/{expenseId}")
     @Transactional(readOnly = true)
     fun get(
