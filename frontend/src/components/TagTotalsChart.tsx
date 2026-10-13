@@ -4,15 +4,11 @@ import {useTranslation} from 'react-i18next'
 import {Temporal} from 'temporal-polyfill'
 import type {TagTotal} from '@/api/expenses'
 import type {Currency} from '@/api/projects'
-import {TagBadge} from '@/components/TagBadge'
 import {Alert, AlertTitle} from '@/components/ui/alert'
 import {Card} from '@/components/ui/card'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {formatAmount} from '@/lib/money'
-
-const CHART_HEIGHT_PX = 240
-const TICK_COUNT = 4
 
 export interface CurrencyTagTotal extends TagTotal {
   currency: Currency
@@ -108,14 +104,6 @@ export function TagTotalsCharts({load, reloadKey}: TagTotalsChartsProps) {
   )
 }
 
-/** Round step (1, 2 or 5 times a power of ten) giving about [TICK_COUNT] gridlines up to [max]. */
-function niceStep(max: number): number {
-  const raw = max / TICK_COUNT
-  const magnitude = 10 ** Math.floor(Math.log10(raw))
-  const step = [1, 2, 5, 10].find((m) => m * magnitude >= raw) ?? 10
-  return step * magnitude
-}
-
 function TagTotalsChart({title, totals, currency, locale}: {
   title: string
   totals: CurrencyTagTotal[]
@@ -123,83 +111,29 @@ function TagTotalsChart({title, totals, currency, locale}: {
   locale: string
 }) {
   const {t} = useTranslation()
-  const toMajor = (minor: number) => minor / 10 ** currency.minorUnits
-  // Expense amounts are positive, so the largest sum is too
-  const largest = toMajor(Math.max(...totals.map((total) => total.total)))
-  const step = niceStep(largest)
-  const axisMax = Math.ceil(largest / step) * step
-  const ticks = Array.from({length: Math.round(axisMax / step) + 1}, (_, i) => i * step)
-  const tickFormat = new Intl.NumberFormat(locale, {notation: 'compact', maximumFractionDigits: 1})
   const tagName = (total: TagTotal) => total.tag ?? t('charts.untagged')
+  // Biggest first; expense amounts are positive, so the first one is the longest bar
+  const sorted = [...totals].sort((a, b) => b.total - a.total)
+  const largest = sorted[0].total
 
   return (
       <Card className="gap-4 px-4 py-5 shadow-xs sm:px-6">
         <h2 className="font-semibold">{title}</h2>
-        <div className="flex gap-2">
-          {/* Y axis labels, in major units of the currency */}
-          <div className="relative w-10 shrink-0 text-right text-xs text-muted-foreground tabular-nums"
-               style={{height: CHART_HEIGHT_PX}} aria-hidden>
-            {ticks.map((tick) => (
-                <span key={tick} className="absolute right-0 translate-y-1/2"
-                      style={{bottom: `${(tick / axisMax) * 100}%`}}>
-                  {tickFormat.format(tick)}
+        <ul className="flex flex-col gap-2.5" aria-label={title}>
+          {sorted.map((total) => (
+              <li key={total.tag ?? ''}
+                  className="grid grid-cols-[minmax(4rem,7rem)_1fr_auto] items-center gap-3 text-sm">
+                <span className="truncate" title={tagName(total)}>{tagName(total)}</span>
+                <div className="h-5 rounded-[4px] bg-muted/50" aria-hidden>
+                  <div className="h-full rounded-[4px]"
+                       style={{
+                         width: `${(total.total / largest) * 100}%`,
+                         backgroundColor: total.tagColor ?? 'var(--muted-foreground)',
+                       }}/>
+                </div>
+                <span className="min-w-20 text-right font-medium tabular-nums">
+                  {formatAmount(total.total, currency, locale)}
                 </span>
-            ))}
-          </div>
-          <div className="min-w-0 grow overflow-x-auto">
-            <div className="flex min-w-fit flex-col">
-              <div className="relative" style={{height: CHART_HEIGHT_PX}}>
-                {ticks.map((tick) => (
-                    <div key={tick}
-                         className={`absolute inset-x-0 border-t ${tick === 0 ? 'border-border' : 'border-dashed border-border/60'}`}
-                         style={{bottom: `${(tick / axisMax) * 100}%`}} aria-hidden/>
-                ))}
-                <ul className="absolute inset-0 flex items-end gap-0.5 px-1" aria-label={title}>
-                  {totals.map((total) => (
-                      <li key={total.tag ?? ''}
-                          className="group relative flex h-full min-w-12 flex-1 items-end justify-center"
-                          tabIndex={0}
-                          aria-label={`${tagName(total)}: ${formatAmount(total.total, currency, locale)}`}>
-                        <div
-                            className="w-full max-w-14 rounded-t-[4px] transition-opacity group-hover:opacity-80 group-focus:opacity-80"
-                            style={{
-                              height: `${(toMajor(total.total) / axisMax) * 100}%`,
-                              backgroundColor: total.tagColor ?? 'var(--muted-foreground)',
-                            }}
-                        />
-                        <span
-                            className="pointer-events-none absolute z-10 mb-1 hidden rounded-md border bg-popover px-2 py-1 text-xs whitespace-nowrap text-popover-foreground shadow-md group-hover:block group-focus:block"
-                            style={{bottom: `${(toMajor(total.total) / axisMax) * 100}%`}}
-                            aria-hidden>
-                          <span className="font-medium">{tagName(total)}</span>
-                          {' · '}
-                          <span className="tabular-nums">{formatAmount(total.total, currency, locale)}</span>
-                        </span>
-                      </li>
-                  ))}
-                </ul>
-              </div>
-              {/* X axis labels */}
-              <div className="flex gap-0.5 px-1 pt-2" aria-hidden>
-                {totals.map((total) => (
-                    <span key={total.tag ?? ''}
-                          className="min-w-12 flex-1 truncate text-center text-xs text-muted-foreground"
-                          title={tagName(total)}>
-                      {tagName(total)}
-                    </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* The exact sums, which the bars only approximate */}
-        <ul className="flex flex-wrap gap-x-4 gap-y-1.5 border-t pt-4 text-sm">
-          {totals.map((total) => (
-              <li key={total.tag ?? ''} className="flex items-center gap-1.5">
-                {total.tag
-                    ? <TagBadge name={total.tag} color={total.tagColor}/>
-                    : <span className="text-muted-foreground">{t('charts.untagged')}</span>}
-                <span className="font-medium tabular-nums">{formatAmount(total.total, currency, locale)}</span>
               </li>
           ))}
         </ul>
