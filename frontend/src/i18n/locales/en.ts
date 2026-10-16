@@ -126,6 +126,8 @@ const en: Translations = {
     totalExpenses: 'Total: {{amount}}',
     search: 'Search expenses',
     filterByTag: 'Filter by tag',
+    showFilters: 'Show filters',
+    hideFilters: 'Hide filters',
     allTags: 'All',
     filterByCreator: 'Filter by creator',
     allCreators: 'Everyone',

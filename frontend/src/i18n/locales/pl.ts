@@ -124,6 +124,8 @@ const pl = {
     totalExpenses: 'Suma: {{amount}}',
     search: 'Szukaj wydatków',
     filterByTag: 'Filtruj po tagu',
+    showFilters: 'Pokaż filtry',
+    hideFilters: 'Ukryj filtry',
     allTags: 'Wszystkie',
     filterByCreator: 'Filtruj po autorze',
     allCreators: 'Wszyscy',

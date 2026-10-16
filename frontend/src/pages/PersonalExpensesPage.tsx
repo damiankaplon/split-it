@@ -1,6 +1,6 @@
 import {TagBadge} from '@/components/TagBadge'
 import {type ReactNode, useEffect, useState} from 'react'
-import {AlertCircle, Pencil, Plus, Search, Trash2} from 'lucide-react'
+import {AlertCircle, ChevronUp, Pencil, Plus, Search, SlidersHorizontal, Trash2} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {useSearchParams} from 'react-router'
 import {
@@ -38,6 +38,7 @@ export function PersonalExpensesPage() {
   const {t, i18n} = useTranslation()
   const [tags, setTags] = useState<string[]>([])
   const [searchInput, setSearchInput] = useState('')
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [tag, setTag] = useState<string | null>(null)
   const [dates, setDates] = useState<DateRange>(EMPTY_DATE_RANGE)
@@ -202,18 +203,28 @@ export function PersonalExpensesPage() {
 
           <TabsContent value="feed">
             <div className="flex flex-col gap-3">
-          <div className="relative max-w-sm">
-            <Search
-                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"/>
-            <Input
-                type="search"
-                aria-label={t('project.search')}
-                placeholder={t('project.search')}
-                className="h-10 rounded-lg bg-card pl-9"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-            />
-          </div>
+              <div className="flex max-w-sm items-center gap-2">
+                <div className="relative grow">
+                  <Search
+                      className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"/>
+                  <Input
+                      type="search"
+                      aria-label={t('project.search')}
+                      placeholder={t('project.search')}
+                      className="h-10 rounded-lg bg-card pl-9"
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                  />
+                </div>
+                <Button variant="outline" size="icon" className="size-10 shrink-0 rounded-lg bg-card"
+                        aria-expanded={filtersOpen}
+                        aria-label={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
+                        title={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
+                        onClick={() => setFiltersOpen((open) => !open)}>
+                  {filtersOpen ? <ChevronUp/> : <SlidersHorizontal/>}
+                </Button>
+              </div>
+              {filtersOpen && <>
           {tags.length > 0 && (
               <select
                   aria-label={t('project.filterByTag')}
@@ -228,6 +239,7 @@ export function PersonalExpensesPage() {
               </select>
           )}
           <DateRangeFilter value={dates} onChange={setDates}/>
+              </>}
         </div>
 
             {expenses.status === 'loading' && <p className="text-muted-foreground">{t('project.loadingExpenses')}</p>}

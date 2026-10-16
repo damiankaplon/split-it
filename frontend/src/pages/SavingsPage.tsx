@@ -1,5 +1,5 @@
 import {type ReactNode, useEffect, useState} from 'react'
-import {AlertCircle, Pencil, Plus, Trash2} from 'lucide-react'
+import {AlertCircle, ChevronUp, Pencil, Plus, SlidersHorizontal, Trash2} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {getSavings, type Income, listIncomes, type Savings} from '@/api/personal'
 import {DateRangeFilter} from '@/components/DateRangeFilter'
@@ -34,6 +34,7 @@ export function SavingsPage() {
   const {t, i18n} = useTranslation()
   // Empty means the backend's default: the last year
   const [dates, setDates] = useState<DateRange>(EMPTY_DATE_RANGE)
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
   const [savings, setSavings] = useState<LoadState<Savings>>({status: 'loading'})
   const [incomes, setIncomes] = useState<LoadState<Income>>({status: 'loading'})
@@ -80,26 +81,33 @@ export function SavingsPage() {
 
   return (
       <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-6 pt-7 pb-12">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center justify-between gap-3">
             <h1 className="text-[26px] font-semibold tracking-[-0.02em]">{t('savings.title')}</h1>
-            <p className="text-muted-foreground">{t('savings.subtitle')}</p>
+            <IncomeDialog
+                defaultCurrency={lastCurrency ?? DEFAULT_CURRENCY}
+                onSaved={onCreated}
+                trigger={
+                  <Button size="icon" className="rounded-lg" aria-label={t('incomeDialog.add')}
+                          title={t('incomeDialog.add')}>
+                    <Plus/>
+                  </Button>
+                }
+            />
           </div>
-          <IncomeDialog
-              defaultCurrency={lastCurrency ?? DEFAULT_CURRENCY}
-              onSaved={onCreated}
-              trigger={
-                <Button className="rounded-lg">
-                  <Plus/>
-                  {t('incomeDialog.add')}
-                </Button>
-              }
-          />
+          <p className="text-muted-foreground">{t('savings.subtitle')}</p>
         </div>
 
         <section className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <DateRangeFilter value={dates} onChange={setDates}/>
+            <Button variant="outline" size="icon" className="size-10 shrink-0 rounded-lg bg-card"
+                    aria-expanded={filtersOpen}
+                    aria-label={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
+                    title={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
+                    onClick={() => setFiltersOpen((open) => !open)}>
+              {filtersOpen ? <ChevronUp/> : <SlidersHorizontal/>}
+            </Button>
+            {filtersOpen && <DateRangeFilter value={dates} onChange={setDates}/>}
             {!isDateRangeSet(dates) &&
                 <span className="text-[13px] text-muted-foreground">{t('savings.lastYear')}</span>}
           </div>
