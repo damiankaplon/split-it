@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
 
 @Repository
@@ -19,18 +19,18 @@ interface ExpenseRepository : JpaRepository<Expense, UUID>, JpaSpecificationExec
     override fun findAll(spec: Specification<Expense>, pageable: Pageable): Page<Expense>
 
     /**
-     * Sums per tag of the expenses dated in [from, until); untagged ones are
+     * Sums per tag of the expenses dated in [from, to]; untagged ones are
      * summed under a null tag.
      */
     @Query(
         """
         select new pl.damiankaplon.splitit.expense.TagTotal(t.name, t.color, sum(e.amount))
         from Expense e left join e.tag t
-        where e.projectId = :projectId and e.date >= :from and e.date < :until
+        where e.projectId = :projectId and e.date >= :from and e.date <= :to
         group by t.id, t.name, t.color
         """
     )
-    fun sumAmountByTag(projectId: UUID, from: LocalDateTime, until: LocalDateTime): List<TagTotal>
+    fun sumAmountByTag(projectId: UUID, from: Instant, to: Instant): List<TagTotal>
 
     @EntityGraph(attributePaths = ["tag"])
     fun findByIdAndProjectId(id: UUID, projectId: UUID): Expense?

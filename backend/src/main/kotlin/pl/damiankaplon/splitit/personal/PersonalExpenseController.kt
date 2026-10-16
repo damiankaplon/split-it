@@ -17,8 +17,8 @@ import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.project.IsoCurrency
 import pl.damiankaplon.splitit.userIdOrThrow
-import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.ZonedDateTime
 import java.util.*
 
 private const val DEFAULT_PAGE_SIZE = 20
@@ -35,7 +35,7 @@ class PersonalExpenseController(
 
     data class PersonalExpenseRequest(
         @field:NotBlank val title: String,
-        val date: LocalDateTime,
+        val date: Instant,
         @field:Positive val amount: Int,
         @field:NotBlank @field:IsoCurrency val currency: String,
         val tag: String? = null,
@@ -57,7 +57,7 @@ class PersonalExpenseController(
     data class PersonalExpenseResponse(
         val id: UUID,
         val title: String,
-        val date: LocalDateTime,
+        val date: Instant,
         val amount: Int,
         val currency: CurrencyResponse,
         val tag: String?,
@@ -101,8 +101,8 @@ class PersonalExpenseController(
         @RequestParam(defaultValue = "$DEFAULT_PAGE_SIZE") @Min(1) @Max(MAX_PAGE_SIZE) size: Int,
         @RequestParam(required = false) tag: String?,
         @RequestParam(required = false) title: String?,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: LocalDateTime?,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: LocalDateTime?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: ZonedDateTime?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: ZonedDateTime?,
         @AuthenticationPrincipal jwt: Jwt,
     ): PersonalExpensePage {
         val spec =
@@ -122,14 +122,14 @@ class PersonalExpenseController(
         ownerId: UserId,
         tag: String?,
         title: String?,
-        from: LocalDateTime?,
-        to: LocalDateTime?,
+        from: ZonedDateTime?,
+        to: ZonedDateTime?,
     ): Specification<PersonalExpense> = listOfNotNull(
         PersonalExpenseSpecifications.ownedBy(ownerId),
         tag?.trim()?.takeIf { it.isNotEmpty() }?.let(PersonalExpenseSpecifications::hasTag),
         title?.trim()?.takeIf { it.isNotEmpty() }?.let(PersonalExpenseSpecifications::titleContains),
-        from?.let(PersonalExpenseSpecifications::dateFrom),
-        to?.let(PersonalExpenseSpecifications::dateTo),
+        from?.toInstant()?.let(PersonalExpenseSpecifications::dateFrom),
+        to?.toInstant()?.let(PersonalExpenseSpecifications::dateTo),
     ).fold(Specification.unrestricted()) { acc, next -> acc.and(next) }
 
     data class CurrencySum(
@@ -147,8 +147,8 @@ class PersonalExpenseController(
     fun total(
         @RequestParam(required = false) tag: String?,
         @RequestParam(required = false) title: String?,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: LocalDateTime?,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: LocalDateTime?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: ZonedDateTime?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: ZonedDateTime?,
         @AuthenticationPrincipal jwt: Jwt,
     ): List<CurrencySum> =
         expenses.findAll(filterSpec(jwt.userIdOrThrow(), tag, title, from, to))
@@ -171,20 +171,24 @@ class PersonalExpenseController(
 
     /**
      * Sums of the user's expenses per currency and tag between [from] and
-     * [to], both days inclusive; largest first within a currency. Tags match
-     * case-insensitively, since a manual and a project tag may share a name.
+     * [to], both instants inclusive; largest first within a currency. Tags
+     * match case-insensitively, since a manual and a project tag may share a
+     * name.
      */
     @GetMapping("/expenses/totals-by-tag")
     @Transactional(readOnly = true)
     fun totalsByTag(
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) from: LocalDate,
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) to: LocalDate,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: ZonedDateTime,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: ZonedDateTime,
         @AuthenticationPrincipal jwt: Jwt,
     ): List<TagTotalResponse> {
-        if (from.isAfter(to)) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "from must not be after to")
+        if (from.toInstant().isAfter(to.toInstant())) throw ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "from must not be after to"
+        )
         val spec = PersonalExpenseSpecifications.ownedBy(jwt.userIdOrThrow())
-            .and(PersonalExpenseSpecifications.dateFrom(from.atStartOfDay()))
-            .and(PersonalExpenseSpecifications.dateBefore(to.plusDays(1).atStartOfDay()))
+            .and(PersonalExpenseSpecifications.dateFrom(from.toInstant()))
+            .and(PersonalExpenseSpecifications.dateTo(to.toInstant()))
         return expenses.findAll(spec)
             .groupBy { it.currency to it.tag?.lowercase() }
             .map { (key, group) ->

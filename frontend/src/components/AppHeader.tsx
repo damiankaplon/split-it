@@ -33,6 +33,7 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
   // Project pages belong to the Projects tab too
   const {pathname} = useLocation()
   const isPersonal = pathname.startsWith('/personal')
+  const isSavings = pathname.startsWith('/savings')
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   return (
@@ -68,12 +69,17 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
                   </DialogPrimitive.Close>
                 </div>
                 <nav aria-label={t('header.navigation')} className="flex flex-col gap-1">
-                  <HeaderTab to="/" active={!isPersonal} onNavigate={() => setDrawerOpen(false)} className="py-2.5">
+                  <HeaderTab to="/" active={!isPersonal && !isSavings} onNavigate={() => setDrawerOpen(false)}
+                             className="py-2.5">
                     {t('header.projects')}
                   </HeaderTab>
                   <HeaderTab to="/personal" active={isPersonal} onNavigate={() => setDrawerOpen(false)}
                              className="py-2.5">
                     {t('header.personal')}
+                  </HeaderTab>
+                  <HeaderTab to="/savings" active={isSavings} onNavigate={() => setDrawerOpen(false)}
+                             className="py-2.5">
+                    {t('header.savings')}
                   </HeaderTab>
                 </nav>
               </DialogPrimitive.Content>
@@ -84,8 +90,9 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
             SplitIt!
           </Link>
           <nav aria-label={t('header.navigation')} className="ml-4 hidden items-center gap-1 md:flex">
-            <HeaderTab to="/" active={!isPersonal}>{t('header.projects')}</HeaderTab>
+            <HeaderTab to="/" active={!isPersonal && !isSavings}>{t('header.projects')}</HeaderTab>
             <HeaderTab to="/personal" active={isPersonal}>{t('header.personal')}</HeaderTab>
+            <HeaderTab to="/savings" active={isSavings}>{t('header.savings')}</HeaderTab>
           </nav>
           <div className="grow"/>
           <DropdownMenu>

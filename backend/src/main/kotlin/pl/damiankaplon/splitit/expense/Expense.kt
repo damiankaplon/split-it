@@ -2,7 +2,7 @@ package pl.damiankaplon.splitit.expense
 
 import jakarta.persistence.*
 import org.hibernate.annotations.BatchSize
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
 
 @Entity
@@ -17,7 +17,7 @@ class Expense(
     var title: String,
 
     @Column(nullable = false)
-    var date: LocalDateTime,
+    var date: Instant,
 
     @Column(nullable = false)
     var amount: Int,

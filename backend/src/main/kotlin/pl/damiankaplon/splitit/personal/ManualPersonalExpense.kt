@@ -2,7 +2,7 @@ package pl.damiankaplon.splitit.personal
 
 import jakarta.persistence.*
 import pl.damiankaplon.splitit.UserId
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
 
 /** Entered by the owner, who may change or delete it. */
@@ -15,7 +15,7 @@ class ManualPersonalExpense(
     override var title: String,
 
     @Column(name = "date")
-    override var date: LocalDateTime,
+    override var date: Instant,
 
     amount: Int,
 

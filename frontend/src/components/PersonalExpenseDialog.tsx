@@ -1,7 +1,6 @@
 import {type FormEvent, type ReactNode, useState} from 'react'
 import {NumericFormat} from 'react-number-format'
 import {useTranslation} from 'react-i18next'
-import {Temporal} from 'temporal-polyfill'
 import {createPersonalExpense, type PersonalExpense, updatePersonalExpense} from '@/api/personal'
 import {Button} from '@/components/ui/button'
 import {
@@ -16,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
+import {inputValueToInstant, instantToInputValue, nowInputValue} from '@/lib/instants'
 import {currencyOf, decimalSeparator, fitsInMinorUnits, PROJECT_CURRENCIES, toMinorUnits, zeroAmount} from '@/lib/money'
 
 interface PersonalExpenseDialogProps {
@@ -29,9 +29,6 @@ interface PersonalExpenseDialogProps {
   trigger: ReactNode
   onSaved: (expense: PersonalExpense) => void
 }
-
-// datetime-local inputs take YYYY-MM-DDTHH:mm in local time
-const toInputValue = (dateTime: Temporal.PlainDateTime) => dateTime.toString({smallestUnit: 'minute'})
 
 export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, onSaved}: PersonalExpenseDialogProps) {
   const {t, i18n} = useTranslation()
@@ -59,7 +56,7 @@ export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, 
       setTitle(expense?.title ?? '')
       setAmount(expense && expense.amount / 10 ** expense.currency.minorUnits)
       setCurrencyCode(expense?.currency.code ?? defaultCurrency)
-      setDate(toInputValue(expense ? Temporal.PlainDateTime.from(expense.date) : Temporal.Now.plainDateTimeISO()))
+      setDate(expense ? instantToInputValue(expense.date) : nowInputValue())
       setTag(expense?.tag ?? '')
       setError(null)
     }
@@ -73,7 +70,7 @@ export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, 
       title: title.trim(),
       amount: amountInMinorUnits,
       currency: currencyCode,
-      date: Temporal.PlainDateTime.from(date).toString({smallestUnit: 'second'}),
+      date: inputValueToInstant(date),
       tag: tag.trim() || undefined,
     }
     try {

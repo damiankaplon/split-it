@@ -1,7 +1,6 @@
 import {type FormEvent, type ReactNode, useState} from 'react'
 import {NumericFormat} from 'react-number-format'
 import {useTranslation} from 'react-i18next'
-import {Temporal} from 'temporal-polyfill'
 import {createExpense, type Expense, updateExpense} from '@/api/expenses'
 import type {Currency} from '@/api/projects'
 import {Button} from '@/components/ui/button'
@@ -17,6 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
+import {inputValueToInstant, instantToInputValue, nowInputValue} from '@/lib/instants'
 import {decimalSeparator, fitsInMinorUnits, toMinorUnits, zeroAmount} from '@/lib/money'
 
 interface ExpenseDialogProps {
@@ -30,9 +30,6 @@ interface ExpenseDialogProps {
   trigger: ReactNode
   onSaved: (expense: Expense) => void
 }
-
-// datetime-local inputs take YYYY-MM-DDTHH:mm in local time
-const toInputValue = (dateTime: Temporal.PlainDateTime) => dateTime.toString({smallestUnit: 'minute'})
 
 export function ExpenseDialog({projectId, currency, tags, expense, trigger, onSaved}: ExpenseDialogProps) {
   const {t, i18n} = useTranslation()
@@ -53,7 +50,7 @@ export function ExpenseDialog({projectId, currency, tags, expense, trigger, onSa
     if (next) {
       setTitle(expense?.title ?? '')
       setAmount(expense && expense.amount / 10 ** currency.minorUnits)
-      setDate(toInputValue(expense ? Temporal.PlainDateTime.from(expense.date) : Temporal.Now.plainDateTimeISO()))
+      setDate(expense ? instantToInputValue(expense.date) : nowInputValue())
       setTag(expense?.tag ?? '')
       setError(null)
     }
@@ -66,7 +63,7 @@ export function ExpenseDialog({projectId, currency, tags, expense, trigger, onSa
     const request = {
       title: title.trim(),
       amount: amountInMinorUnits,
-      date: Temporal.PlainDateTime.from(date).toString({smallestUnit: 'second'}),
+      date: inputValueToInstant(date),
       tag: tag.trim() || undefined,
     }
     try {

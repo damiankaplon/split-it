@@ -5,7 +5,7 @@ import org.springframework.data.jpa.domain.Specification
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.expense.Expense
 import pl.damiankaplon.splitit.expense.ExpenseTag
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
 
 /**
@@ -43,17 +43,12 @@ object PersonalExpenseSpecifications {
         cb.like(cb.lower(root.title(cb)), "%$escaped%", '\\')
     }
 
-    fun dateFrom(from: LocalDateTime) = Specification<PersonalExpense> { root, _, cb ->
+    fun dateFrom(from: Instant) = Specification<PersonalExpense> { root, _, cb ->
         cb.greaterThanOrEqualTo(root.date(cb), from)
     }
 
-    fun dateTo(to: LocalDateTime) = Specification<PersonalExpense> { root, _, cb ->
+    fun dateTo(to: Instant) = Specification<PersonalExpense> { root, _, cb ->
         cb.lessThanOrEqualTo(root.date(cb), to)
-    }
-
-    /** Strictly before [until], for day ranges that end at the next midnight. */
-    fun dateBefore(until: LocalDateTime) = Specification<PersonalExpense> { root, _, cb ->
-        cb.lessThan(root.date(cb), until)
     }
 
     /**
@@ -75,7 +70,7 @@ object PersonalExpenseSpecifications {
         projectExpense(cb).get(Expense::title.name),
     )
 
-    private fun Root<PersonalExpense>.date(cb: CriteriaBuilder): Expression<LocalDateTime> = cb.coalesce(
+    private fun Root<PersonalExpense>.date(cb: CriteriaBuilder): Expression<Instant> = cb.coalesce(
         cb.treat(this, ManualPersonalExpense::class.java).get(ManualPersonalExpense::date.name),
         projectExpense(cb).get(Expense::date.name),
     )

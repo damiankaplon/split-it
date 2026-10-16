@@ -1,7 +1,7 @@
 package pl.damiankaplon.splitit.expense
 
 import org.springframework.data.jpa.domain.Specification
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
 
 object ExpenseSpecifications {
@@ -29,11 +29,11 @@ object ExpenseSpecifications {
         cb.like(cb.lower(root.get(Expense::title.name)), "%$escaped%", '\\')
     }
 
-    fun dateFrom(from: LocalDateTime) = Specification<Expense> { root, _, cb ->
+    fun dateFrom(from: Instant) = Specification<Expense> { root, _, cb ->
         cb.greaterThanOrEqualTo(root.get(Expense::date.name), from)
     }
 
-    fun dateTo(to: LocalDateTime) = Specification<Expense> { root, _, cb ->
+    fun dateTo(to: Instant) = Specification<Expense> { root, _, cb ->
         cb.lessThanOrEqualTo(root.get(Expense::date.name), to)
     }
 }

@@ -25,7 +25,7 @@ class SettlementEndpointsIntegrationTest : RollbackIntegrationTest() {
         mockMvc.post("/projects/${project.id}/expenses") {
             with(asUser(userId))
             contentType = MediaType.APPLICATION_JSON
-            content = """{"title":"Dinner","date":"2026-10-03T19:30:00","amount":$amount}"""
+            content = """{"title":"Dinner","date":"2026-10-03T19:30:00Z","amount":$amount}"""
         }.andExpect { status { isCreated() } }
     }
 

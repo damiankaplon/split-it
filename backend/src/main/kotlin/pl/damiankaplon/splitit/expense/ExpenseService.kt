@@ -8,7 +8,7 @@ import pl.damiankaplon.splitit.personal.ProjectPersonalExpense
 import pl.damiankaplon.splitit.personal.ProjectPersonalExpenseRepository
 import pl.damiankaplon.splitit.policy.SplitPolicy
 import pl.damiankaplon.splitit.project.ProjectRepository
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
 import kotlin.math.absoluteValue
 
@@ -29,7 +29,7 @@ class ExpenseService(
 
     data class ExpenseDetails(
         val title: String,
-        val date: LocalDateTime,
+        val date: Instant,
         val amount: Int,
         val tag: String?,
     )

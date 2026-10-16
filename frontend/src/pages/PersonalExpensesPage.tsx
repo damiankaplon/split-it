@@ -3,7 +3,6 @@ import {type ReactNode, useEffect, useState} from 'react'
 import {AlertCircle, Pencil, Plus, Search, Trash2} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {useSearchParams} from 'react-router'
-import {Temporal} from 'temporal-polyfill'
 import {
   getPersonalExpensesTotal,
   getPersonalTotalsByTag,
@@ -22,6 +21,7 @@ import {Card} from '@/components/ui/card'
 import {Input} from '@/components/ui/input'
 import {type DateRange, dateRangeQuery, EMPTY_DATE_RANGE, isDateRangeSet} from '@/lib/dateRange'
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
+import {formatInstant} from '@/lib/instants'
 import {formatAmount} from '@/lib/money'
 
 const PAGE_SIZE = 20
@@ -312,8 +312,8 @@ function PersonalExpenseRow({expense, locale, actions}: {
   locale: string
   actions: ReactNode
 }) {
-  // The backend sends a zone-less LocalDateTime, which is exactly a PlainDateTime
-  const date = Temporal.PlainDateTime.from(expense.date).toLocaleString(locale, {
+  // The backend sends an exact instant, shown in the user's zone
+  const date = formatInstant(expense.date, locale, {
     dateStyle: 'medium',
     timeStyle: 'short'
   })

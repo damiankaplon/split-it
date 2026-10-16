@@ -3,7 +3,7 @@ package pl.damiankaplon.splitit.personal
 import jakarta.persistence.*
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.expense.Expense
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
 
 /**
@@ -27,7 +27,7 @@ class ProjectPersonalExpense(
 
     override val title: String get() = expense.title
 
-    override val date: LocalDateTime get() = expense.date
+    override val date: Instant get() = expense.date
 
     override val tag: String? get() = expense.tag?.name
 

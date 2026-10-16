@@ -45,14 +45,14 @@ class PersonalExpenseEndpointsIntegrationTest @Autowired constructor(
 
         val expenseId = createExpense(
             alice,
-            """{"title":"Groceries","date":"2026-10-03T19:30:00","amount":12050,"currency":"eur","tag":"Food"}"""
+            """{"title":"Groceries","date":"2026-10-03T19:30:00Z","amount":12050,"currency":"eur","tag":"Food"}"""
         )
 
         mockMvc.get("/personal/expenses/$expenseId") { with(asUser(alice)) }
             .andExpect {
                 status { isOk() }
                 jsonPath("$.title") { value("Groceries") }
-                jsonPath("$.date") { value("2026-10-03T19:30:00") }
+                jsonPath("$.date") { value("2026-10-03T19:30:00Z") }
                 jsonPath("$.amount") { value(12050) }
                 jsonPath("$.currency.code") { value("EUR") }
                 jsonPath("$.currency.minorUnits") { value(2) }
@@ -67,11 +67,11 @@ class PersonalExpenseEndpointsIntegrationTest @Autowired constructor(
         val alice = newUser()
 
         listOf(
-            """{"title":" ","date":"2026-10-03T10:00:00","amount":3000,"currency":"PLN"}""",
+            """{"title":" ","date":"2026-10-03T10:00:00Z","amount":3000,"currency":"PLN"}""",
             """{"title":"Taxi","amount":3000,"currency":"PLN"}""",
-            """{"title":"Taxi","date":"2026-10-03T10:00:00","amount":0,"currency":"PLN"}""",
-            """{"title":"Taxi","date":"2026-10-03T10:00:00","amount":3000,"currency":"XYZ"}""",
-            """{"title":"Taxi","date":"2026-10-03T10:00:00","amount":3000}""",
+            """{"title":"Taxi","date":"2026-10-03T10:00:00Z","amount":0,"currency":"PLN"}""",
+            """{"title":"Taxi","date":"2026-10-03T10:00:00Z","amount":3000,"currency":"XYZ"}""",
+            """{"title":"Taxi","date":"2026-10-03T10:00:00Z","amount":3000}""",
         ).forEach { body ->
             mockMvc.post("/personal/expenses") {
                 with(asUser(alice))
@@ -85,9 +85,9 @@ class PersonalExpenseEndpointsIntegrationTest @Autowired constructor(
     fun `users see only their own expenses`() {
         val alice = newUser()
         val bob = newUser()
-        createExpense(alice, """{"title":"Older","date":"2026-10-01T10:00:00","amount":100,"currency":"PLN"}""")
-        createExpense(alice, """{"title":"Newer","date":"2026-10-02T10:00:00","amount":200,"currency":"PLN"}""")
-        createExpense(bob, """{"title":"Bob's","date":"2026-10-02T10:00:00","amount":200,"currency":"PLN"}""")
+        createExpense(alice, """{"title":"Older","date":"2026-10-01T10:00:00Z","amount":100,"currency":"PLN"}""")
+        createExpense(alice, """{"title":"Newer","date":"2026-10-02T10:00:00Z","amount":200,"currency":"PLN"}""")
+        createExpense(bob, """{"title":"Bob's","date":"2026-10-02T10:00:00Z","amount":200,"currency":"PLN"}""")
 
         mockMvc.get("/personal/expenses") { with(asUser(alice)) }
             .andExpect {
@@ -117,24 +117,24 @@ class PersonalExpenseEndpointsIntegrationTest @Autowired constructor(
         val alice = newUser()
         createExpense(
             alice,
-            """{"title":"Pizza dinner","date":"2026-10-01T19:00:00","amount":1,"currency":"PLN","tag":"Food"}"""
+            """{"title":"Pizza dinner","date":"2026-10-01T19:00:00Z","amount":1,"currency":"PLN","tag":"Food"}"""
         )
         createExpense(
             alice,
-            """{"title":"Pizza lunch","date":"2026-10-03T12:00:00","amount":1,"currency":"PLN","tag":"Food"}"""
+            """{"title":"Pizza lunch","date":"2026-10-03T12:00:00Z","amount":1,"currency":"PLN","tag":"Food"}"""
         )
         createExpense(
             alice,
-            """{"title":"Museum","date":"2026-10-02T10:00:00","amount":1,"currency":"PLN","tag":"Culture"}"""
+            """{"title":"Museum","date":"2026-10-02T10:00:00Z","amount":1,"currency":"PLN","tag":"Culture"}"""
         )
-        createExpense(alice, """{"title":"Taxi 100%","date":"2026-10-02T11:00:00","amount":1,"currency":"PLN"}""")
+        createExpense(alice, """{"title":"Taxi 100%","date":"2026-10-02T11:00:00Z","amount":1,"currency":"PLN"}""")
 
         assertEquals(listOf("Pizza lunch", "Pizza dinner"), titles(alice, "tag" to "food"))
         assertEquals(listOf("Pizza lunch", "Pizza dinner"), titles(alice, "title" to "PIZZA"))
         assertEquals(listOf("Taxi 100%"), titles(alice, "title" to "%"))
         assertEquals(
             listOf("Taxi 100%", "Museum"),
-            titles(alice, "from" to "2026-10-02T00:00:00", "to" to "2026-10-02T23:59:59"),
+            titles(alice, "from" to "2026-10-02T00:00:00Z", "to" to "2026-10-02T23:59:59Z"),
         )
         assertEquals(4, titles(alice).size)
     }
@@ -143,12 +143,12 @@ class PersonalExpenseEndpointsIntegrationTest @Autowired constructor(
     fun `tags are reused case-insensitively and scoped to the user`() {
         val alice = newUser()
         val bob = newUser()
-        createExpense(alice, """{"title":"A","date":"2026-10-01T10:00:00","amount":1,"currency":"PLN","tag":"Food"}""")
+        createExpense(alice, """{"title":"A","date":"2026-10-01T10:00:00Z","amount":1,"currency":"PLN","tag":"Food"}""")
         createExpense(
             alice,
-            """{"title":"B","date":"2026-10-01T10:00:00","amount":1,"currency":"PLN","tag":" food "}"""
+            """{"title":"B","date":"2026-10-01T10:00:00Z","amount":1,"currency":"PLN","tag":" food "}"""
         )
-        createExpense(alice, """{"title":"C","date":"2026-10-01T10:00:00","amount":1,"currency":"PLN","tag":"Bars"}""")
+        createExpense(alice, """{"title":"C","date":"2026-10-01T10:00:00Z","amount":1,"currency":"PLN","tag":"Bars"}""")
 
         mockMvc.get("/personal/tags") { with(asUser(alice)) }
             .andExpect {
@@ -166,17 +166,17 @@ class PersonalExpenseEndpointsIntegrationTest @Autowired constructor(
         val alice = newUser()
         val expenseId = createExpense(
             alice,
-            """{"title":"Dinner","date":"2026-10-03T19:30:00","amount":100,"currency":"PLN","tag":"Food"}"""
+            """{"title":"Dinner","date":"2026-10-03T19:30:00Z","amount":100,"currency":"PLN","tag":"Food"}"""
         )
 
         mockMvc.put("/personal/expenses/$expenseId") {
             with(asUser(alice))
             contentType = MediaType.APPLICATION_JSON
-            content = """{"title":"Lunch","date":"2026-10-04T12:00:00","amount":250,"currency":"JPY"}"""
+            content = """{"title":"Lunch","date":"2026-10-04T12:00:00Z","amount":250,"currency":"JPY"}"""
         }.andExpect {
             status { isOk() }
             jsonPath("$.title") { value("Lunch") }
-            jsonPath("$.date") { value("2026-10-04T12:00:00") }
+            jsonPath("$.date") { value("2026-10-04T12:00:00Z") }
             jsonPath("$.amount") { value(250) }
             jsonPath("$.currency.code") { value("JPY") }
             jsonPath("$.currency.minorUnits") { value(0) }
@@ -188,7 +188,7 @@ class PersonalExpenseEndpointsIntegrationTest @Autowired constructor(
     fun `user deletes their expense`() {
         val alice = newUser()
         val expenseId =
-            createExpense(alice, """{"title":"A","date":"2026-10-01T10:00:00","amount":1,"currency":"PLN"}""")
+            createExpense(alice, """{"title":"A","date":"2026-10-01T10:00:00Z","amount":1,"currency":"PLN"}""")
 
         mockMvc.delete("/personal/expenses/$expenseId") { with(asUser(alice)) }
             .andExpect { status { isNoContent() } }
@@ -202,7 +202,7 @@ class PersonalExpenseEndpointsIntegrationTest @Autowired constructor(
     fun `another user's expense is not found`() {
         val alice = newUser()
         val expenseId =
-            createExpense(alice, """{"title":"A","date":"2026-10-01T10:00:00","amount":1,"currency":"PLN"}""")
+            createExpense(alice, """{"title":"A","date":"2026-10-01T10:00:00Z","amount":1,"currency":"PLN"}""")
         val stranger = asUser(newUser())
 
         mockMvc.get("/personal/expenses/$expenseId") { with(stranger) }
@@ -210,7 +210,7 @@ class PersonalExpenseEndpointsIntegrationTest @Autowired constructor(
         mockMvc.put("/personal/expenses/$expenseId") {
             with(stranger)
             contentType = MediaType.APPLICATION_JSON
-            content = """{"title":"Hacked","date":"2026-10-01T10:00:00","amount":1,"currency":"PLN"}"""
+            content = """{"title":"Hacked","date":"2026-10-01T10:00:00Z","amount":1,"currency":"PLN"}"""
         }.andExpect { status { isNotFound() } }
         mockMvc.delete("/personal/expenses/$expenseId") { with(stranger) }
             .andExpect { status { isNotFound() } }

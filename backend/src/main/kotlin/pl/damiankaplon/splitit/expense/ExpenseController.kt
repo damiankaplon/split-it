@@ -16,8 +16,8 @@ import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.project.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
-import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.ZonedDateTime
 import java.util.*
 
 @RestController
@@ -31,7 +31,7 @@ class ExpenseController(
 
     data class ExpenseRequest(
         @field:NotBlank val title: String,
-        val date: LocalDateTime,
+        val date: Instant,
         @field:Positive val amount: Int,
         val tag: String? = null,
     )
@@ -40,7 +40,7 @@ class ExpenseController(
         val id: UUID,
         val projectId: UUID,
         val title: String,
-        val date: LocalDateTime,
+        val date: Instant,
         val amount: Int,
         val tag: String?,
         val tagColor: String?,
@@ -77,8 +77,8 @@ class ExpenseController(
         @RequestParam(required = false) tag: String?,
         @RequestParam(required = false) title: String?,
         @RequestParam(required = false) createdBy: String?,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: LocalDateTime?,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: LocalDateTime?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: ZonedDateTime?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: ZonedDateTime?,
         @AuthenticationPrincipal jwt: Jwt,
     ): ExpensePage {
         requireMember(projectId, jwt)
@@ -106,15 +106,15 @@ class ExpenseController(
         tag: String?,
         title: String?,
         createdBy: String?,
-        from: LocalDateTime?,
-        to: LocalDateTime?,
+        from: ZonedDateTime?,
+        to: ZonedDateTime?,
     ): Specification<Expense> = listOfNotNull(
         ExpenseSpecifications.inProject(projectId),
         tag?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::hasTag),
         title?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::titleContains),
         createdBy?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::createdBy),
-        from?.let(ExpenseSpecifications::dateFrom),
-        to?.let(ExpenseSpecifications::dateTo),
+        from?.toInstant()?.let(ExpenseSpecifications::dateFrom),
+        to?.toInstant()?.let(ExpenseSpecifications::dateTo),
     ).fold(Specification.unrestricted<Expense>()) { acc, next -> acc.and(next) }
 
     /**
@@ -128,8 +128,8 @@ class ExpenseController(
         @RequestParam(required = false) tag: String?,
         @RequestParam(required = false) title: String?,
         @RequestParam(required = false) createdBy: String?,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: LocalDateTime?,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: LocalDateTime?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: ZonedDateTime?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: ZonedDateTime?,
         @AuthenticationPrincipal jwt: Jwt,
     ): ExpenseTotal {
         requireMember(projectId, jwt)
@@ -139,19 +139,22 @@ class ExpenseController(
 
     /**
      * Sums of the project's expenses per tag between [from] and [to], both
-     * days inclusive; largest first.
+     * instants inclusive; largest first.
      */
     @GetMapping("/expenses/totals-by-tag")
     @Transactional(readOnly = true)
     fun totalsByTag(
         @PathVariable projectId: UUID,
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) from: LocalDate,
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) to: LocalDate,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: ZonedDateTime,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: ZonedDateTime,
         @AuthenticationPrincipal jwt: Jwt,
     ): List<TagTotal> {
         requireMember(projectId, jwt)
-        if (from.isAfter(to)) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "from must not be after to")
-        return expenses.sumAmountByTag(projectId, from.atStartOfDay(), to.plusDays(1).atStartOfDay())
+        if (from.toInstant().isAfter(to.toInstant())) throw ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "from must not be after to"
+        )
+        return expenses.sumAmountByTag(projectId, from.toInstant(), to.toInstant())
             .sortedWith(compareByDescending<TagTotal> { it.total }.thenBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.tag })
     }
 

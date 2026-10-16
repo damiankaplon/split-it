@@ -1,6 +1,7 @@
+import {dayRangeParams} from '@/lib/instants'
 import {apiFetch} from './client'
 
-/** `date` is a zone-less ISO local date-time (e.g. 2026-10-03T19:30:00); `amount` is in minor units (grosze). */
+/** `date` is an exact ISO instant (e.g. 2026-10-03T17:30:00Z); `amount` is in minor units (grosze). */
 export interface Expense {
   id: string
   projectId: string
@@ -34,7 +35,7 @@ export interface ExpenseQuery {
   tag?: string
   title?: string
   createdBy?: string
-  /** Zone-less ISO local date-times, both inclusive */
+  /** Zoned ISO date-times (e.g. 2026-10-03T00:00:00+02:00), both inclusive */
   from?: string
   to?: string
 }
@@ -72,7 +73,7 @@ export interface TagTotal {
 
 /** Per-tag sums of the expenses between two ISO dates (YYYY-MM-DD), both inclusive; largest first. */
 export const getTotalsByTag = (projectId: string, from: string, to: string) =>
-    apiFetch<TagTotal[]>(`/projects/${projectId}/expenses/totals-by-tag?${new URLSearchParams({from, to}).toString()}`)
+    apiFetch<TagTotal[]>(`/projects/${projectId}/expenses/totals-by-tag?${dayRangeParams(from, to)}`)
 
 /** Tags already used in the project, sorted by name. */
 export const listTags = (projectId: string) => apiFetch<string[]>(`/projects/${projectId}/tags`)

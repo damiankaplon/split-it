@@ -2,7 +2,7 @@ package pl.damiankaplon.splitit.personal
 
 import jakarta.persistence.*
 import pl.damiankaplon.splitit.UserId
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
 
 /**
@@ -36,7 +36,7 @@ abstract class PersonalExpense(
 
     abstract val title: String
 
-    abstract val date: LocalDateTime
+    abstract val date: Instant
 
     /** Name of the tag, if any. */
     abstract val tag: String?

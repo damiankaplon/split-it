@@ -7,7 +7,7 @@ import pl.damiankaplon.splitit.expense.ExpenseService
 import pl.damiankaplon.splitit.project.Project
 import pl.damiankaplon.splitit.project.ProjectMember
 import pl.damiankaplon.splitit.project.ProjectRepository
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
 
 /**
@@ -48,12 +48,12 @@ class TestDataRepository(
         project: Project,
         userId: String,
         title: String = "Dinner",
-        date: String = "2026-10-03T19:30:00",
+        date: String = "2026-10-03T19:30:00Z",
         amount: Int = 1000,
         tag: String? = null,
     ): UUID = expenseService.create(
         project.id,
         UserId(userId),
-        ExpenseService.ExpenseDetails(title, LocalDateTime.parse(date), amount, tag),
+        ExpenseService.ExpenseDetails(title, Instant.parse(date), amount, tag),
     ).id
 }

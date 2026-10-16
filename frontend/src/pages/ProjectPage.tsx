@@ -3,7 +3,6 @@ import {type ReactNode, useEffect, useState} from 'react'
 import {AlertCircle, ArrowLeft, Pencil, Plus, Search} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {Link, useParams, useSearchParams} from 'react-router'
-import {Temporal} from 'temporal-polyfill'
 import {ApiError} from '@/api/client'
 import {type Expense, getExpensesTotal, getTotalsByTag, listExpenses, listTags} from '@/api/expenses'
 import {type Currency, listMembers, listProjects, type Project, type ProjectMember} from '@/api/projects'
@@ -19,6 +18,7 @@ import {Input} from '@/components/ui/input'
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
 import {initials} from '@/lib/initials'
 import {type DateRange, dateRangeQuery, EMPTY_DATE_RANGE, isDateRangeSet} from '@/lib/dateRange'
+import {formatInstant} from '@/lib/instants'
 import {formatAmount} from '@/lib/money'
 
 const PAGE_SIZE = 20
@@ -407,8 +407,8 @@ function ExpenseRow({expense, author, isMine, currency, locale, action}: {
   action: ReactNode
 }) {
   const {t} = useTranslation()
-  // The backend sends a zone-less LocalDateTime, which is exactly a PlainDateTime
-  const date = Temporal.PlainDateTime.from(expense.date).toLocaleString(locale, {
+  // The backend sends an exact instant, shown in the user's zone
+  const date = formatInstant(expense.date, locale, {
     dateStyle: 'medium',
     timeStyle: 'short'
   })

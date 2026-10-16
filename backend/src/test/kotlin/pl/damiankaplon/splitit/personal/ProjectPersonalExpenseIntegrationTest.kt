@@ -50,7 +50,7 @@ class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
         mockMvc.post("/projects/${project.id}/expenses") {
             with(asUser(alice))
             contentType = MediaType.APPLICATION_JSON
-            content = """{"title":"Dinner","date":"2026-10-03T19:30:00","amount":1000,"tag":"Food"}"""
+            content = """{"title":"Dinner","date":"2026-10-03T19:30:00Z","amount":1000,"tag":"Food"}"""
         }.andExpect { status { isCreated() } }
 
         for (member in listOf(alice, bob)) {
@@ -59,7 +59,7 @@ class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
                     status { isOk() }
                     jsonPath("$.totalElements") { value(1) }
                     jsonPath("$.items[0].title") { value("Dinner") }
-                    jsonPath("$.items[0].date") { value("2026-10-03T19:30:00") }
+                    jsonPath("$.items[0].date") { value("2026-10-03T19:30:00Z") }
                     jsonPath("$.items[0].amount") { value(500) }
                     jsonPath("$.items[0].currency.code") { value("PLN") }
                     jsonPath("$.items[0].tag") { value("Food") }
@@ -74,12 +74,12 @@ class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
         val alice = newUser()
         val bob = newUser()
         val project = project(alice, bob)
-        val expenseId = testData.createExpense(project, alice, "Dinner", "2026-10-03T19:30:00", 1000, "Food")
+        val expenseId = testData.createExpense(project, alice, "Dinner", "2026-10-03T19:30:00Z", 1000, "Food")
 
         mockMvc.put("/projects/${project.id}/expenses/$expenseId") {
             with(asUser(bob))
             contentType = MediaType.APPLICATION_JSON
-            content = """{"title":"Lunch","date":"2026-10-04T12:00:00","amount":3000,"tag":"Bars"}"""
+            content = """{"title":"Lunch","date":"2026-10-04T12:00:00Z","amount":3000,"tag":"Bars"}"""
         }.andExpect { status { isOk() } }
 
         for (member in listOf(alice, bob)) {
@@ -87,7 +87,7 @@ class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
                 .andExpect {
                     jsonPath("$.totalElements") { value(1) }
                     jsonPath("$.items[0].title") { value("Lunch") }
-                    jsonPath("$.items[0].date") { value("2026-10-04T12:00:00") }
+                    jsonPath("$.items[0].date") { value("2026-10-04T12:00:00Z") }
                     jsonPath("$.items[0].amount") { value(1500) }
                     jsonPath("$.items[0].tag") { value("Bars") }
                 }
@@ -100,7 +100,7 @@ class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
         val bob = newUser()
         val project = project(alice, bob)
         val expenseId =
-            testData.createExpense(project, alice, "Dinner", "2026-10-03T19:30:00", 1000)
+            testData.createExpense(project, alice, "Dinner", "2026-10-03T19:30:00Z", 1000)
 
         mockMvc.delete("/projects/${project.id}/expenses/$expenseId") { with(asUser(alice)) }
             .andExpect { status { isNoContent() } }
@@ -116,16 +116,16 @@ class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
         val project = project(alice, bob)
         createManualExpense(
             bob,
-            """{"title":"Pizza at home","date":"2026-10-01T19:00:00","amount":1,"currency":"PLN","tag":"Food"}"""
+            """{"title":"Pizza at home","date":"2026-10-01T19:00:00Z","amount":1,"currency":"PLN","tag":"Food"}"""
         )
-        createManualExpense(bob, """{"title":"Cinema","date":"2026-10-02T20:00:00","amount":1,"currency":"PLN"}""")
-        testData.createExpense(project, alice, "Pizza in Rome", "2026-10-03T19:00:00", 2, "food")
+        createManualExpense(bob, """{"title":"Cinema","date":"2026-10-02T20:00:00Z","amount":1,"currency":"PLN"}""")
+        testData.createExpense(project, alice, "Pizza in Rome", "2026-10-03T19:00:00Z", 2, "food")
 
         assertEquals(listOf("Pizza in Rome", "Cinema", "Pizza at home"), personalTitles(bob))
         assertEquals(listOf("Pizza in Rome", "Pizza at home"), personalTitles(bob, "title" to "PIZZA"))
         assertEquals(listOf("Pizza in Rome", "Pizza at home"), personalTitles(bob, "tag" to "FOOD"))
-        assertEquals(listOf("Pizza in Rome", "Cinema"), personalTitles(bob, "from" to "2026-10-02T00:00:00"))
-        assertEquals(listOf("Cinema", "Pizza at home"), personalTitles(bob, "to" to "2026-10-02T23:59:59"))
+        assertEquals(listOf("Pizza in Rome", "Cinema"), personalTitles(bob, "from" to "2026-10-02T00:00:00Z"))
+        assertEquals(listOf("Cinema", "Pizza at home"), personalTitles(bob, "to" to "2026-10-02T23:59:59Z"))
         assertEquals(listOf("Cinema"), personalTitles(bob, "page" to "1", "size" to "1"))
 
         mockMvc.get("/personal/expenses") { with(asUser(bob)); param("title", "pizza") }
@@ -142,7 +142,7 @@ class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
     fun `project shares can be read but only changed through the project expense`() {
         val alice = newUser()
         val project = project(alice)
-        testData.createExpense(project, alice, "Dinner", "2026-10-03T19:30:00", 1000)
+        testData.createExpense(project, alice, "Dinner", "2026-10-03T19:30:00Z", 1000)
         val shareId = mockMvc.get("/personal/expenses") { with(asUser(alice)) }
             .andReturn().response.contentAsString.let(::idOf)
 
@@ -155,7 +155,7 @@ class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
         mockMvc.put("/personal/expenses/$shareId") {
             with(asUser(alice))
             contentType = MediaType.APPLICATION_JSON
-            content = """{"title":"Changed","date":"2026-10-03T19:30:00","amount":1,"currency":"PLN"}"""
+            content = """{"title":"Changed","date":"2026-10-03T19:30:00Z","amount":1,"currency":"PLN"}"""
         }.andExpect { status { isConflict() } }
         mockMvc.delete("/personal/expenses/$shareId") { with(asUser(alice)) }
             .andExpect { status { isConflict() } }
@@ -170,23 +170,23 @@ class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
         val project = project(alice, bob)
         createManualExpense(
             alice,
-            """{"title":"Groceries","date":"2026-10-05T10:00:00","amount":300,"currency":"PLN","tag":"Food"}"""
+            """{"title":"Groceries","date":"2026-10-05T10:00:00Z","amount":300,"currency":"PLN","tag":"Food"}"""
         )
         createManualExpense(
             alice,
-            """{"title":"Croissant","date":"2026-10-06T10:00:00","amount":10,"currency":"EUR","tag":"Food"}"""
+            """{"title":"Croissant","date":"2026-10-06T10:00:00Z","amount":10,"currency":"EUR","tag":"Food"}"""
         )
         createManualExpense(
             alice,
-            """{"title":"Later","date":"2026-11-01T00:00:00","amount":999,"currency":"PLN","tag":"Food"}"""
+            """{"title":"Later","date":"2026-11-01T00:00:00Z","amount":999,"currency":"PLN","tag":"Food"}"""
         )
-        createManualExpense(alice, """{"title":"Bus","date":"2026-10-31T23:59:59","amount":40,"currency":"PLN"}""")
-        testData.createExpense(project, alice, "Dinner", "2026-10-07T19:00:00", 1000, "food")
+        createManualExpense(alice, """{"title":"Bus","date":"2026-10-31T23:59:59Z","amount":40,"currency":"PLN"}""")
+        testData.createExpense(project, alice, "Dinner", "2026-10-07T19:00:00Z", 1000, "food")
 
         mockMvc.get("/personal/expenses/totals-by-tag") {
             with(asUser(alice))
-            param("from", "2026-10-01")
-            param("to", "2026-10-31")
+            param("from", "2026-10-01T00:00:00Z")
+            param("to", "2026-10-31T23:59:59.999Z")
         }.andExpect {
             status { isOk() }
             jsonPath("$.length()") { value(3) }
@@ -201,8 +201,8 @@ class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
         }
         mockMvc.get("/personal/expenses/totals-by-tag") {
             with(asUser(bob))
-            param("from", "2026-10-01")
-            param("to", "2026-10-31")
+            param("from", "2026-10-01T00:00:00Z")
+            param("to", "2026-10-31T23:59:59.999Z")
         }.andExpect {
             jsonPath("$.length()") { value(1) }
             jsonPath("$[0].total") { value(500) }
