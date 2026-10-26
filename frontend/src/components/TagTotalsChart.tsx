@@ -8,6 +8,7 @@ import {Alert, AlertTitle} from '@/components/ui/alert'
 import {Card} from '@/components/ui/card'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
+import {type DateRange, EMPTY_DATE_RANGE} from '@/lib/dateRange'
 import {formatAmount} from '@/lib/money'
 
 export interface CurrencyTagTotal extends TagTotal {
@@ -24,13 +25,16 @@ interface TagTotalsChartsProps {
   load: (from: string, to: string) => Promise<CurrencyTagTotal[]>
   /** Bumped on every expense change, so the sums are refetched. */
   reloadKey: number
+  /** Feed date filters carried over when opening the charts; an empty bound falls back to the default. */
+  initialRange?: DateRange
 }
 
 /** Bar charts of the expense sums per tag in a date range, one per currency; the last month by default. */
-export function TagTotalsCharts({load, reloadKey}: TagTotalsChartsProps) {
+export function TagTotalsCharts({load, reloadKey, initialRange = EMPTY_DATE_RANGE}: TagTotalsChartsProps) {
   const {t, i18n} = useTranslation()
-  const [to, setTo] = useState(() => Temporal.Now.plainDateISO().toString())
-  const [from, setFrom] = useState(() => Temporal.Now.plainDateISO().subtract({months: 1}).toString())
+  const [to, setTo] = useState(() => initialRange.to || Temporal.Now.plainDateISO().toString())
+  const [from, setFrom] = useState(() =>
+      initialRange.from || Temporal.PlainDate.from(to).subtract({months: 1}).toString())
   const [totals, setTotals] = useState<TotalsState>({status: 'loading'})
   // Cleared date inputs report an empty value
   const validRange = from !== '' && to !== '' && Temporal.PlainDate.compare(from, to) <= 0

@@ -279,6 +279,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
                 load={(from, to) => getTotalsByTag(project.id, from, to)
                     .then((totals) => totals.map((item) => ({...item, currency: project.currency})))}
                 reloadKey={chartsReloadKey}
+                initialRange={dates}
             />
           </TabsContent>
 

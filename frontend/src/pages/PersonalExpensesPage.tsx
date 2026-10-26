@@ -207,7 +207,7 @@ export function PersonalExpensesPage() {
           </TabsList>
 
           <TabsContent value="charts">
-            <TagTotalsCharts load={getPersonalTotalsByTag} reloadKey={chartsReloadKey}/>
+            <TagTotalsCharts load={getPersonalTotalsByTag} reloadKey={chartsReloadKey} initialRange={dates}/>
           </TabsContent>
 
           <TabsContent value="feed">
