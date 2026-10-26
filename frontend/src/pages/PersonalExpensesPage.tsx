@@ -19,7 +19,7 @@ import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Button} from '@/components/ui/button'
 import {Card} from '@/components/ui/card'
 import {Input} from '@/components/ui/input'
-import {type DateRange, dateRangeQuery, EMPTY_DATE_RANGE, isDateRangeSet} from '@/lib/dateRange'
+import {type DateRange, dateRangeQuery, isDateRangeSet} from '@/lib/dateRange'
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
 import {formatInstant} from '@/lib/instants'
 import {formatAmount} from '@/lib/money'
@@ -38,10 +38,18 @@ export function PersonalExpensesPage() {
   const {t, i18n} = useTranslation()
   const [tags, setTags] = useState<string[]>([])
   const [searchInput, setSearchInput] = useState('')
-  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.has('from') || params.has('to')
+  })
   const [title, setTitle] = useState('')
   const [tag, setTag] = useState<string | null>(null)
-  const [dates, setDates] = useState<DateRange>(EMPTY_DATE_RANGE)
+  const [searchParams, setSearchParams] = useSearchParams()
+  // The Savings page links here with the period's days as `from` and `to`
+  const [dates, setDates] = useState<DateRange>(() => ({
+    from: searchParams.get('from') ?? '',
+    to: searchParams.get('to') ?? '',
+  }))
   const [reloadKey, setReloadKey] = useState(0)
   const [expenses, setExpenses] = useState<ExpensesState>({status: 'loading'})
   const [loadingMore, setLoadingMore] = useState(false)
@@ -50,7 +58,6 @@ export function PersonalExpensesPage() {
   const [lastCurrency, setLastCurrency] = useState<string | null>(null)
   // Bumped on every expense change, since any of them may move a sum between tags
   const [chartsReloadKey, setChartsReloadKey] = useState(0)
-  const [searchParams, setSearchParams] = useSearchParams()
   const tab = searchParams.get('tab') === 'charts' ? 'charts' : 'feed'
 
   const reloadTags = () => listPersonalTags().then(setTags, () => undefined)

@@ -1,6 +1,7 @@
 import {type ReactNode, useEffect, useState} from 'react'
 import {AlertCircle, ChevronUp, Pencil, Plus, SlidersHorizontal, Trash2} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
+import {Link} from 'react-router'
 import {getSavings, type Income, listIncomes, type Savings} from '@/api/personal'
 import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DeleteIncomeDialog} from '@/components/DeleteIncomeDialog'
@@ -9,7 +10,7 @@ import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Button} from '@/components/ui/button'
 import {Card} from '@/components/ui/card'
 import {type DateRange, EMPTY_DATE_RANGE, isDateRangeSet} from '@/lib/dateRange'
-import {endOfDay, formatInstant, nowZoned, startOfDay, toZonedParam} from '@/lib/instants'
+import {endOfDay, formatInstant, instantToInputValue, nowZoned, startOfDay, toZonedParam} from '@/lib/instants'
 import {formatAmount} from '@/lib/money'
 import {cn} from '@/lib/utils'
 
@@ -208,8 +209,11 @@ function LoadError({title, onRetry}: { title: string; onRetry: () => void }) {
 function SavingsCard({period, locale}: { period: Savings; locale: string }) {
   const {t} = useTranslation()
   const {currency} = period
+  const params = new URLSearchParams({from: instantToInputValue(period.start).slice(0, 10)})
+  if (period.end) params.set('to', instantToInputValue(period.end).slice(0, 10))
   return (
-      <Card className="gap-3 px-5 py-4 shadow-xs">
+      <Link to={`/personal?${params}`} className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <Card className="h-full gap-3 px-5 py-4 shadow-xs transition-colors hover:bg-accent/40">
         <div className="flex flex-col gap-0.5">
           <span className="text-[13px] text-muted-foreground">
             {formatDate(period.start, locale)} – {period.end ? formatDate(period.end, locale) : t('savings.now')}
@@ -226,6 +230,7 @@ function SavingsCard({period, locale}: { period: Savings; locale: string }) {
           <dd className="tabular-nums">{formatAmount(period.expenses, currency, locale)}</dd>
         </dl>
       </Card>
+      </Link>
   )
 }
 
