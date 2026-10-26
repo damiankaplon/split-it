@@ -13,6 +13,7 @@ import {
 } from '@/api/personal'
 import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DeletePersonalExpenseDialog} from '@/components/DeletePersonalExpenseDialog'
+import {InfiniteScrollTrigger} from '@/components/InfiniteScrollTrigger'
 import {MonthGroupedList} from '@/components/MonthGroupedList'
 import {PersonalExpenseDialog} from '@/components/PersonalExpenseDialog'
 import {TagTotalsCharts} from '@/components/TagTotalsChart'
@@ -312,10 +313,7 @@ export function PersonalExpensesPage() {
                     )}/>
                   </Card>
                   {expenses.hasNext && (
-                      <Button variant="outline" size="lg" className="self-center rounded-lg px-4" disabled={loadingMore}
-                              onClick={() => void loadMore()}>
-                        {loadingMore ? t('project.loadingExpenses') : t('project.loadMore')}
-                      </Button>
+                      <InfiniteScrollTrigger loading={loadingMore} onLoadMore={() => void loadMore()}/>
                   )}
                 </div>
             )}

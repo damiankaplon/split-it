@@ -9,6 +9,7 @@ import {type Currency, listMembers, listProjects, type Project, type ProjectMemb
 import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DebtsPanel} from '@/components/DebtsPanel'
 import {ExpenseDialog} from '@/components/ExpenseDialog'
+import {InfiniteScrollTrigger} from '@/components/InfiniteScrollTrigger'
 import {InviteDialog} from '@/components/InviteDialog'
 import {MonthGroupedList} from '@/components/MonthGroupedList'
 import {TagTotalsCharts} from '@/components/TagTotalsChart'
@@ -396,10 +397,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
                     )}/>
                   </Card>
                   {expenses.hasNext && (
-                      <Button variant="outline" size="lg" className="self-center rounded-lg px-4" disabled={loadingMore}
-                              onClick={() => void loadMore()}>
-                        {loadingMore ? t('project.loadingExpenses') : t('project.loadMore')}
-                      </Button>
+                      <InfiniteScrollTrigger loading={loadingMore} onLoadMore={() => void loadMore()}/>
                   )}
                 </div>
             )}
