@@ -34,3 +34,11 @@ export const nowZoned = () => Temporal.Now.zonedDateTimeISO(zone())
 /** Query parameters covering the days `from`..`to` (`YYYY-MM-DD`, both inclusive) in the user's zone. */
 export const dayRangeParams = (from: string, to: string) =>
     new URLSearchParams({from: toZonedParam(startOfDay(from)), to: toZonedParam(endOfDay(to))}).toString()
+
+/** The user-zone month an instant falls in, as `YYYY-MM`. */
+export const instantMonthKey = (instant: string) =>
+    Temporal.Instant.from(instant).toZonedDateTimeISO(zone()).toPlainDate().toPlainYearMonth().toString()
+
+/** A month such as "October 2026", from an instant. */
+export const formatInstantMonth = (instant: string, locale: string) =>
+    Temporal.Instant.from(instant).toZonedDateTimeISO(zone()).toLocaleString(locale, {month: 'long', year: 'numeric'})

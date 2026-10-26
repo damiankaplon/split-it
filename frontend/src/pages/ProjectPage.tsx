@@ -10,6 +10,7 @@ import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DebtsPanel} from '@/components/DebtsPanel'
 import {ExpenseDialog} from '@/components/ExpenseDialog'
 import {InviteDialog} from '@/components/InviteDialog'
+import {MonthGroupedList} from '@/components/MonthGroupedList'
 import {TagTotalsCharts} from '@/components/TagTotalsChart'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Button} from '@/components/ui/button'
@@ -367,8 +368,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
             {expenses.status === 'loaded' && expenses.items.length > 0 && (
                 <div className="flex flex-col gap-5">
                   <Card className="gap-0 py-0 shadow-xs">
-                    <ul className="divide-y">
-                      {expenses.items.map((expense) => (
+                    <MonthGroupedList items={expenses.items} locale={i18n.language} renderItem={(expense) => (
                           <ExpenseRow
                               key={expense.id}
                               expense={expense}
@@ -393,8 +393,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
                                 />
                               }
                           />
-                      ))}
-                    </ul>
+                    )}/>
                   </Card>
                   {expenses.hasNext && (
                       <Button variant="outline" size="lg" className="self-center rounded-lg px-4" disabled={loadingMore}

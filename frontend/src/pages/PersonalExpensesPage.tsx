@@ -13,6 +13,7 @@ import {
 } from '@/api/personal'
 import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DeletePersonalExpenseDialog} from '@/components/DeletePersonalExpenseDialog'
+import {MonthGroupedList} from '@/components/MonthGroupedList'
 import {PersonalExpenseDialog} from '@/components/PersonalExpenseDialog'
 import {TagTotalsCharts} from '@/components/TagTotalsChart'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
@@ -274,8 +275,7 @@ export function PersonalExpensesPage() {
             {expenses.status === 'loaded' && expenses.items.length > 0 && (
                 <div className="flex flex-col gap-5">
                   <Card className="gap-0 py-0 shadow-xs">
-                    <ul className="divide-y">
-                      {expenses.items.map((expense) => (
+                    <MonthGroupedList items={expenses.items} locale={i18n.language} renderItem={(expense) => (
                           <PersonalExpenseRow
                               key={expense.id}
                               expense={expense}
@@ -309,8 +309,7 @@ export function PersonalExpensesPage() {
                                 </>
                               }
                           />
-                      ))}
-                    </ul>
+                    )}/>
                   </Card>
                   {expenses.hasNext && (
                       <Button variant="outline" size="lg" className="self-center rounded-lg px-4" disabled={loadingMore}
