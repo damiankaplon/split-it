@@ -12,6 +12,7 @@ import {ExpenseDialog} from '@/components/ExpenseDialog'
 import {InfiniteScrollTrigger} from '@/components/InfiniteScrollTrigger'
 import {InviteDialog} from '@/components/InviteDialog'
 import {MonthGroupedList} from '@/components/MonthGroupedList'
+import {TagExpensesList} from '@/components/TagExpensesList'
 import {TagTotalsCharts} from '@/components/TagTotalsChart'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Button} from '@/components/ui/button'
@@ -280,6 +281,26 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
                     .then((totals) => totals.map((item) => ({...item, currency: project.currency})))}
                 reloadKey={chartsReloadKey}
                 initialRange={dates}
+                renderTagExpenses={({tag: selected, from, to}) => (
+                    <TagExpensesList
+                        tag={selected}
+                        from={from}
+                        to={to}
+                        reloadKey={chartsReloadKey}
+                        load={(query) => listExpenses(project.id, query)}
+                        renderItem={(expense) => (
+                            <ExpenseRow
+                                key={expense.id}
+                                expense={expense}
+                                author={memberName(expense.createdBy)}
+                                isMine={expense.createdBy === currentUserId}
+                                currency={project.currency}
+                                locale={i18n.language}
+                                action={null}
+                            />
+                        )}
+                    />
+                )}
             />
           </TabsContent>
 

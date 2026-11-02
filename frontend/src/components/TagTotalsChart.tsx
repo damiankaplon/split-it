@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react'
+import {Fragment, type ReactNode, useEffect, useState} from 'react'
 import {AlertCircle} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {Temporal} from 'temporal-polyfill'
@@ -27,15 +27,23 @@ interface TagTotalsChartsProps {
   reloadKey: number
   /** Feed date filters carried over when opening the charts; an empty bound falls back to the default. */
   initialRange?: DateRange
+  /** Rendered below the charts for the selected tag and the charted range (both ISO, inclusive). */
+  renderTagExpenses?: (selection: { tag: string; from: string; to: string }) => ReactNode
 }
 
 /** Bar charts of the expense sums per tag in a date range, one per currency; the last month by default. */
-export function TagTotalsCharts({load, reloadKey, initialRange = EMPTY_DATE_RANGE}: TagTotalsChartsProps) {
+export function TagTotalsCharts({
+                                  load,
+                                  reloadKey,
+                                  initialRange = EMPTY_DATE_RANGE,
+                                  renderTagExpenses
+                                }: TagTotalsChartsProps) {
   const {t, i18n} = useTranslation()
   const [to, setTo] = useState(() => initialRange.to || Temporal.Now.plainDateISO().toString())
   const [from, setFrom] = useState(() =>
       initialRange.from || Temporal.PlainDate.from(to).subtract({months: 1}).toString())
   const [totals, setTotals] = useState<TotalsState>({status: 'loading'})
+  const [selectedTag, setSelectedTag] = useState<string | null>(null)
   // Cleared date inputs report an empty value
   const validRange = from !== '' && to !== '' && Temporal.PlainDate.compare(from, to) <= 0
 
@@ -102,17 +110,29 @@ export function TagTotalsCharts({load, reloadKey, initialRange = EMPTY_DATE_RANG
                 totals={items}
                 currency={items[0].currency}
                 locale={i18n.language}
+                selectedTag={selectedTag}
+                onSelectTag={renderTagExpenses
+                    ? (name) => setSelectedTag((current) => (current === name ? null : name))
+                    : undefined}
             />
         ))}
+
+        {/* Keyed by tag, so a newly selected tag starts from the loading state */}
+        {validRange && selectedTag !== null && (
+            <Fragment key={selectedTag}>{renderTagExpenses?.({tag: selectedTag, from, to})}</Fragment>
+        )}
       </div>
   )
 }
 
-function TagTotalsChart({title, totals, currency, locale}: {
+function TagTotalsChart({title, totals, currency, locale, selectedTag, onSelectTag}: {
   title: string
   totals: CurrencyTagTotal[]
   currency: Currency
   locale: string
+  selectedTag: string | null
+  /** Absent when tags can't be selected; untagged expenses never can. */
+  onSelectTag?: (tag: string) => void
 }) {
   const {t} = useTranslation()
   const tagName = (total: TagTotal) => total.tag ?? t('charts.untagged')
@@ -124,10 +144,21 @@ function TagTotalsChart({title, totals, currency, locale}: {
       <Card className="gap-4 px-4 py-5 shadow-xs sm:px-6">
         <h2 className="font-semibold">{title}</h2>
         <ul className="flex flex-col gap-2.5" aria-label={title}>
-          {sorted.map((total) => (
+          {sorted.map((total) => {
+            const selectable = onSelectTag !== undefined && total.tag !== null
+            const selected = total.tag !== null && total.tag === selectedTag
+            return (
               <li key={total.tag ?? ''}
-                  className="grid grid-cols-[minmax(4rem,7rem)_1fr_auto] items-center gap-3 text-sm">
-                <span className="truncate" title={tagName(total)}>{tagName(total)}</span>
+                  className={`grid grid-cols-[minmax(4rem,7rem)_1fr_auto] items-center gap-3 rounded-md text-sm ${selected ? 'bg-accent' : ''}`}>
+                {selectable ? (
+                    <button type="button" aria-pressed={selected} title={tagName(total)}
+                            className="truncate rounded-md text-left underline-offset-2 hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                            onClick={() => onSelectTag(total.tag as string)}>
+                      {tagName(total)}
+                    </button>
+                ) : (
+                    <span className="truncate" title={tagName(total)}>{tagName(total)}</span>
+                )}
                 <div className="h-5 rounded-[4px] bg-muted/50" aria-hidden>
                   <div className="h-full rounded-[4px]"
                        style={{
@@ -139,7 +170,8 @@ function TagTotalsChart({title, totals, currency, locale}: {
                   {formatAmount(total.total, currency, locale)}
                 </span>
               </li>
-          ))}
+            )
+          })}
         </ul>
       </Card>
   )

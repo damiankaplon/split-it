@@ -248,6 +248,7 @@ const pl = {
     error: 'Nie udało się wczytać wykresu',
     empty: 'Brak wydatków w tym okresie.',
     invalidRange: 'Data początkowa nie może być późniejsza niż końcowa.',
+    expensesOf: 'Wydatki z tagiem „{{tag}}”',
   },
 }
 

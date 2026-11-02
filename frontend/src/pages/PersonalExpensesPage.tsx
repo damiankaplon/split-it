@@ -16,6 +16,7 @@ import {DeletePersonalExpenseDialog} from '@/components/DeletePersonalExpenseDia
 import {InfiniteScrollTrigger} from '@/components/InfiniteScrollTrigger'
 import {MonthGroupedList} from '@/components/MonthGroupedList'
 import {PersonalExpenseDialog} from '@/components/PersonalExpenseDialog'
+import {TagExpensesList} from '@/components/TagExpensesList'
 import {TagTotalsCharts} from '@/components/TagTotalsChart'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Button} from '@/components/ui/button'
@@ -207,7 +208,24 @@ export function PersonalExpensesPage() {
           </TabsList>
 
           <TabsContent value="charts">
-            <TagTotalsCharts load={getPersonalTotalsByTag} reloadKey={chartsReloadKey} initialRange={dates}/>
+            <TagTotalsCharts
+                load={getPersonalTotalsByTag}
+                reloadKey={chartsReloadKey}
+                initialRange={dates}
+                renderTagExpenses={({tag: selected, from, to}) => (
+                    <TagExpensesList
+                        tag={selected}
+                        from={from}
+                        to={to}
+                        reloadKey={chartsReloadKey}
+                        load={listPersonalExpenses}
+                        renderItem={(expense) => (
+                            <PersonalExpenseRow key={expense.id} expense={expense} locale={i18n.language}
+                                                actions={null}/>
+                        )}
+                    />
+                )}
+            />
           </TabsContent>
 
           <TabsContent value="feed">

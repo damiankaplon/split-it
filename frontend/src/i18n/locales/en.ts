@@ -250,6 +250,7 @@ const en: Translations = {
     error: "Couldn't load the chart",
     empty: 'No expenses in this period.',
     invalidRange: "The start date can't be after the end date.",
+    expensesOf: 'Expenses tagged “{{tag}}”',
   },
 }
 

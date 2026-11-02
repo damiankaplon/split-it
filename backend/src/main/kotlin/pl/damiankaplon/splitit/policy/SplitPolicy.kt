@@ -36,3 +36,8 @@ class CustomShare(
         TODO("Not implemented yet")
     }
 }
+
+
+class Saldo {
+
+}
