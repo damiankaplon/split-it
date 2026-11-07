@@ -213,6 +213,28 @@ class ExpenseEndpointsIntegrationTest @Autowired constructor(
     }
 
     @Test
+    fun `updating an expense amount moves the debts`() {
+        val project = testData.createProject("alice-id", "bob-id")
+        val expenseId = testData.createExpense(project, "alice-id", amount = 1000)
+        testData.createExpense(project, "bob-id", amount = 200)
+
+        mockMvc.put("/projects/${project.id}/expenses/$expenseId") {
+            with(asUser("alice-id"))
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"title":"Dinner","date":"2026-10-03T19:30:00Z","amount":3000}"""
+        }.andExpect { status { isOk() } }
+
+        mockMvc.get("/projects/${project.id}/debts") { with(asUser("alice-id")) }
+            .andExpect {
+                jsonPath("$.length()") { value(1) }
+                jsonPath("$[0].debtorId") { value("bob-id") }
+                jsonPath("$[0].creditorId") { value("alice-id") }
+                // (3000 - 200) / 2
+                jsonPath("$[0].amount") { value(1400) }
+            }
+    }
+
+    @Test
     fun `total sums all expenses of the project only`() {
         val project = projectWithMember("alice-id")
         val other = projectWithMember("alice-id")

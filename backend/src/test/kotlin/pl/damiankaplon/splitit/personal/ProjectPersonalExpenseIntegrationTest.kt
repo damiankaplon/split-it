@@ -4,6 +4,7 @@ import org.hamcrest.Matchers.equalToIgnoringCase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
+import org.springframework.test.json.JsonCompareMode
 import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
@@ -139,28 +140,58 @@ class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
     }
 
     @Test
-    fun `project shares can be read but only changed through the project expense`() {
+    fun `a changed project share is overwritten by the next change to its project expense`() {
         val alice = newUser()
         val project = project(alice)
-        testData.createExpense(project, alice, "Dinner", "2026-10-03T19:30:00Z", 1000)
+        val expenseId = testData.createExpense(project, alice, "Dinner", "2026-10-03T19:30:00Z", 1000)
         val shareId = mockMvc.get("/personal/expenses") { with(asUser(alice)) }
             .andReturn().response.contentAsString.let(::idOf)
 
-        mockMvc.get("/personal/expenses/$shareId") { with(asUser(alice)) }
-            .andExpect {
-                status { isOk() }
-                jsonPath("$.source") { value("PROJECT") }
-                jsonPath("$.amount") { value(1000) }
-            }
         mockMvc.put("/personal/expenses/$shareId") {
             with(asUser(alice))
             contentType = MediaType.APPLICATION_JSON
-            content = """{"title":"Changed","date":"2026-10-03T19:30:00Z","amount":1,"currency":"PLN"}"""
-        }.andExpect { status { isConflict() } }
-        mockMvc.delete("/personal/expenses/$shareId") { with(asUser(alice)) }
-            .andExpect { status { isConflict() } }
+            content = """{"title":"Changed","date":"2026-10-03T19:30:00Z","amount":1,"currency":"PLN","tag":"Mine"}"""
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.title") { value("Changed") }
+            jsonPath("$.amount") { value(1) }
+            jsonPath("$.tag") { value("Mine") }
+            jsonPath("$.source") { value("PROJECT") }
+        }
 
-        assertEquals(listOf("Dinner"), personalTitles(alice))
+        mockMvc.put("/projects/${project.id}/expenses/$expenseId") {
+            with(asUser(alice))
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"title":"Lunch","date":"2026-10-04T12:00:00Z","amount":2000}"""
+        }.andExpect { status { isOk() } }
+
+        mockMvc.get("/personal/expenses/$shareId") { with(asUser(alice)) }
+            .andExpect {
+                jsonPath("$.title") { value("Lunch") }
+                jsonPath("$.amount") { value(2000) }
+                jsonPath("$.tag") { doesNotExist() }
+            }
+    }
+
+    @Test
+    fun `a deleted project share is recreated by the next change to its project expense`() {
+        val alice = newUser()
+        val project = project(alice)
+        val expenseId = testData.createExpense(project, alice, "Dinner", "2026-10-03T19:30:00Z", 1000)
+        val shareId = mockMvc.get("/personal/expenses") { with(asUser(alice)) }
+            .andReturn().response.contentAsString.let(::idOf)
+
+        mockMvc.delete("/personal/expenses/$shareId") { with(asUser(alice)) }
+            .andExpect { status { isNoContent() } }
+        assertEquals(emptyList<String>(), personalTitles(alice))
+
+        mockMvc.put("/projects/${project.id}/expenses/$expenseId") {
+            with(asUser(alice))
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"title":"Lunch","date":"2026-10-04T12:00:00Z","amount":2000}"""
+        }.andExpect { status { isOk() } }
+
+        assertEquals(listOf("Lunch"), personalTitles(alice))
     }
 
     @Test
@@ -207,5 +238,28 @@ class ProjectPersonalExpenseIntegrationTest : RollbackIntegrationTest() {
             jsonPath("$.length()") { value(1) }
             jsonPath("$[0].total") { value(500) }
         }
+    }
+
+    @Test
+    fun `same-named tags of manual expenses and of different projects are one personal tag`() {
+        val alice = newUser()
+        val rome = testData.createProject(alice, name = "Rome")
+        val paris = testData.createProject(alice, name = "Paris")
+        createManualExpense(
+            alice,
+            """{"title":"Groceries","date":"2026-10-01T10:00:00Z","amount":1,"currency":"PLN","tag":"Food"}"""
+        )
+        testData.createExpense(rome, alice, "Pizza", "2026-10-02T19:00:00Z", 1, "food")
+        testData.createExpense(paris, alice, "Crepe", "2026-10-03T19:00:00Z", 1, "FOOD")
+
+        mockMvc.get("/personal/tags") { with(asUser(alice)) }
+            .andExpect { content { json("""["Food"]""", JsonCompareMode.STRICT) } }
+        val body = mockMvc.get("/personal/expenses") { with(asUser(alice)) }
+            .andReturn().response.contentAsString
+        val tags = Regex("\"tag\":\"([^\"]+)\"").findAll(body).map { it.groupValues[1] }.toList()
+        assertEquals(listOf("Food", "Food", "Food"), tags)
+        val colors = Regex("\"tagColor\":\"([^\"]+)\"").findAll(body).map { it.groupValues[1] }.toSet()
+        assertEquals(1, colors.size)
+        assertEquals(3, personalTitles(alice, "tag" to "fOoD").size)
     }
 }

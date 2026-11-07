@@ -145,7 +145,7 @@ class IncomeController(
         return Savings.periods(
             delimitingIncomes = delimiting.map { Flow(it.date, it.amount, it.currency) },
             otherIncomes = other.map { Flow(it.date, it.amount, it.currency) },
-            expenses = spent.map { Flow(it.date, it.amount, it.currency) },
+            expenses = spent.map { Flow(it.data.date, it.data.amount, it.data.currency) },
         ).filter { it.start <= rangeTo && (it.end == null || it.end > rangeFrom) }
             .map {
                 SavingsResponse(

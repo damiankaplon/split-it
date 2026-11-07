@@ -7,11 +7,6 @@ import org.springframework.stereotype.Repository
 import pl.damiankaplon.splitit.UserId
 import java.util.*
 
-/**
- * Tags and project expenses are associations of the subtypes, so they
- * can't be fetched with an entity graph from here; their entities are
- * batch-fetched instead (see `@BatchSize`).
- */
 @Repository
 interface PersonalExpenseRepository : JpaRepository<PersonalExpense, UUID>, JpaSpecificationExecutor<PersonalExpense> {
 

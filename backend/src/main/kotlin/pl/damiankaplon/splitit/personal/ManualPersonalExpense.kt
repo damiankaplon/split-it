@@ -1,36 +1,17 @@
 package pl.damiankaplon.splitit.personal
 
-import jakarta.persistence.*
+import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.Entity
 import pl.damiankaplon.splitit.UserId
-import java.time.Instant
-import java.util.*
+import pl.damiankaplon.splitit.kernel.ExpenseData
 
 /** Entered by the owner, who may change or delete it. */
 @Entity
-@DiscriminatorValue(ManualPersonalExpense.KIND)
+@DiscriminatorValue("MANUAL")
 class ManualPersonalExpense(
     ownerId: UserId,
 
-    @Column(name = "title")
-    override var title: String,
+    data: ExpenseData,
 
-    @Column(name = "date")
-    override var date: Instant,
-
-    amount: Int,
-
-    currency: Currency,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_id")
-    var personalTag: PersonalExpenseTag?,
-) : PersonalExpense(ownerId, amount, currency) {
-
-    override val tag: String? get() = personalTag?.name
-
-    override val tagColor: String? get() = personalTag?.color
-
-    companion object {
-        const val KIND = "MANUAL"
-    }
-}
+    tag: PersonalExpenseTag?,
+) : PersonalExpense(ownerId, data, tag)

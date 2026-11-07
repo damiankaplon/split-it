@@ -87,10 +87,11 @@ class ExpenseController(
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "size must be between 1 and $MAX_PAGE_SIZE")
         }
         val spec = filterSpec(projectId, tag, title, createdBy, from, to)
-        val pageRequest = PageRequest.of(page, size, Sort.by(Sort.Order.desc("date"), Sort.Order.desc("id")))
+        val pageRequest = PageRequest.of(page, size, Sort.by(Sort.Order.desc("data.date"), Sort.Order.desc("id")))
         val result = expenses.findAll(spec, pageRequest)
+        val tagColors = tagColors(projectId)
         return ExpensePage(
-            items = result.content.map { it.toResponse() },
+            items = result.content.map { it.toResponse(it.tagName?.let(tagColors::get)) },
             page = result.number,
             size = result.size,
             totalElements = result.totalElements,
@@ -134,7 +135,7 @@ class ExpenseController(
     ): ExpenseTotal {
         requireMember(projectId, jwt)
         val spec = filterSpec(projectId, tag, title, createdBy, from, to)
-        return ExpenseTotal(expenses.findAll(spec).sumOf { it.amount.toLong() })
+        return ExpenseTotal(expenses.findAll(spec).sumOf { it.data.amount.toLong() })
     }
 
     /**
@@ -201,7 +202,7 @@ class ExpenseController(
         @AuthenticationPrincipal jwt: Jwt,
     ): List<String> {
         requireMember(projectId, jwt)
-        return tags.findByProjectIdOrderByNameAsc(projectId).map(ExpenseTag::name)
+        return tags.findByIdProjectIdOrderByIdNameAsc(projectId).map(ExpenseTag::name)
     }
 
     private fun requireMember(projectId: UUID, jwt: Jwt): UserId {
@@ -214,8 +215,13 @@ class ExpenseController(
 
     private fun ExpenseRequest.toDetails() = ExpenseService.ExpenseDetails(title, date, amount, tag)
 
-    private fun Expense.toResponse() =
-        ExpenseResponse(id, projectId, title, date, amount, tag?.name, tag?.color, createdBy)
+    private fun Expense.toResponse(
+        tagColor: String? = tagName?.let { tags.findById(ProjectTagId(projectId, it)).orElse(null)?.color },
+    ) = ExpenseResponse(id, projectId, data.title, data.date, data.amount, tagName, tagColor, createdBy)
+
+    /** Colors of the project's tags by name. */
+    private fun tagColors(projectId: UUID): Map<String, String> =
+        tags.findByIdProjectIdOrderByIdNameAsc(projectId).associate { it.name to it.color }
 
     companion object {
         const val DEFAULT_PAGE_SIZE = 20

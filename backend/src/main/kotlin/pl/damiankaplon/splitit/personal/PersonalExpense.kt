@@ -2,15 +2,14 @@ package pl.damiankaplon.splitit.personal
 
 import jakarta.persistence.*
 import pl.damiankaplon.splitit.UserId
-import java.time.Instant
+import pl.damiankaplon.splitit.kernel.ExpenseData
 import java.util.*
 
 /**
  * An expense visible only to its owner: either entered manually
  * ([ManualPersonalExpense]) or the owner's share of a project expense
- * ([ProjectPersonalExpense]).
- *
- * @param amount - amount in minor units
+ * ([ProjectPersonalExpense]). Either kind is tagged with one of the
+ * owner's own tags.
  */
 @Entity
 @Table(name = "personal_expense")
@@ -20,12 +19,9 @@ abstract class PersonalExpense(
     @Column(name = "owner_id", nullable = false)
     val ownerId: UserId,
 
-    /** In the currency's minor units. */
-    @Column(nullable = false)
-    var amount: Int,
+    data: ExpenseData,
 
-    @Column(nullable = false)
-    var currency: Currency,
+    tag: PersonalExpenseTag?,
 ) {
     @Id
     val id: UUID = UUID.randomUUID()
@@ -34,13 +30,28 @@ abstract class PersonalExpense(
     @Column(nullable = false)
     var version: Long = 0
 
-    abstract val title: String
+    @Embedded
+    var data: ExpenseData = data
+        protected set
 
-    abstract val date: Instant
+    /**
+     * Name of the owner's [PersonalExpenseTag], if any; the tag is the one of
+     * [ownerId] with this name.
+     */
+    @Column(name = "tag_name")
+    var tagName: String? = tag?.name
+        protected set
 
-    /** Name of the tag, if any. */
-    abstract val tag: String?
+    init {
+        requireOwnTag(tag)
+    }
 
-    /** Color (`#rrggbb`) of the tag, if any. */
-    abstract val tagColor: String?
+    fun update(data: ExpenseData, tag: PersonalExpenseTag?) {
+        requireOwnTag(tag)
+        this.data = data
+        this.tagName = tag?.name
+    }
+
+    private fun requireOwnTag(tag: PersonalExpenseTag?) =
+        require(tag == null || tag.ownerId == ownerId) { "Tag $tag is not of owner=${ownerId.value}" }
 }

@@ -5,9 +5,9 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface ExpenseTagRepository : JpaRepository<ExpenseTag, UUID> {
+interface ExpenseTagRepository : JpaRepository<ExpenseTag, ProjectTagId> {
 
-    fun findByProjectIdAndNameIgnoreCase(projectId: UUID, name: String): ExpenseTag?
+    fun findByIdProjectIdAndIdNameIgnoreCase(projectId: UUID, name: String): ExpenseTag?
 
-    fun findByProjectIdOrderByNameAsc(projectId: UUID): List<ExpenseTag>
+    fun findByIdProjectIdOrderByIdNameAsc(projectId: UUID): List<ExpenseTag>
 }

@@ -1,41 +1,30 @@
 package pl.damiankaplon.splitit.personal
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.Entity
 import pl.damiankaplon.splitit.UserId
-import pl.damiankaplon.splitit.expense.Expense
-import java.time.Instant
+import pl.damiankaplon.splitit.kernel.ExpenseData
 import java.util.*
 
 /**
- * The owner's share of a project [Expense], as divided by the project's
- * split policy. Title, date and tag always come from the expense; the
- * amount is kept in sync by the expense's changes.
+ * The owner's share of a project expense, as divided by the
+ * project's split policy. Kept in sync with the expense by
+ * [ProjectToPersonalExpenseSynchronization]: everything but the amount
+ * is the expense's, and its tag is the owner's tag of the same name.
  */
 @Entity
-@DiscriminatorValue(ProjectPersonalExpense.KIND)
+@DiscriminatorValue("PROJECT")
 class ProjectPersonalExpense(
     ownerId: UserId,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "expense_id")
-    val expense: Expense,
+    @Column(name = "project_expense_id")
+    val projectExpenseId: UUID,
 
-    amount: Int,
+    @Column(name = "project_id")
+    val projectId: UUID,
 
-    currency: Currency,
-) : PersonalExpense(ownerId, amount, currency) {
+    data: ExpenseData,
 
-    override val title: String get() = expense.title
-
-    override val date: Instant get() = expense.date
-
-    override val tag: String? get() = expense.tag?.name
-
-    override val tagColor: String? get() = expense.tag?.color
-
-    val projectId: UUID get() = expense.projectId
-
-    companion object {
-        const val KIND = "PROJECT"
-    }
-}
+    tag: PersonalExpenseTag?,
+) : PersonalExpense(ownerId, data, tag)
