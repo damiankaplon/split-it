@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.balancing
+package pl.damiankaplon.splitit.balancing2
 
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -15,8 +15,8 @@ import java.util.*
 
 @RestController
 @RequestMapping("/projects/{projectId}")
-class SaldoController(
-    private val saldos: SaldoRepository,
+class BalanceController(
+    private val balances: BalanceRepository,
     private val projects: ProjectRepository,
 ) {
 
@@ -24,10 +24,13 @@ class SaldoController(
     data class DebtResponse(
         val debtorId: String,
         val creditorId: String,
-        val amount: Int,
+        val amount: Long,
     )
 
-    /** All open debts in the project, so members can see who owes whom. */
+    /**
+     * The transfers that settle up the project, so members can see who owes
+     * whom; biggest first.
+     */
     @GetMapping("/debts")
     @Transactional(readOnly = true)
     fun listDebts(
@@ -37,8 +40,8 @@ class SaldoController(
         if (!projects.existsByIdAndMemberUserId(projectId, jwt.subjectOrThrow())) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not project=$projectId member")
         }
-        return saldos.findByProjectIdOrThrow(projectId).debts
-            .map { DebtResponse(it.debtor.value, it.creditor.value, it.amount) }
+        return balances.findTransfersByProjectId(projectId)
+            .map { DebtResponse(it.from.value, it.to.value, it.amount) }
             .sortedByDescending { it.amount }
     }
 }

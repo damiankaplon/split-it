@@ -1,8 +1,8 @@
 package pl.damiankaplon.splitit
 
 import org.springframework.boot.test.context.TestComponent
-import pl.damiankaplon.splitit.balancing.Saldo
-import pl.damiankaplon.splitit.balancing.SaldoRepository
+import pl.damiankaplon.splitit.balancing2.Balance
+import pl.damiankaplon.splitit.balancing2.BalanceRepository
 import pl.damiankaplon.splitit.expense.ExpenseService
 import pl.damiankaplon.splitit.project.Project
 import pl.damiankaplon.splitit.project.ProjectMember
@@ -20,7 +20,7 @@ import java.util.*
 @TestComponent
 class TestDataRepository(
     private val projects: ProjectRepository,
-    private val saldos: SaldoRepository,
+    private val balances: BalanceRepository,
     private val expenseService: ExpenseService,
 ) {
 
@@ -33,7 +33,7 @@ class TestDataRepository(
         val project = Project(name, ProjectMember(ownerId, ownerName), PLN)
         memberIds.forEach { project.add(ProjectMember(it, it)) }
         projects.save(project)
-        saldos.save(Saldo(project.id))
+        balances.save(Balance(project.id))
         return project
     }
 

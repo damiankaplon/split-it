@@ -1,26 +1,23 @@
 package pl.damiankaplon.splitit.invitation
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
-import pl.damiankaplon.splitit.balancing.SaldoProjectEventHandler
+import pl.damiankaplon.splitit.balancing2.BalanceProjectEventHandler
 import pl.damiankaplon.splitit.project.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
 import pl.damiankaplon.splitit.usernameOrThrow
 import java.util.*
-
-private val logger = KotlinLogging.logger {}
 
 @RestController
 class InvitationController(
     private val invitationCommandHandler: InvitationCommandHandler,
     private val invitations: ProjectInvitationRepository,
     private val projects: ProjectRepository,
-    private val saldoProjectEventHandler: SaldoProjectEventHandler,
+    private val balanceProjectEventHandler: BalanceProjectEventHandler,
 ) {
 
     data class InvitationResponse(
@@ -58,7 +55,7 @@ class InvitationController(
         )
         try {
             val memberJoined = invitationCommandHandler.handle(command)
-            saldoProjectEventHandler.handle(memberJoined)
+            balanceProjectEventHandler.handle(memberJoined)
         } catch (t: Throwable) {
             throw ResponseStatusException(HttpStatus.PRECONDITION_FAILED, "Domain error", t)
         }

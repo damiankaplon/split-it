@@ -10,8 +10,8 @@ import java.util.*
 /**
  * The owner's share of a project expense, as divided by the
  * project's split policy. Kept in sync with the expense by
- * [ProjectToPersonalExpenseSynchronization]: everything but the amount
- * is the expense's, and its tag is the owner's tag of the same name.
+ * [ProjectExpenseEventHandler]: everything but the amount is the
+ * expense's, and its tag is the owner's tag of the same name.
  */
 @Entity
 @DiscriminatorValue("PROJECT")

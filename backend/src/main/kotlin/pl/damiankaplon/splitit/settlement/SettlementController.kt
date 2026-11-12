@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.Time
 import pl.damiankaplon.splitit.UserId
-import pl.damiankaplon.splitit.balancing.SaldoSettlementEventHandler
+import pl.damiankaplon.splitit.balancing2.BalanceSettlementEventHandler
+import pl.damiankaplon.splitit.project.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
 import pl.damiankaplon.splitit.userIdOrThrow
 import java.time.Instant
@@ -21,7 +22,8 @@ import java.util.*
 @RestController
 class SettlementController(
     private val settlements: SettlementRepository,
-    private val saldoSettlementEventHandler: SaldoSettlementEventHandler,
+    private val projects: ProjectRepository,
+    private val balanceSettlementEventHandler: BalanceSettlementEventHandler,
     private val time: Time,
 ) {
 
@@ -54,8 +56,9 @@ class SettlementController(
     )
 
     /**
-     * The current user declares they paid (part of) their debt to the
-     * creditor. The debt stays unchanged until the creditor confirms.
+     * The current user declares they paid the creditor, any other member of
+     * the project, any amount: not necessarily one the balance suggests. The
+     * balance stays unchanged until the creditor confirms.
      */
     @PostMapping("/projects/{projectId}/settlements")
     @ResponseStatus(HttpStatus.CREATED)
@@ -67,6 +70,12 @@ class SettlementController(
     ): SettlementResponse {
         val currentUserId = jwt.subjectOrThrow().let(::UserId)
         val creditor = request.creditorId.let(::UserId)
+        if (!projects.existsByIdAndMemberUserId(projectId, currentUserId.value)) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not project=$projectId member")
+        }
+        if (!projects.existsByIdAndMemberUserId(projectId, creditor.value)) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "${creditor.value} is not project=$projectId member")
+        }
         val alreadyPendingSettlement = settlements.existsByProjectIdAndCreditorAndStatus(
             projectId,
             creditor,
@@ -89,7 +98,10 @@ class SettlementController(
         return settlement.toResponse()
     }
 
-    /** The creditor confirms they received the money, which reduces the debt. */
+    /**
+     * The creditor confirms they received the money, which the balance then
+     * records.
+     */
     @PostMapping("/settlements/{settlementId}/confirm")
     @Transactional
     fun confirm(
@@ -99,11 +111,11 @@ class SettlementController(
         val currentUserId = jwt.userIdOrThrow()
         val settlement = settlements.findByIdAndCreditorOrThrow(settlementId, currentUserId)
         val settlementConfirmed = settlement.confirm(time.now())
-        throwConflictOnError { saldoSettlementEventHandler.handle(settlementConfirmed) }
+        balanceSettlementEventHandler.handle(settlementConfirmed)
         return settlement.toResponse()
     }
 
-    /** The creditor did not receive the money; the debt stays. */
+    /** The creditor did not receive the money; the balance stays. */
     @PostMapping("/settlements/{settlementId}/reject")
     @Transactional
     fun reject(
@@ -127,16 +139,6 @@ class SettlementController(
         val settlement = settlements.findByIdAndDebtorOrThrow(settlementId, currentUserId)
         settlement.cancel(time.now())
         return settlement.toResponse()
-    }
-
-    private fun throwConflictOnError(action: () -> Unit) {
-        try {
-            action()
-        } catch (e: IllegalStateException) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, e.message, e)
-        } catch (e: IllegalArgumentException) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, e.message, e)
-        }
     }
 
     private fun Settlement.toResponse() =

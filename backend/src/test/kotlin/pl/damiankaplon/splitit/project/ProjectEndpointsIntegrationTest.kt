@@ -8,11 +8,11 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import pl.damiankaplon.splitit.RollbackIntegrationTest
-import pl.damiankaplon.splitit.balancing.SaldoRepository
+import pl.damiankaplon.splitit.balancing2.BalanceRepository
 import java.util.*
 
 class ProjectEndpointsIntegrationTest @Autowired constructor(
-    private val saldos: SaldoRepository,
+    private val balances: BalanceRepository,
     private val projects: ProjectRepository,
 ) : RollbackIntegrationTest() {
 
@@ -44,7 +44,7 @@ class ProjectEndpointsIntegrationTest @Autowired constructor(
         assertEquals(1, members.size)
         assertEquals(userId, members.single().userId)
         assertEquals("alice", members.single().username)
-        assertTrue(saldos.existsById(projectId))
+        assertTrue(balances.existsById(projectId))
 	}
 
     @Test

@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
-import pl.damiankaplon.splitit.balancing.SaldoProjectEventHandler
+import pl.damiankaplon.splitit.balancing2.BalanceProjectEventHandler
 import pl.damiankaplon.splitit.policy.SplitPolicyType
 import pl.damiankaplon.splitit.subjectOrThrow
 import pl.damiankaplon.splitit.usernameOrThrow
@@ -17,7 +17,7 @@ import java.util.*
 @RestController
 class ProjectController(
     private val projects: ProjectRepository,
-    private val saldoProjectEventHandler: SaldoProjectEventHandler,
+    private val balanceProjectEventHandler: BalanceProjectEventHandler,
 ) {
 
     data class CreateProjectRequest(
@@ -61,7 +61,8 @@ class ProjectController(
             splitPolicy = request.splitPolicy,
         )
         projects.save(project)
-        saldoProjectEventHandler.handle(ProjectEvent.ProjectCreated(project.id, owner.userId))
+        val projectCreated = ProjectEvent.ProjectCreated(project.id, owner.userId)
+        balanceProjectEventHandler.handle(projectCreated)
         return project.toResponse()
     }
 

@@ -1,5 +1,6 @@
 package pl.damiankaplon.splitit.settlement
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.ResultActionsDsl
@@ -173,24 +174,57 @@ class SettlementEndpointsIntegrationTest : RollbackIntegrationTest() {
             .andExpect { status { isBadRequest() } }
     }
 
-    @Test
-    fun `settling more than owed fails on confirmation`() {
-        val project = bobOwesAlice4000()
-        val id = requestSettlement(project, "bob-id", """{"creditorId":"alice-id","amount":4001}""").settlementId()
-
-        resolve(id, "confirm", "alice-id").andExpect { status { isConflict() } }
-        expectDebt(project, 4000)
+    /** Exactly the [expected] (debtor, creditor, amount) debts, in any order. */
+    private fun expectDebts(project: Project, vararg expected: Triple<String, String, Int>) {
+        val body = mockMvc.get("/projects/${project.id}/debts") { with(asUser("alice-id")) }
+            .andExpect { status { isOk() } }.andReturn().response.contentAsString
+        val debts = Regex("\"debtorId\":\"([^\"]+)\",\"creditorId\":\"([^\"]+)\",\"amount\":(\\d+)")
+            .findAll(body).map { Triple(it.groupValues[1], it.groupValues[2], it.groupValues[3].toInt()) }.toList()
+        assertThat(debts).containsExactlyInAnyOrder(*expected)
     }
 
     @Test
-    fun `confirming fails when the debt shrank below the declared payment`() {
+    fun `paying more than owed leaves the creditor owing the difference`() {
+        val project = bobOwesAlice4000()
+        val id = requestSettlement(project, "bob-id", """{"creditorId":"alice-id","amount":4500}""").settlementId()
+
+        resolve(id, "confirm", "alice-id").andExpect { status { isOk() } }
+
+        expectDebts(project, Triple("alice-id", "bob-id", 500))
+    }
+
+    @Test
+    fun `a payment declared before the debt shrank is still confirmed in full`() {
         val project = bobOwesAlice4000()
         val id = requestSettlement(project, "bob-id", """{"creditorId":"alice-id","amount":4000}""").settlementId()
 
         testData.createExpense(project, "bob-id", amount = 2000)
 
-        resolve(id, "confirm", "alice-id").andExpect { status { isConflict() } }
-        expectDebt(project, 3000)
+        resolve(id, "confirm", "alice-id").andExpect { status { isOk() } }
+        expectDebts(project, Triple("alice-id", "bob-id", 1000))
+    }
+
+    @Test
+    fun `any member can pay any other member, not only whom the debts suggest`() {
+        val project = projectWith("alice-id", "bob-id", "carol-id")
+        // alice is owed 60.00, bob and carol owe 30.00 each, both to alice
+        testData.createExpense(project, "alice-id", amount = 9000)
+
+        val id = requestSettlement(project, "bob-id", """{"creditorId":"carol-id","amount":1000}""").settlementId()
+        resolve(id, "confirm", "carol-id").andExpect { status { isOk() } }
+
+        expectDebts(project, Triple("bob-id", "alice-id", 2000), Triple("carol-id", "alice-id", 4000))
+    }
+
+    @Test
+    fun `payments are only between members of the project`() {
+        val project = bobOwesAlice4000()
+
+        requestSettlement(project, "bob-id", """{"creditorId":"stranger-id","amount":1000}""")
+            .andExpect { status { isBadRequest() } }
+        requestSettlement(project, "stranger-id", """{"creditorId":"alice-id","amount":1000}""")
+            .andExpect { status { isForbidden() } }
+        expectDebt(project, 4000)
     }
 
     @Test

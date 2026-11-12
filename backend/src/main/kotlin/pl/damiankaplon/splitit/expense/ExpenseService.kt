@@ -3,24 +3,22 @@ package pl.damiankaplon.splitit.expense
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pl.damiankaplon.splitit.UserId
-import pl.damiankaplon.splitit.balancing.SaldoExpenseEventHandler
-import pl.damiankaplon.splitit.expense.ExpenseEvent.ExpensesIncreased
-import pl.damiankaplon.splitit.expense.ExpenseEvent.ExpensesReduced
+import pl.damiankaplon.splitit.balancing2.BalanceExpenseEventHandler
 import pl.damiankaplon.splitit.kernel.ExpenseData
 import pl.damiankaplon.splitit.kernel.Tag
-import pl.damiankaplon.splitit.personal.ProjectToPersonalExpenseSynchronization
 import pl.damiankaplon.splitit.policy.SplitPolicy
 import pl.damiankaplon.splitit.project.Project
 import pl.damiankaplon.splitit.project.ProjectMember
 import pl.damiankaplon.splitit.project.ProjectRepository
 import java.time.Instant
 import java.util.*
-import kotlin.math.absoluteValue
+import pl.damiankaplon.splitit.personal.ProjectExpenseEventHandler as PersonalExpenseEventHandler
 
 /**
  * Coordinates every change to an [Expense] with what depends on it: the
- * project's balances and each member's share of it among their personal
- * expenses.
+ * project's balance and each member's share of it among their personal
+ * expenses. They learn about it from [ExpenseEvent]s, handed over
+ * directly and in the same transaction until there is a message broker.
  */
 @Service
 @Transactional
@@ -28,8 +26,8 @@ class ExpenseService(
     private val expenses: ExpenseRepository,
     private val tags: ExpenseTagRepository,
     private val projects: ProjectRepository,
-    private val saldoExpenseEventHandler: SaldoExpenseEventHandler,
-    private val personalExpenseSynchronization: ProjectToPersonalExpenseSynchronization,
+    private val balanceExpenseEventHandler: BalanceExpenseEventHandler,
+    private val personalExpenseEventHandler: PersonalExpenseEventHandler,
 ) {
 
     data class ExpenseDetails(
@@ -42,17 +40,25 @@ class ExpenseService(
     fun create(projectId: UUID, payer: UserId, details: ExpenseDetails): Expense {
         val project = projects.findByIdOrThrow(projectId)
         val tag = findOrCreateTag(projectId, details.tag)
+        val data = details.toData(project.currency)
         val expense = Expense(
             projectId = projectId,
-            data = details.toData(project.currency),
+            data = data,
             tag = tag,
             createdBy = payer.value,
+            splits = project.split(data.amount),
         ).let(expenses::save)
 
-        ExpensesIncreased(projectId, payer, expense.data.amount)
-            .run(saldoExpenseEventHandler::handle)
-
-        synchronizePersonalExpenses(expense, tag, project.split(expense.data.amount))
+        publish(
+            ExpenseEvent.ExpenseCreated(
+                projectId = projectId,
+                expenseId = expense.id,
+                payer = payer,
+                data = expense.data,
+                tag = tag?.toTag(),
+                splits = expense.splits.toEvent(),
+            )
+        )
         return expense
     }
 
@@ -60,16 +66,23 @@ class ExpenseService(
         val project = projects.findByIdOrThrow(projectId)
         val expense = expenses.findByIdAndProjectIdOrThrow(expenseId, projectId)
         val payer = UserId(expense.createdBy)
-        val amountDiff = details.amount - expense.data.amount
+        val previousAmount = expense.data.amount
+        val previousSplits = expense.splits.toEvent()
         val tag = findOrCreateTag(projectId, details.tag)
-        expense.update(details.toData(expense.data.currency), tag)
+        expense.update(details.toData(expense.data.currency), tag, project.split(details.amount))
 
-        val event = if (amountDiff > 0) ExpensesIncreased(projectId, payer, amountDiff)
-        else if (amountDiff < 0) ExpensesReduced(projectId, payer, amountDiff.absoluteValue)
-        else null
-        event?.run(saldoExpenseEventHandler::handle)
-
-        synchronizePersonalExpenses(expense, tag, project.split(expense.data.amount))
+        publish(
+            ExpenseEvent.ExpenseUpdated(
+                projectId = projectId,
+                expenseId = expense.id,
+                payer = payer,
+                data = expense.data,
+                tag = tag?.toTag(),
+                splits = expense.splits.toEvent(),
+                previousAmount = previousAmount,
+                previousSplits = previousSplits,
+            )
+        )
         return expense
     }
 
@@ -77,33 +90,21 @@ class ExpenseService(
         val expense = expenses.findByIdAndProjectIdOrThrow(expenseId, projectId)
         expenses.delete(expense)
 
-        ExpensesReduced(projectId, UserId(expense.createdBy), expense.data.amount)
-            .run(saldoExpenseEventHandler::handle)
-
-        personalExpenseSynchronization.handle(ProjectExpenseDeleted(expense.id, projectId, expense.data))
+        publish(
+            ExpenseEvent.ExpenseDeleted(
+                projectId = projectId,
+                expenseId = expense.id,
+                payer = UserId(expense.createdBy),
+                amount = expense.data.amount,
+                splits = expense.splits.toEvent(),
+            )
+        )
     }
 
-    /**
-     * Hands each member's share of the expense over to their personal
-     * expenses.
-     */
-    private fun synchronizePersonalExpenses(
-        expense: Expense,
-        tag: ExpenseTag?,
-        splits: Set<SplitPolicy.Split>,
-    ) {
-        splits.forEach {
-            personalExpenseSynchronization.handle(
-                ProjectExpenseSplitCalculated(
-                    expense.id,
-                    expense.projectId,
-                    expense.data,
-                    tag?.toTag(),
-                    it.userId,
-                    it.amount
-                )
-            )
-        }
+    /** Stands in for a message broker: every consumer gets every event. */
+    private fun publish(event: ExpenseEvent) {
+        balanceExpenseEventHandler.handle(event)
+        personalExpenseEventHandler.handle(event)
     }
 
     private fun ExpenseDetails.toData(currency: Currency) = ExpenseData(title, date, amount, currency)
@@ -112,10 +113,10 @@ class ExpenseService(
      * Divides [amount] among the project's current members with its split
      * policy.
      */
-    private fun Project.split(amount: Int): Set<SplitPolicy.Split> {
+    private fun Project.split(amount: Int): Set<ExpenseSplit> {
         val users = this.members.map(ProjectMember::userId).map(::UserId).toSet()
         val expense = SplitPolicy.Expense(amount, users)
-        return splitPolicy.policy.calculate(expense)
+        return splitPolicy.policy.calculate(expense).mapTo(linkedSetOf()) { ExpenseSplit(it.userId, it.amount) }
     }
 
     /**
@@ -129,4 +130,8 @@ class ExpenseService(
     }
 
     private fun ExpenseTag.toTag() = Tag(this.name, this.color)
+
+    /** Ordered by user, so events are deterministic. */
+    private fun Collection<ExpenseSplit>.toEvent(): List<ExpenseEvent.Split> =
+        sortedBy { it.userId.value }.map { ExpenseEvent.Split(it.userId, it.amount) }
 }
