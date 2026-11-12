@@ -1,5 +1,6 @@
 package pl.damiankaplon.splitit.expense
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import pl.damiankaplon.splitit.PLN
@@ -81,24 +82,36 @@ class ExpenseServiceTest {
     }
 
     @Test
-    fun `an update is published with the splits it replaces`() {
+    fun `an update is split among the members it already was, and published with the splits it replaces`() {
         project.add(ProjectMember(bob.value, "bob"))
-        val expense = existingExpense(900, alice to 900)
+        val expense = existingExpense(900, alice to 450, bob to 450)
+        // joins after the expense, so doesn't share it
+        project.add(ProjectMember(carol.value, "carol"))
 
-        updateAmount(expense, 1000)
+        updateAmount(expense, 1001)
 
         val event = ExpenseEvent.ExpenseUpdated(
             projectId = project.id,
             expenseId = expense.id,
             payer = alice,
-            data = data(1000),
+            data = data(1001),
             tag = null,
-            splits = listOf(Split(alice, 500), Split(bob, 500)),
+            splits = listOf(Split(alice, 501), Split(bob, 500)),
             previousAmount = 900,
-            previousSplits = listOf(Split(alice, 900)),
+            previousSplits = listOf(Split(alice, 450), Split(bob, 450)),
         )
         verify(balance).handle(event)
         verify(personal).handle(event)
+    }
+
+    @Test
+    fun `an expense that was the payer's alone stays theirs when updated`() {
+        project.add(ProjectMember(bob.value, "bob"))
+        val expense = existingExpense(900, alice to 900)
+
+        updateAmount(expense, 1000)
+
+        assertThat(expense.splits).containsExactly(ExpenseSplit(alice, 1000))
     }
 
     @Test

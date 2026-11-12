@@ -69,7 +69,8 @@ class ExpenseService(
         val previousAmount = expense.data.amount
         val previousSplits = expense.splits.toEvent()
         val tag = findOrCreateTag(projectId, details.tag)
-        expense.update(details.toData(expense.data.currency), tag, project.split(details.amount))
+        val sharing = expense.splits.mapTo(mutableSetOf()) { it.userId }
+        expense.update(details.toData(expense.data.currency), tag, project.split(details.amount, among = sharing))
 
         publish(
             ExpenseEvent.ExpenseUpdated(
@@ -110,12 +111,16 @@ class ExpenseService(
     private fun ExpenseDetails.toData(currency: Currency) = ExpenseData(title, date, amount, currency)
 
     /**
-     * Divides [amount] among the project's current members with its split
-     * policy.
+     * Divides [amount] with the project's split policy among [among]: by
+     * default the project's current members. An updated expense stays shared
+     * by the members it already was, so editing it never charges someone
+     * who joined later, nor anyone an expense that was the payer's alone.
      */
-    private fun Project.split(amount: Int): Set<ExpenseSplit> {
-        val users = this.members.map(ProjectMember::userId).map(::UserId).toSet()
-        val expense = SplitPolicy.Expense(amount, users)
+    private fun Project.split(
+        amount: Int,
+        among: Set<UserId> = this.members.map(ProjectMember::userId).map(::UserId).toSet(),
+    ): Set<ExpenseSplit> {
+        val expense = SplitPolicy.Expense(amount, among)
         return splitPolicy.policy.calculate(expense).mapTo(linkedSetOf()) { ExpenseSplit(it.userId, it.amount) }
     }
 
