@@ -1,8 +1,8 @@
 package pl.damiankaplon.splitit
 
 import org.springframework.boot.test.context.TestComponent
-import pl.damiankaplon.splitit.balancing2.Balance
-import pl.damiankaplon.splitit.balancing2.BalanceRepository
+import pl.damiankaplon.splitit.balancing.Balance
+import pl.damiankaplon.splitit.balancing.BalanceRepository
 import pl.damiankaplon.splitit.expense.ExpenseService
 import pl.damiankaplon.splitit.project.Project
 import pl.damiankaplon.splitit.project.ProjectMember

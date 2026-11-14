@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.balancing2
+package pl.damiankaplon.splitit.balancing
 
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy

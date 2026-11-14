@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.balancing2
+package pl.damiankaplon.splitit.balancing
 
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional

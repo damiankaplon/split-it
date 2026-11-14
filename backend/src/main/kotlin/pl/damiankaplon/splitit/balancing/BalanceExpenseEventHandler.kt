@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.balancing2
+package pl.damiankaplon.splitit.balancing
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component

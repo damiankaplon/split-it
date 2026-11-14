@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import pl.damiankaplon.splitit.PLN
 import pl.damiankaplon.splitit.UserId
-import pl.damiankaplon.splitit.balancing2.BalanceExpenseEventHandler
+import pl.damiankaplon.splitit.balancing.BalanceExpenseEventHandler
 import pl.damiankaplon.splitit.expense.ExpenseEvent.Split
 import pl.damiankaplon.splitit.kernel.ExpenseData
 import pl.damiankaplon.splitit.personal.ProjectExpenseEventHandler

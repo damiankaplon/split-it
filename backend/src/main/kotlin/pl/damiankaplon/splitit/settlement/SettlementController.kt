@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.Time
 import pl.damiankaplon.splitit.UserId
-import pl.damiankaplon.splitit.balancing2.BalanceSettlementEventHandler
+import pl.damiankaplon.splitit.balancing.BalanceSettlementEventHandler
 import pl.damiankaplon.splitit.project.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
 import pl.damiankaplon.splitit.userIdOrThrow

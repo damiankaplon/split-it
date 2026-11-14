@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.balancing2
+package pl.damiankaplon.splitit.balancing
 
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.jpa.repository.JpaRepository

@@ -3,7 +3,7 @@ package pl.damiankaplon.splitit.expense
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pl.damiankaplon.splitit.UserId
-import pl.damiankaplon.splitit.balancing2.BalanceExpenseEventHandler
+import pl.damiankaplon.splitit.balancing.BalanceExpenseEventHandler
 import pl.damiankaplon.splitit.kernel.ExpenseData
 import pl.damiankaplon.splitit.kernel.Tag
 import pl.damiankaplon.splitit.policy.SplitPolicy

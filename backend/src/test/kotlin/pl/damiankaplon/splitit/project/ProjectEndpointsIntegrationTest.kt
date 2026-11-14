@@ -8,7 +8,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import pl.damiankaplon.splitit.RollbackIntegrationTest
-import pl.damiankaplon.splitit.balancing2.BalanceRepository
+import pl.damiankaplon.splitit.balancing.BalanceRepository
 import java.util.*
 
 class ProjectEndpointsIntegrationTest @Autowired constructor(
