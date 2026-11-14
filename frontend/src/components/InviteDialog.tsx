@@ -17,7 +17,7 @@ import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {initials} from '@/lib/initials'
 
-type LinkState = { status: 'loading' } | { status: 'error' } | { status: 'ready'; url: string }
+type LinkState = {status: 'loading'} | {status: 'error'} | {status: 'ready'; url: string}
 
 interface InviteDialogProps {
   project: Project
@@ -52,70 +52,70 @@ export function InviteDialog({project, currentUserId}: InviteDialogProps) {
   }
 
   return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="rounded-lg">
-            <UserPlus/>
-            {t('invite.button')}
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[480px]">
-          <DialogHeader className="gap-1.5">
-            <DialogTitle className="text-lg">{t('invite.title', {project: project.name})}</DialogTitle>
-            <DialogDescription>{t('invite.description')}</DialogDescription>
-          </DialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="rounded-lg">
+          <UserPlus />
+          {t('invite.button')}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[480px]">
+        <DialogHeader className="gap-1.5">
+          <DialogTitle className="text-lg">{t('invite.title', {project: project.name})}</DialogTitle>
+          <DialogDescription>{t('invite.description')}</DialogDescription>
+        </DialogHeader>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="invite-link">{t('invite.linkLabel')}</Label>
-            <div className="flex gap-2">
-              <Input
-                  id="invite-link"
-                  readOnly
-                  className="h-10 grow rounded-lg bg-background text-zinc-700"
-                  value={link.status === 'ready' ? link.url : link.status === 'loading' ? t('invite.creating') : ''}
-                  onFocus={(e) => e.currentTarget.select()}
-              />
-              <Button
-                  size="lg"
-                  className="rounded-lg px-3.5"
-                  disabled={link.status !== 'ready'}
-                  onClick={() => link.status === 'ready' && void copy(link.url)}
-              >
-                {copied ? <Check/> : <Copy/>}
-                {copied ? t('invite.copied') : t('invite.copy')}
-              </Button>
-            </div>
-            <div className="flex items-center justify-between text-[13px] text-muted-foreground">
-              {link.status === 'error' ? (
-                  <span className="text-destructive" role="alert">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="invite-link">{t('invite.linkLabel')}</Label>
+          <div className="flex gap-2">
+            <Input
+              id="invite-link"
+              readOnly
+              className="h-10 grow rounded-lg bg-background text-zinc-700"
+              value={link.status === 'ready' ? link.url : link.status === 'loading' ? t('invite.creating') : ''}
+              onFocus={(e) => e.currentTarget.select()}
+            />
+            <Button
+              size="lg"
+              className="rounded-lg px-3.5"
+              disabled={link.status !== 'ready'}
+              onClick={() => link.status === 'ready' && void copy(link.url)}
+            >
+              {copied ? <Check /> : <Copy />}
+              {copied ? t('invite.copied') : t('invite.copy')}
+            </Button>
+          </div>
+          <div className="flex items-center justify-between text-[13px] text-muted-foreground">
+            {link.status === 'error' ? (
+              <span className="text-destructive" role="alert">
                 {t('invite.error')}
               </span>
-              ) : (
-                  <span>{t('invite.singleUse')}</span>
-              )}
-              <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 text-[13px]"
-                  disabled={link.status === 'loading'}
-                  onClick={() => void generateLink()}
-              >
-                {t('invite.newLink')}
-              </Button>
-            </div>
+            ) : (
+              <span>{t('invite.singleUse')}</span>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 text-[13px]"
+              disabled={link.status === 'loading'}
+              onClick={() => void generateLink()}
+            >
+              {t('invite.newLink')}
+            </Button>
           </div>
+        </div>
 
-          <MemberList project={project} currentUserId={currentUserId}/>
+        <MemberList project={project} currentUserId={currentUserId} />
 
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline" size="lg" className="rounded-lg px-4">
-                {t('invite.done')}
-              </Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline" size="lg" className="rounded-lg px-4">
+              {t('invite.done')}
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -128,29 +128,28 @@ function MemberList({project, currentUserId}: InviteDialogProps) {
   }, [project.id])
 
   return (
-      <div className="flex flex-col gap-2.5 border-t pt-4">
-        <h3 className="font-medium">{t('invite.members')}</h3>
-        {members === null ? (
-            <p className="text-muted-foreground">{t('invite.loadingMembers')}</p>
-        ) : (
-            <ul className="flex flex-col gap-2.5">
-              {members.map((member) => (
-                  <li key={member.memberId} className="flex items-center gap-2.5">
-              <span
-                  className="inline-flex size-7 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold">
+    <div className="flex flex-col gap-2.5 border-t pt-4">
+      <h3 className="font-medium">{t('invite.members')}</h3>
+      {members === null ? (
+        <p className="text-muted-foreground">{t('invite.loadingMembers')}</p>
+      ) : (
+        <ul className="flex flex-col gap-2.5">
+          {members.map((member) => (
+            <li key={member.memberId} className="flex items-center gap-2.5">
+              <span className="inline-flex size-7 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold">
                 {initials(member.name)}
               </span>
-                    <span className="grow">
+              <span className="grow">
                 {member.name}
-                      {member.memberId === currentUserId && ` ${t('invite.you')}`}
+                {member.memberId === currentUserId && ` ${t('invite.you')}`}
               </span>
-                    <span className="text-[13px] text-muted-foreground">
+              <span className="text-[13px] text-muted-foreground">
                 {member.memberId === project.ownerId ? t('projects.owner') : t('projects.member')}
               </span>
-                  </li>
-              ))}
-            </ul>
-        )}
-      </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }

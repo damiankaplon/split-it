@@ -74,54 +74,54 @@ export function SettleDialog({projectId, currency, debt, creditorName, trigger, 
   }
 
   return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogTrigger asChild>{trigger}</DialogTrigger>
-        <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[420px]">
-          <form onSubmit={(e) => void onSubmit(e)} className="contents">
-            <DialogHeader className="gap-1.5">
-              <DialogTitle className="text-lg">{t('settle.title', {name: creditorName})}</DialogTitle>
-              <DialogDescription>{t('settle.description', {name: creditorName, amount: fullAmount})}</DialogDescription>
-            </DialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[420px]">
+        <form onSubmit={(e) => void onSubmit(e)} className="contents">
+          <DialogHeader className="gap-1.5">
+            <DialogTitle className="text-lg">{t('settle.title', {name: creditorName})}</DialogTitle>
+            <DialogDescription>{t('settle.description', {name: creditorName, amount: fullAmount})}</DialogDescription>
+          </DialogHeader>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="settle-amount">{t('settle.amountLabel', {currency: currency.code})}</Label>
-              <NumericFormat
-                  customInput={Input}
-                  id="settle-amount"
-                  placeholder={zeroAmount(currency, i18n.language)}
-                  className="h-10 rounded-lg tabular-nums"
-                  decimalSeparator={decimalSeparator(i18n.language)}
-                  allowedDecimalSeparators={[',', '.']}
-                  decimalScale={currency.minorUnits}
-                  allowNegative={false}
-                  value={amount ?? ''}
-                  onValueChange={({floatValue}) => setAmount(floatValue)}
-                  aria-invalid={tooMuch}
-                  autoFocus
-                  required
-              />
-              <p className={tooMuch ? 'text-[13px] text-destructive' : 'text-[13px] text-muted-foreground'}>
-                {tooMuch ? t('settle.tooMuch', {amount: fullAmount}) : t('settle.partialHint')}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="settle-amount">{t('settle.amountLabel', {currency: currency.code})}</Label>
+            <NumericFormat
+              customInput={Input}
+              id="settle-amount"
+              placeholder={zeroAmount(currency, i18n.language)}
+              className="h-10 rounded-lg tabular-nums"
+              decimalSeparator={decimalSeparator(i18n.language)}
+              allowedDecimalSeparators={[',', '.']}
+              decimalScale={currency.minorUnits}
+              allowNegative={false}
+              value={amount ?? ''}
+              onValueChange={({floatValue}) => setAmount(floatValue)}
+              aria-invalid={tooMuch}
+              autoFocus
+              required
+            />
+            <p className={tooMuch ? 'text-[13px] text-destructive' : 'text-[13px] text-muted-foreground'}>
+              {tooMuch ? t('settle.tooMuch', {amount: fullAmount}) : t('settle.partialHint')}
+            </p>
+            {error && (
+              <p className="text-[13px] text-destructive" role="alert">
+                {error}
               </p>
-              {error && (
-                  <p className="text-[13px] text-destructive" role="alert">
-                    {error}
-                  </p>
-              )}
-            </div>
+            )}
+          </div>
 
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
-                  {t('settle.cancel')}
-                </Button>
-              </DialogClose>
-              <Button type="submit" size="lg" className="rounded-lg px-4" disabled={!canSubmit}>
-                {t('settle.submit')}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
+                {t('settle.cancel')}
               </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            </DialogClose>
+            <Button type="submit" size="lg" className="rounded-lg px-4" disabled={!canSubmit}>
+              {t('settle.submit')}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -46,36 +46,36 @@ export function DeleteIncomeDialog({income, trigger, onDeleted}: DeleteIncomeDia
   }
 
   return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogTrigger asChild>{trigger}</DialogTrigger>
-        <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[420px]">
-          <DialogHeader className="gap-1.5">
-            <DialogTitle className="text-lg">{t('incomeDeleteDialog.title')}</DialogTitle>
-            <DialogDescription>{t('incomeDeleteDialog.description', {title: income.title})}</DialogDescription>
-          </DialogHeader>
-          {error && (
-              <p className="text-[13px] text-destructive" role="alert">
-                {error}
-              </p>
-          )}
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
-                {t('incomeDeleteDialog.cancel')}
-              </Button>
-            </DialogClose>
-            <Button
-                type="button"
-                variant="destructive"
-                size="lg"
-                className="rounded-lg px-4"
-                disabled={deleting}
-                onClick={() => void onConfirm()}
-            >
-              {t('incomeDeleteDialog.confirm')}
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[420px]">
+        <DialogHeader className="gap-1.5">
+          <DialogTitle className="text-lg">{t('incomeDeleteDialog.title')}</DialogTitle>
+          <DialogDescription>{t('incomeDeleteDialog.description', {title: income.title})}</DialogDescription>
+        </DialogHeader>
+        {error && (
+          <p className="text-[13px] text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
+              {t('incomeDeleteDialog.cancel')}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DialogClose>
+          <Button
+            type="button"
+            variant="destructive"
+            size="lg"
+            className="rounded-lg px-4"
+            disabled={deleting}
+            onClick={() => void onConfirm()}
+          >
+            {t('incomeDeleteDialog.confirm')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

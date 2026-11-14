@@ -56,7 +56,7 @@ const toParams = (query: PersonalExpenseQuery) => {
 
 /** Newest first. */
 export const listPersonalExpenses = (query: PersonalExpenseQuery = {}) =>
-    apiFetch<PersonalExpensePage>(`/personal/expenses?${toParams(query)}`)
+  apiFetch<PersonalExpensePage>(`/personal/expenses?${toParams(query)}`)
 
 export interface PersonalExpenseSum {
   currency: Currency
@@ -66,16 +66,16 @@ export interface PersonalExpenseSum {
 
 /** Per-currency sums of the expenses matching the filters; paging is ignored. */
 export const getPersonalExpensesTotal = (query: Omit<PersonalExpenseQuery, 'page' | 'size'> = {}) =>
-    apiFetch<PersonalExpenseSum[]>(`/personal/expenses/total?${toParams(query)}`)
+  apiFetch<PersonalExpenseSum[]>(`/personal/expenses/total?${toParams(query)}`)
 
 export const createPersonalExpense = (expense: PersonalExpenseRequest) =>
-    apiFetch<PersonalExpense>('/personal/expenses', {method: 'POST', body: JSON.stringify(expense)})
+  apiFetch<PersonalExpense>('/personal/expenses', {method: 'POST', body: JSON.stringify(expense)})
 
 export const updatePersonalExpense = (expenseId: string, expense: PersonalExpenseRequest) =>
-    apiFetch<PersonalExpense>(`/personal/expenses/${expenseId}`, {method: 'PUT', body: JSON.stringify(expense)})
+  apiFetch<PersonalExpense>(`/personal/expenses/${expenseId}`, {method: 'PUT', body: JSON.stringify(expense)})
 
 export const deletePersonalExpense = (expenseId: string) =>
-    apiFetch<void>(`/personal/expenses/${expenseId}`, {method: 'DELETE'})
+  apiFetch<void>(`/personal/expenses/${expenseId}`, {method: 'DELETE'})
 
 /** Sum of a tag's expenses in one currency; a null tag stands for the untagged ones. */
 export interface PersonalTagTotal extends TagTotal {
@@ -87,7 +87,7 @@ export interface PersonalTagTotal extends TagTotal {
  * ordered by currency code, then largest first.
  */
 export const getPersonalTotalsByTag = (from: string, to: string) =>
-    apiFetch<PersonalTagTotal[]>(`/personal/expenses/totals-by-tag?${dayRangeParams(from, to)}`)
+  apiFetch<PersonalTagTotal[]>(`/personal/expenses/totals-by-tag?${dayRangeParams(from, to)}`)
 
 /** Tags the user has already used on personal expenses, sorted by name. */
 export const listPersonalTags = () => apiFetch<string[]>('/personal/tags')
@@ -119,10 +119,10 @@ export interface IncomeRequest {
 export const listIncomes = () => apiFetch<Income[]>('/personal/incomes')
 
 export const createIncome = (income: IncomeRequest) =>
-    apiFetch<Income>('/personal/incomes', {method: 'POST', body: JSON.stringify(income)})
+  apiFetch<Income>('/personal/incomes', {method: 'POST', body: JSON.stringify(income)})
 
 export const updateIncome = (incomeId: string, income: IncomeRequest) =>
-    apiFetch<Income>(`/personal/incomes/${incomeId}`, {method: 'PUT', body: JSON.stringify(income)})
+  apiFetch<Income>(`/personal/incomes/${incomeId}`, {method: 'PUT', body: JSON.stringify(income)})
 
 export const deleteIncome = (incomeId: string) => apiFetch<void>(`/personal/incomes/${incomeId}`, {method: 'DELETE'})
 

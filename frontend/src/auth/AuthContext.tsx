@@ -3,10 +3,10 @@ import {initKeycloak, keycloak} from './keycloak'
 import {currentLanguage} from '@/i18n'
 
 type AuthState =
-    | { status: 'loading' }
-    | { status: 'error'; error: unknown }
-    | { status: 'anonymous' }
-    | { status: 'authenticated'; userId: string; username: string }
+  | {status: 'loading'}
+  | {status: 'error'; error: unknown}
+  | {status: 'anonymous'}
+  | {status: 'authenticated'; userId: string; username: string}
 
 interface Auth {
   state: AuthState
@@ -22,7 +22,7 @@ function currentState(): AuthState {
   return {status: 'authenticated', userId: token?.sub ?? '', username: token?.preferred_username ?? ''}
 }
 
-export function AuthProvider({children}: { children: ReactNode }) {
+export function AuthProvider({children}: {children: ReactNode}) {
   const [state, setState] = useState<AuthState>({status: 'loading'})
 
   useEffect(() => {
@@ -35,8 +35,8 @@ export function AuthProvider({children}: { children: ReactNode }) {
     }
 
     initKeycloak()
-        .then(() => setState(currentState()))
-        .catch((error: unknown) => setState({status: 'error', error}))
+      .then(() => setState(currentState()))
+      .catch((error: unknown) => setState({status: 'error', error}))
   }, [])
 
   const auth: Auth = {

@@ -10,10 +10,10 @@ export const PROJECT_CURRENCIES = ['PLN', 'EUR', 'USD', 'GBP', 'CHF', 'CZK', 'SE
 export const currencyOf = (code: string): Currency => ({
   code,
   minorUnits:
-      new Intl.NumberFormat('en', {
-        style: 'currency',
-        currency: code,
-      }).resolvedOptions().maximumFractionDigits ?? 2,
+    new Intl.NumberFormat('en', {
+      style: 'currency',
+      currency: code,
+    }).resolvedOptions().maximumFractionDigits ?? 2,
 })
 
 /** Formats minor units in the locale's number style, labelled with the currency code (e.g. "120,50 PLN"). */
@@ -39,4 +39,4 @@ export const fitsInMinorUnits = (value: number, currency: Currency) => toMinorUn
 
 /** "," for Polish, "." for English. */
 export const decimalSeparator = (locale: string) =>
-    new Intl.NumberFormat(locale).formatToParts(1.1).find((part) => part.type === 'decimal')?.value ?? '.'
+  new Intl.NumberFormat(locale).formatToParts(1.1).find((part) => part.type === 'decimal')?.value ?? '.'

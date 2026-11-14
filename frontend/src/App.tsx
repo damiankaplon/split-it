@@ -15,21 +15,21 @@ function App() {
 
   if (state.status !== 'authenticated') {
     // Keycloak redirects back to the current URL, so e.g. an invite link survives sign-in.
-    return <SignInPage onSignIn={() => void login()} keycloakUnavailable={state.status === 'error'}/>
+    return <SignInPage onSignIn={() => void login()} keycloakUnavailable={state.status === 'error'} />
   }
 
   return (
-      <div className="flex min-h-screen flex-col">
-        <AppHeader username={state.username} onSignOut={() => void logout()}/>
-        <Routes>
-          <Route path="/" element={<ProjectsPage currentUserId={state.userId}/>}/>
-          <Route path="/personal" element={<PersonalExpensesPage/>}/>
-          <Route path="/savings" element={<SavingsPage/>}/>
-          <Route path="/projects/:projectId" element={<ProjectPage currentUserId={state.userId}/>}/>
-          <Route path="/join/:projectId/:token" element={<JoinPage username={state.username}/>}/>
-          <Route path="*" element={<Navigate to="/" replace/>}/>
-        </Routes>
-      </div>
+    <div className="flex min-h-screen flex-col">
+      <AppHeader username={state.username} onSignOut={() => void logout()} />
+      <Routes>
+        <Route path="/" element={<ProjectsPage currentUserId={state.userId} />} />
+        <Route path="/personal" element={<PersonalExpensesPage />} />
+        <Route path="/savings" element={<SavingsPage />} />
+        <Route path="/projects/:projectId" element={<ProjectPage currentUserId={state.userId} />} />
+        <Route path="/join/:projectId/:token" element={<JoinPage username={state.username} />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
   )
 }
 

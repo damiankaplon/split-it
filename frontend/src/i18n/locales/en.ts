@@ -184,13 +184,13 @@ const en: Translations = {
     confirm: 'Confirm',
     reject: "Didn't receive",
     confirmError:
-        "Couldn't confirm the payment; the debt may have shrunk since. Reject it so a new one can be requested.",
+      "Couldn't confirm the payment; the debt may have shrunk since. Reject it so a new one can be requested.",
     actionError: "Couldn't save the change. Please try again.",
   },
   settle: {
     title: 'Settle up with {{name}}',
     description:
-        'Enter how much you paid {{name}}. The debt goes down once {{name}} confirms receiving the money. The full debt is {{amount}}.',
+      'Enter how much you paid {{name}}. The debt goes down once {{name}} confirms receiving the money. The full debt is {{amount}}.',
     amountLabel: 'Amount ({{currency}})',
     partialHint: 'You can settle part of the debt; the rest stays open.',
     tooMuch: "The amount can't be more than the debt ({{amount}}).",
@@ -235,7 +235,7 @@ const en: Translations = {
     goToProjects: 'Go to projects',
     invitedTo: "You've been invited to join",
     signedInInfo:
-        "You're signed in as {{username}}. After joining you'll see every expense in this project and share new ones.",
+      "You're signed in as {{username}}. After joining you'll see every expense in this project and share new ones.",
     notNow: 'Not now',
     join: 'Join project',
   },

@@ -77,103 +77,103 @@ export function ExpenseDialog({projectId, currency, tags, expense, trigger, onSa
   }
 
   return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogTrigger asChild>{trigger}</DialogTrigger>
-        <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[480px]">
-          <form onSubmit={(e) => void onSubmit(e)} className="contents">
-            <DialogHeader className="gap-1.5">
-              <DialogTitle className="text-lg">
-                {editing ? t('expenseDialog.editTitle') : t('expenseDialog.addTitle')}
-              </DialogTitle>
-              <DialogDescription>{t('expenseDialog.description')}</DialogDescription>
-            </DialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[480px]">
+        <form onSubmit={(e) => void onSubmit(e)} className="contents">
+          <DialogHeader className="gap-1.5">
+            <DialogTitle className="text-lg">
+              {editing ? t('expenseDialog.editTitle') : t('expenseDialog.addTitle')}
+            </DialogTitle>
+            <DialogDescription>{t('expenseDialog.description')}</DialogDescription>
+          </DialogHeader>
 
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="expense-title">{t('expenseDialog.titleLabel')}</Label>
-                <Input
-                    id="expense-title"
-                    placeholder={t('expenseDialog.titlePlaceholder')}
-                    className="h-10 rounded-lg"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    autoFocus
-                    required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="expense-amount">{t('expenseDialog.amountLabel', {currency: currency.code})}</Label>
-                  {/* Only positive amounts with at most the currency's decimal places can be typed */}
-                  <NumericFormat
-                      customInput={Input}
-                      id="expense-amount"
-                      placeholder={zeroAmount(currency, i18n.language)}
-                      className="h-10 rounded-lg tabular-nums"
-                      decimalSeparator={decimalSeparator(i18n.language)}
-                      allowedDecimalSeparators={[',', '.']}
-                      decimalScale={currency.minorUnits}
-                      allowNegative={false}
-                      isAllowed={({floatValue}) => floatValue === undefined || fitsInMinorUnits(floatValue, currency)}
-                      value={amount ?? ''}
-                      onValueChange={({floatValue}) => setAmount(floatValue)}
-                      required
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="expense-date">{t('expenseDialog.dateLabel')}</Label>
-                  <Input
-                      id="expense-date"
-                      type="datetime-local"
-                      className="h-10 rounded-lg"
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      required
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="expense-tag">
-                  {t('expenseDialog.tagLabel')}
-                  <span className="font-normal text-muted-foreground">{t('expenseDialog.optional')}</span>
-                </Label>
-                <Input
-                    id="expense-tag"
-                    list="expense-tag-options"
-                    placeholder={t('expenseDialog.tagPlaceholder')}
-                    className="h-10 rounded-lg"
-                    value={tag}
-                    onChange={(e) => setTag(e.target.value)}
-                    autoComplete="off"
-                />
-                <datalist id="expense-tag-options">
-                  {tags.map((name) => (
-                      <option key={name} value={name}/>
-                  ))}
-                </datalist>
-              </div>
-
-              {error && (
-                  <p className="text-[13px] text-destructive" role="alert">
-                    {error}
-                  </p>
-              )}
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="expense-title">{t('expenseDialog.titleLabel')}</Label>
+              <Input
+                id="expense-title"
+                placeholder={t('expenseDialog.titlePlaceholder')}
+                className="h-10 rounded-lg"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                autoFocus
+                required
+              />
             </div>
 
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
-                  {t('expenseDialog.cancel')}
-                </Button>
-              </DialogClose>
-              <Button type="submit" size="lg" className="rounded-lg px-4" disabled={!canSubmit}>
-                {editing ? t('expenseDialog.save') : t('expenseDialog.add')}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="expense-amount">{t('expenseDialog.amountLabel', {currency: currency.code})}</Label>
+                {/* Only positive amounts with at most the currency's decimal places can be typed */}
+                <NumericFormat
+                  customInput={Input}
+                  id="expense-amount"
+                  placeholder={zeroAmount(currency, i18n.language)}
+                  className="h-10 rounded-lg tabular-nums"
+                  decimalSeparator={decimalSeparator(i18n.language)}
+                  allowedDecimalSeparators={[',', '.']}
+                  decimalScale={currency.minorUnits}
+                  allowNegative={false}
+                  isAllowed={({floatValue}) => floatValue === undefined || fitsInMinorUnits(floatValue, currency)}
+                  value={amount ?? ''}
+                  onValueChange={({floatValue}) => setAmount(floatValue)}
+                  required
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="expense-date">{t('expenseDialog.dateLabel')}</Label>
+                <Input
+                  id="expense-date"
+                  type="datetime-local"
+                  className="h-10 rounded-lg"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="expense-tag">
+                {t('expenseDialog.tagLabel')}
+                <span className="font-normal text-muted-foreground">{t('expenseDialog.optional')}</span>
+              </Label>
+              <Input
+                id="expense-tag"
+                list="expense-tag-options"
+                placeholder={t('expenseDialog.tagPlaceholder')}
+                className="h-10 rounded-lg"
+                value={tag}
+                onChange={(e) => setTag(e.target.value)}
+                autoComplete="off"
+              />
+              <datalist id="expense-tag-options">
+                {tags.map((name) => (
+                  <option key={name} value={name} />
+                ))}
+              </datalist>
+            </div>
+
+            {error && (
+              <p className="text-[13px] text-destructive" role="alert">
+                {error}
+              </p>
+            )}
+          </div>
+
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
+                {t('expenseDialog.cancel')}
               </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            </DialogClose>
+            <Button type="submit" size="lg" className="rounded-lg px-4" disabled={!canSubmit}>
+              {editing ? t('expenseDialog.save') : t('expenseDialog.add')}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

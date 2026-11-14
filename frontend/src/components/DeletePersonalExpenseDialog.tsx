@@ -46,36 +46,36 @@ export function DeletePersonalExpenseDialog({expense, trigger, onDeleted}: Delet
   }
 
   return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogTrigger asChild>{trigger}</DialogTrigger>
-        <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[420px]">
-          <DialogHeader className="gap-1.5">
-            <DialogTitle className="text-lg">{t('personalDeleteDialog.title')}</DialogTitle>
-            <DialogDescription>{t('personalDeleteDialog.description', {title: expense.title})}</DialogDescription>
-          </DialogHeader>
-          {error && (
-              <p className="text-[13px] text-destructive" role="alert">
-                {error}
-              </p>
-          )}
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
-                {t('personalDeleteDialog.cancel')}
-              </Button>
-            </DialogClose>
-            <Button
-                type="button"
-                variant="destructive"
-                size="lg"
-                className="rounded-lg px-4"
-                disabled={deleting}
-                onClick={() => void onConfirm()}
-            >
-              {t('personalDeleteDialog.confirm')}
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[420px]">
+        <DialogHeader className="gap-1.5">
+          <DialogTitle className="text-lg">{t('personalDeleteDialog.title')}</DialogTitle>
+          <DialogDescription>{t('personalDeleteDialog.description', {title: expense.title})}</DialogDescription>
+        </DialogHeader>
+        {error && (
+          <p className="text-[13px] text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
+              {t('personalDeleteDialog.cancel')}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DialogClose>
+          <Button
+            type="button"
+            variant="destructive"
+            size="lg"
+            className="rounded-lg px-4"
+            disabled={deleting}
+            onClick={() => void onConfirm()}
+          >
+            {t('personalDeleteDialog.confirm')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

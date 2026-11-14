@@ -28,20 +28,20 @@ const PAGE_SIZE = 20
 const SEARCH_DEBOUNCE_MS = 300
 
 type ProjectState =
-    | { status: 'loading' }
-    | { status: 'error'; message: string | null }
-    | { status: 'loaded'; project: Project; members: ProjectMember[] }
+  | {status: 'loading'}
+  | {status: 'error'; message: string | null}
+  | {status: 'loaded'; project: Project; members: ProjectMember[]}
 
 type ExpensesState =
-    | { status: 'loading' }
-    | { status: 'error' }
-    | { status: 'loaded'; items: Expense[]; page: number; hasNext: boolean; total: number }
+  | {status: 'loading'}
+  | {status: 'error'}
+  | {status: 'loaded'; items: Expense[]; page: number; hasNext: boolean; total: number}
 
 // Forbidden and not-found both mean the user can't see this project; other failures show the raw error.
 const errorMessage = (e: unknown) =>
-    e instanceof ApiError && (e.status === 403 || e.status === 404) ? null : e instanceof Error ? e.message : String(e)
+  e instanceof ApiError && (e.status === 403 || e.status === 404) ? null : e instanceof Error ? e.message : String(e)
 
-export function ProjectPage({currentUserId}: { currentUserId: string }) {
+export function ProjectPage({currentUserId}: {currentUserId: string}) {
   const {t} = useTranslation()
   const {projectId = ''} = useParams()
   const [project, setProject] = useState<ProjectState>({status: 'loading'})
@@ -50,56 +50,55 @@ export function ProjectPage({currentUserId}: { currentUserId: string }) {
   useEffect(() => {
     // There is no single-project endpoint; the list holds only projects the user belongs to.
     Promise.all([listProjects(), listMembers(projectId)])
-        .then(([projects, members]) => {
-          const found = projects.find((p) => p.id === projectId)
-          setProject(found ? {status: 'loaded', project: found, members} : {status: 'error', message: null})
-        })
-        .catch((e: unknown) => setProject({status: 'error', message: errorMessage(e)}))
+      .then(([projects, members]) => {
+        const found = projects.find((p) => p.id === projectId)
+        setProject(found ? {status: 'loaded', project: found, members} : {status: 'error', message: null})
+      })
+      .catch((e: unknown) => setProject({status: 'error', message: errorMessage(e)}))
     listTags(projectId).then(setTags, () => setTags([]))
   }, [projectId])
 
   if (project.status === 'loading') {
     return (
-        <PageShell>
-          <p className="text-muted-foreground">{t('project.loading')}</p>
-        </PageShell>
+      <PageShell>
+        <p className="text-muted-foreground">{t('project.loading')}</p>
+      </PageShell>
     )
   }
 
   if (project.status === 'error') {
     return (
-        <PageShell>
-          <Alert variant="destructive" className="max-w-xl">
-            <AlertCircle/>
-            <AlertTitle>{t('project.loadError')}</AlertTitle>
-            <AlertDescription>{project.message ?? t('project.notFound')}</AlertDescription>
-          </Alert>
-        </PageShell>
+      <PageShell>
+        <Alert variant="destructive" className="max-w-xl">
+          <AlertCircle />
+          <AlertTitle>{t('project.loadError')}</AlertTitle>
+          <AlertDescription>{project.message ?? t('project.notFound')}</AlertDescription>
+        </Alert>
+      </PageShell>
     )
   }
 
   return (
-      <ProjectExpenses
-          project={project.project}
-          members={project.members}
-          currentUserId={currentUserId}
-          tags={tags}
-          onTagsChanged={() => listTags(projectId).then(setTags, () => undefined)}
-      />
+    <ProjectExpenses
+      project={project.project}
+      members={project.members}
+      currentUserId={currentUserId}
+      tags={tags}
+      onTagsChanged={() => listTags(projectId).then(setTags, () => undefined)}
+    />
   )
 }
 
-function PageShell({children}: { children: ReactNode }) {
+function PageShell({children}: {children: ReactNode}) {
   const {t} = useTranslation()
   return (
-      <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-6 pt-7 pb-12">
-        <Link to="/"
-              className="flex w-fit items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="size-3.5"/>
-          {t('project.back')}
-        </Link>
-        {children}
-      </main>
+    <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-6 pt-7 pb-12">
+      <Link to="/" className="flex w-fit items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="size-3.5" />
+        {t('project.back')}
+      </Link>
+      {children}
+    </main>
   )
 }
 
@@ -139,12 +138,12 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
       createdBy: creator ?? undefined,
       ...dateRangeQuery(dates),
     }).then(
-        (sum) => {
-          if (!cancelled) setTotal(sum)
-        },
-        () => {
-          if (!cancelled) setTotal(null)
-        },
+      (sum) => {
+        if (!cancelled) setTotal(sum)
+      },
+      () => {
+        if (!cancelled) setTotal(null)
+      },
     )
     return () => {
       cancelled = true
@@ -167,20 +166,20 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
       createdBy: creator ?? undefined,
       ...dateRangeQuery(dates),
     })
-        .then((page) => {
-          if (!cancelled) {
-            setExpenses({
-              status: 'loaded',
-              items: page.items,
-              page: page.page,
-              hasNext: page.hasNext,
-              total: page.totalElements,
-            })
-          }
-        })
-        .catch(() => {
-          if (!cancelled) setExpenses({status: 'error'})
-        })
+      .then((page) => {
+        if (!cancelled) {
+          setExpenses({
+            status: 'loaded',
+            items: page.items,
+            page: page.page,
+            hasNext: page.hasNext,
+            total: page.totalElements,
+          })
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setExpenses({status: 'error'})
+      })
     return () => {
       cancelled = true
     }
@@ -199,15 +198,15 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
         ...dateRangeQuery(dates),
       })
       setExpenses((s) =>
-          s.status === 'loaded'
-              ? {
-                ...s,
-                items: [...s.items, ...next.items],
-                page: next.page,
-                hasNext: next.hasNext,
-                total: next.totalElements,
-              }
-              : s,
+        s.status === 'loaded'
+          ? {
+              ...s,
+              items: [...s.items, ...next.items],
+              page: next.page,
+              hasNext: next.hasNext,
+              total: next.totalElements,
+            }
+          : s,
       )
     } catch {
       setExpenses({status: 'error'})
@@ -238,7 +237,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
       setReloadKey((k) => k + 1)
     } else {
       setExpenses((s) =>
-          s.status === 'loaded' ? {...s, items: s.items.map((item) => (item.id === after.id ? after : item))} : s,
+        s.status === 'loaded' ? {...s, items: s.items.map((item) => (item.id === after.id ? after : item))} : s,
       )
     }
     refreshTagsIfNew(after)
@@ -249,227 +248,225 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
   const isOwner = project.ownerId === currentUserId
 
   return (
-      <PageShell>
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-[26px] font-semibold tracking-[-0.02em]">{project.name}</h1>
-            <p className="text-muted-foreground">
-              {t('project.memberCount', {count: members.length})}
-              {expenses.status === 'loaded' && !filtered && ` · ${t('project.expenseCount', {count: expenses.total})}`}
-              {total !== null &&
-                  ` · ${t('project.totalExpenses', {amount: formatAmount(total, project.currency, i18n.language)})}`}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            {isOwner && <InviteDialog project={project} currentUserId={currentUserId}/>}
-            <ExpenseDialog
-                projectId={project.id}
-                currency={project.currency}
-                tags={tags}
-                onSaved={onCreated}
-                trigger={
-                  <Button className="rounded-lg">
-                    <Plus/>
-                    {t('expenseDialog.add')}
-                  </Button>
-                }
-            />
-          </div>
+    <PageShell>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-[26px] font-semibold tracking-[-0.02em]">{project.name}</h1>
+          <p className="text-muted-foreground">
+            {t('project.memberCount', {count: members.length})}
+            {expenses.status === 'loaded' && !filtered && ` · ${t('project.expenseCount', {count: expenses.total})}`}
+            {total !== null &&
+              ` · ${t('project.totalExpenses', {amount: formatAmount(total, project.currency, i18n.language)})}`}
+          </p>
         </div>
+        <div className="flex items-center gap-2">
+          {isOwner && <InviteDialog project={project} currentUserId={currentUserId} />}
+          <ExpenseDialog
+            projectId={project.id}
+            currency={project.currency}
+            tags={tags}
+            onSaved={onCreated}
+            trigger={
+              <Button className="rounded-lg">
+                <Plus />
+                {t('expenseDialog.add')}
+              </Button>
+            }
+          />
+        </div>
+      </div>
 
-        <Tabs
-            value={tab}
-            onValueChange={(value) => setSearchParams(value === 'charts' ? {tab: value} : {}, {replace: true})}
-        >
-          <TabsList>
-            <TabsTrigger value="feed">{t('tabs.feed')}</TabsTrigger>
-            <TabsTrigger value="charts">{t('tabs.charts')}</TabsTrigger>
-          </TabsList>
+      <Tabs
+        value={tab}
+        onValueChange={(value) => setSearchParams(value === 'charts' ? {tab: value} : {}, {replace: true})}
+      >
+        <TabsList>
+          <TabsTrigger value="feed">{t('tabs.feed')}</TabsTrigger>
+          <TabsTrigger value="charts">{t('tabs.charts')}</TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="charts">
-            <TagTotalsCharts
-                load={(from, to) =>
-                    getTotalsByTag(project.id, from, to).then((totals) =>
-                        totals.map((item) => ({...item, currency: project.currency})),
-                    )
-                }
+        <TabsContent value="charts">
+          <TagTotalsCharts
+            load={(from, to) =>
+              getTotalsByTag(project.id, from, to).then((totals) =>
+                totals.map((item) => ({...item, currency: project.currency})),
+              )
+            }
+            reloadKey={chartsReloadKey}
+            initialRange={dates}
+            renderTagExpenses={({tag: selected, from, to}) => (
+              <TagExpensesList
+                tag={selected}
+                from={from}
+                to={to}
                 reloadKey={chartsReloadKey}
-                initialRange={dates}
-                renderTagExpenses={({tag: selected, from, to}) => (
-                    <TagExpensesList
-                        tag={selected}
-                        from={from}
-                        to={to}
-                        reloadKey={chartsReloadKey}
-                        load={(query) => listExpenses(project.id, query)}
-                        renderItem={(expense) => (
-                            <ExpenseRow
-                                key={expense.id}
-                                expense={expense}
-                                author={memberName(expense.createdBy)}
-                                isMine={expense.createdBy === currentUserId}
-                                currency={project.currency}
-                                locale={i18n.language}
-                                action={null}
-                            />
-                        )}
-                    />
-                )}
-            />
-          </TabsContent>
-
-          <TabsContent value="feed">
-            <DebtsPanel
-                projectId={project.id}
-                currency={project.currency}
-                currentUserId={currentUserId}
-                memberName={memberName}
-                reloadKey={debtsReloadKey}
-            />
-
-            <div className="flex flex-col gap-3">
-              <div className="flex max-w-sm items-center gap-2">
-                <div className="relative grow">
-                  <Search
-                      className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"/>
-                  <Input
-                      type="search"
-                      aria-label={t('project.search')}
-                      placeholder={t('project.search')}
-                      className="h-10 rounded-lg bg-card pl-9"
-                      value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
+                load={(query) => listExpenses(project.id, query)}
+                renderItem={(expense) => (
+                  <ExpenseRow
+                    key={expense.id}
+                    expense={expense}
+                    author={memberName(expense.createdBy)}
+                    isMine={expense.createdBy === currentUserId}
+                    currency={project.currency}
+                    locale={i18n.language}
+                    action={null}
                   />
-                </div>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="size-10 shrink-0 rounded-lg bg-card"
-                    aria-expanded={filtersOpen}
-                    aria-label={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
-                    title={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
-                    onClick={() => setFiltersOpen((open) => !open)}
-                >
-                  {filtersOpen ? <ChevronUp/> : <SlidersHorizontal/>}
-                </Button>
+                )}
+              />
+            )}
+          />
+        </TabsContent>
+
+        <TabsContent value="feed">
+          <DebtsPanel
+            projectId={project.id}
+            currency={project.currency}
+            currentUserId={currentUserId}
+            memberName={memberName}
+            reloadKey={debtsReloadKey}
+          />
+
+          <div className="flex flex-col gap-3">
+            <div className="flex max-w-sm items-center gap-2">
+              <div className="relative grow">
+                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  aria-label={t('project.search')}
+                  placeholder={t('project.search')}
+                  className="h-10 rounded-lg bg-card pl-9"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                />
               </div>
-              {filtersOpen && (
-                  <>
-                    {tags.length > 0 && (
-                        <select
-                            aria-label={t('project.filterByTag')}
-                            className="h-10 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm"
-                            value={tag ?? ''}
-                            onChange={(e) => setTag(e.target.value === '' ? null : e.target.value)}
-                        >
-                          <option value="">{t('project.allTags')}</option>
-                          {tags.map((name) => (
-                              <option key={name} value={name}>
-                                {name}
-                              </option>
-                          ))}
-                        </select>
-                    )}
-                    {members.length > 1 && (
-                        <select
-                            aria-label={t('project.filterByCreator')}
-                            className="h-10 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm"
-                            value={creator ?? ''}
-                            onChange={(e) => setCreator(e.target.value === '' ? null : e.target.value)}
-                        >
-                          <option value="">{t('project.allCreators')}</option>
-                          {members.map((m) => (
-                              <option key={m.memberId} value={m.memberId}>
-                                {m.name}
-                              </option>
-                          ))}
-                        </select>
-                    )}
-                    <DateRangeFilter value={dates} onChange={setDates}/>
-                  </>
-              )}
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-10 shrink-0 rounded-lg bg-card"
+                aria-expanded={filtersOpen}
+                aria-label={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
+                title={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
+                onClick={() => setFiltersOpen((open) => !open)}
+              >
+                {filtersOpen ? <ChevronUp /> : <SlidersHorizontal />}
+              </Button>
             </div>
-
-            {expenses.status === 'loading' && <p className="text-muted-foreground">{t('project.loadingExpenses')}</p>}
-
-            {expenses.status === 'error' && (
-                <Alert variant="destructive" className="max-w-xl">
-                  <AlertCircle/>
-                  <AlertTitle>{t('project.expensesError')}</AlertTitle>
-                  <AlertDescription>
-                    <Button
-                        variant="link"
-                        className="h-auto p-0 text-destructive underline"
-                        onClick={() => setReloadKey((k) => k + 1)}
-                    >
-                      {t('project.retry')}
-                    </Button>
-                  </AlertDescription>
-                </Alert>
+            {filtersOpen && (
+              <>
+                {tags.length > 0 && (
+                  <select
+                    aria-label={t('project.filterByTag')}
+                    className="h-10 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm"
+                    value={tag ?? ''}
+                    onChange={(e) => setTag(e.target.value === '' ? null : e.target.value)}
+                  >
+                    <option value="">{t('project.allTags')}</option>
+                    {tags.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {members.length > 1 && (
+                  <select
+                    aria-label={t('project.filterByCreator')}
+                    className="h-10 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm"
+                    value={creator ?? ''}
+                    onChange={(e) => setCreator(e.target.value === '' ? null : e.target.value)}
+                  >
+                    <option value="">{t('project.allCreators')}</option>
+                    {members.map((m) => (
+                      <option key={m.memberId} value={m.memberId}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <DateRangeFilter value={dates} onChange={setDates} />
+              </>
             )}
+          </div>
 
-            {expenses.status === 'loaded' && expenses.items.length === 0 && (
-                <Card className="items-center gap-2 px-6 py-12 text-center shadow-xs">
-                  <span className="font-medium">{filtered ? t('project.noMatches') : t('project.noExpenses')}</span>
-                  {!filtered && <span className="text-muted-foreground">{t('project.noExpensesHint')}</span>}
-                </Card>
-            )}
+          {expenses.status === 'loading' && <p className="text-muted-foreground">{t('project.loadingExpenses')}</p>}
 
-            {expenses.status === 'loaded' && expenses.items.length > 0 && (
-                <div className="flex flex-col gap-5">
-                  <Card className="gap-0 py-0 shadow-xs">
-                    <MonthGroupedList
-                        items={expenses.items}
-                        locale={i18n.language}
-                        renderItem={(expense) => (
-                            <ExpenseRow
-                                key={expense.id}
-                                expense={expense}
-                                author={memberName(expense.createdBy)}
-                                isMine={expense.createdBy === currentUserId}
-                                currency={project.currency}
-                                locale={i18n.language}
-                                action={
-                                  <ExpenseDialog
-                                      projectId={project.id}
-                                      currency={project.currency}
-                                      tags={tags}
-                                      expense={expense}
-                                      onSaved={(updated) => onUpdated(expense, updated)}
-                                      trigger={
-                                        <Button
-                                            variant="ghost"
-                                            size="icon-sm"
-                                            className="rounded-lg text-muted-foreground"
-                                            aria-label={t('expenseDialog.edit', {title: expense.title})}
-                                        >
-                                          <Pencil/>
-                                        </Button>
-                                      }
-                                  />
-                                }
-                            />
-                        )}
+          {expenses.status === 'error' && (
+            <Alert variant="destructive" className="max-w-xl">
+              <AlertCircle />
+              <AlertTitle>{t('project.expensesError')}</AlertTitle>
+              <AlertDescription>
+                <Button
+                  variant="link"
+                  className="h-auto p-0 text-destructive underline"
+                  onClick={() => setReloadKey((k) => k + 1)}
+                >
+                  {t('project.retry')}
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {expenses.status === 'loaded' && expenses.items.length === 0 && (
+            <Card className="items-center gap-2 px-6 py-12 text-center shadow-xs">
+              <span className="font-medium">{filtered ? t('project.noMatches') : t('project.noExpenses')}</span>
+              {!filtered && <span className="text-muted-foreground">{t('project.noExpensesHint')}</span>}
+            </Card>
+          )}
+
+          {expenses.status === 'loaded' && expenses.items.length > 0 && (
+            <div className="flex flex-col gap-5">
+              <Card className="gap-0 py-0 shadow-xs">
+                <MonthGroupedList
+                  items={expenses.items}
+                  locale={i18n.language}
+                  renderItem={(expense) => (
+                    <ExpenseRow
+                      key={expense.id}
+                      expense={expense}
+                      author={memberName(expense.createdBy)}
+                      isMine={expense.createdBy === currentUserId}
+                      currency={project.currency}
+                      locale={i18n.language}
+                      action={
+                        <ExpenseDialog
+                          projectId={project.id}
+                          currency={project.currency}
+                          tags={tags}
+                          expense={expense}
+                          onSaved={(updated) => onUpdated(expense, updated)}
+                          trigger={
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              className="rounded-lg text-muted-foreground"
+                              aria-label={t('expenseDialog.edit', {title: expense.title})}
+                            >
+                              <Pencil />
+                            </Button>
+                          }
+                        />
+                      }
                     />
-                  </Card>
-                  {expenses.hasNext &&
-                      <InfiniteScrollTrigger loading={loadingMore} onLoadMore={() => void loadMore()}/>}
-                </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </PageShell>
+                  )}
+                />
+              </Card>
+              {expenses.hasNext && <InfiniteScrollTrigger loading={loadingMore} onLoadMore={() => void loadMore()} />}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </PageShell>
   )
 }
 
 function ExpenseRow({
-                      expense,
-                      author,
-                      isMine,
-                      currency,
-                      locale,
-                      action,
-                    }: {
+  expense,
+  author,
+  isMine,
+  currency,
+  locale,
+  action,
+}: {
   expense: Expense
   currency: Currency
   author: string
@@ -484,24 +481,24 @@ function ExpenseRow({
     timeStyle: 'short',
   })
   return (
-      <li className="flex items-center gap-3 px-4 py-3">
+    <li className="flex items-center gap-3 px-4 py-3">
       <span
-          className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold"
-          title={author}
+        className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold"
+        title={author}
       >
         {initials(author)}
       </span>
-        <div className="flex min-w-0 grow flex-col gap-0.5">
-          <span className="truncate font-medium">{expense.title}</span>
-          <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
+      <div className="flex min-w-0 grow flex-col gap-0.5">
+        <span className="truncate font-medium">{expense.title}</span>
+        <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
           <span>{isMine ? t('project.addedByYou') : t('project.addedBy', {name: author})}</span>
           <span aria-hidden>·</span>
           <span>{date}</span>
-            {expense.tag && <TagBadge name={expense.tag} color={expense.tagColor}/>}
+          {expense.tag && <TagBadge name={expense.tag} color={expense.tagColor} />}
         </span>
-        </div>
-        <span className="shrink-0 font-semibold tabular-nums">{formatAmount(expense.amount, currency, locale)}</span>
-        {action}
-      </li>
+      </div>
+      <span className="shrink-0 font-semibold tabular-nums">{formatAmount(expense.amount, currency, locale)}</span>
+      {action}
+    </li>
   )
 }

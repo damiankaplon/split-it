@@ -182,13 +182,13 @@ const pl = {
     confirm: 'Potwierdzam',
     reject: 'Nie otrzymałem(-am)',
     confirmError:
-        'Nie udało się potwierdzić płatności — dług mógł się w międzyczasie zmniejszyć. Odrzuć ją, aby można było zgłosić nową.',
+      'Nie udało się potwierdzić płatności — dług mógł się w międzyczasie zmniejszyć. Odrzuć ją, aby można było zgłosić nową.',
     actionError: 'Nie udało się zapisać zmiany. Spróbuj ponownie.',
   },
   settle: {
     title: 'Rozlicz się z {{name}}',
     description:
-        'Podaj, ile oddałeś(-aś) {{name}}. Dług zmniejszy się, gdy {{name}} potwierdzi otrzymanie pieniędzy. Cały dług to {{amount}}.',
+      'Podaj, ile oddałeś(-aś) {{name}}. Dług zmniejszy się, gdy {{name}} potwierdzi otrzymanie pieniędzy. Cały dług to {{amount}}.',
     amountLabel: 'Kwota ({{currency}})',
     partialHint: 'Możesz rozliczyć część długu — reszta pozostanie do oddania.',
     tooMuch: 'Kwota nie może być większa niż dług ({{amount}}).',
@@ -233,7 +233,7 @@ const pl = {
     goToProjects: 'Przejdź do projektów',
     invitedTo: 'Zaproszono Cię do projektu',
     signedInInfo:
-        'Zalogowano jako {{username}}. Po dołączeniu zobaczysz wszystkie wydatki w tym projekcie i będziesz dodawać nowe.',
+      'Zalogowano jako {{username}}. Po dołączeniu zobaczysz wszystkie wydatki w tym projekcie i będziesz dodawać nowe.',
     notNow: 'Nie teraz',
     join: 'Dołącz do projektu',
   },

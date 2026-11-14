@@ -51,18 +51,18 @@ const toParams = (query: object) => {
 
 /** Newest first. */
 export const listExpenses = (projectId: string, query: ExpenseQuery = {}) =>
-    apiFetch<ExpensePage>(`/projects/${projectId}/expenses?${toParams(query)}`)
+  apiFetch<ExpensePage>(`/projects/${projectId}/expenses?${toParams(query)}`)
 
 export const createExpense = (projectId: string, expense: ExpenseRequest) =>
-    apiFetch<Expense>(`/projects/${projectId}/expenses`, {method: 'POST', body: JSON.stringify(expense)})
+  apiFetch<Expense>(`/projects/${projectId}/expenses`, {method: 'POST', body: JSON.stringify(expense)})
 
 /** Any project member may update any expense. */
 export const updateExpense = (projectId: string, expenseId: string, expense: ExpenseRequest) =>
-    apiFetch<Expense>(`/projects/${projectId}/expenses/${expenseId}`, {method: 'PUT', body: JSON.stringify(expense)})
+  apiFetch<Expense>(`/projects/${projectId}/expenses/${expenseId}`, {method: 'PUT', body: JSON.stringify(expense)})
 
 /** Sum in minor units of the project's expenses matching the filters; paging is ignored. */
 export const getExpensesTotal = (projectId: string, query: Omit<ExpenseQuery, 'page' | 'size'> = {}) =>
-    apiFetch<{ total: number }>(`/projects/${projectId}/expenses/total?${toParams(query)}`).then((r) => r.total)
+  apiFetch<{total: number}>(`/projects/${projectId}/expenses/total?${toParams(query)}`).then((r) => r.total)
 
 /** Sum of a tag's expenses in minor units; a null tag stands for the untagged ones. */
 export interface TagTotal {
@@ -73,7 +73,7 @@ export interface TagTotal {
 
 /** Per-tag sums of the expenses between two ISO dates (YYYY-MM-DD), both inclusive; largest first. */
 export const getTotalsByTag = (projectId: string, from: string, to: string) =>
-    apiFetch<TagTotal[]>(`/projects/${projectId}/expenses/totals-by-tag?${dayRangeParams(from, to)}`)
+  apiFetch<TagTotal[]>(`/projects/${projectId}/expenses/totals-by-tag?${dayRangeParams(from, to)}`)
 
 /** Tags already used in the project, sorted by name. */
 export const listTags = (projectId: string) => apiFetch<string[]>(`/projects/${projectId}/tags`)

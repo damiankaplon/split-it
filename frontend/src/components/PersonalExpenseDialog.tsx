@@ -46,15 +46,15 @@ export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, 
   const currency = currencyOf(currencyCode)
   // An edited expense may use a currency outside the offered list
   const currencyOptions = PROJECT_CURRENCIES.includes(currencyCode)
-      ? PROJECT_CURRENCIES
-      : [currencyCode, ...PROJECT_CURRENCIES]
+    ? PROJECT_CURRENCIES
+    : [currencyCode, ...PROJECT_CURRENCIES]
   const amountInMinorUnits = amount === undefined ? 0 : toMinorUnits(amount, currency)
   const canSubmit =
-      !submitting &&
-      title.trim() !== '' &&
-      amountInMinorUnits > 0 &&
-      fitsInMinorUnits(amount ?? 0, currency) &&
-      date !== ''
+    !submitting &&
+    title.trim() !== '' &&
+    amountInMinorUnits > 0 &&
+    fitsInMinorUnits(amount ?? 0, currency) &&
+    date !== ''
 
   const onOpenChange = (next: boolean) => {
     setOpen(next)
@@ -90,119 +90,119 @@ export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, 
   }
 
   return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogTrigger asChild>{trigger}</DialogTrigger>
-        <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[480px]">
-          <form onSubmit={(e) => void onSubmit(e)} className="contents">
-            <DialogHeader className="gap-1.5">
-              <DialogTitle className="text-lg">
-                {editing ? t('personalExpenseDialog.editTitle') : t('personalExpenseDialog.addTitle')}
-              </DialogTitle>
-              <DialogDescription>{t('personalExpenseDialog.description')}</DialogDescription>
-            </DialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[480px]">
+        <form onSubmit={(e) => void onSubmit(e)} className="contents">
+          <DialogHeader className="gap-1.5">
+            <DialogTitle className="text-lg">
+              {editing ? t('personalExpenseDialog.editTitle') : t('personalExpenseDialog.addTitle')}
+            </DialogTitle>
+            <DialogDescription>{t('personalExpenseDialog.description')}</DialogDescription>
+          </DialogHeader>
 
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="personal-expense-title">{t('personalExpenseDialog.titleLabel')}</Label>
-                <Input
-                    id="personal-expense-title"
-                    placeholder={t('personalExpenseDialog.titlePlaceholder')}
-                    className="h-10 rounded-lg"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    autoFocus
-                    required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="personal-expense-amount">{t('personalExpenseDialog.amountLabel')}</Label>
-                  {/* Only positive amounts with at most the currency's decimal places can be typed */}
-                  <NumericFormat
-                      customInput={Input}
-                      id="personal-expense-amount"
-                      placeholder={zeroAmount(currency, i18n.language)}
-                      className="h-10 rounded-lg tabular-nums"
-                      decimalSeparator={decimalSeparator(i18n.language)}
-                      allowedDecimalSeparators={[',', '.']}
-                      decimalScale={currency.minorUnits}
-                      allowNegative={false}
-                      isAllowed={({floatValue}) => floatValue === undefined || fitsInMinorUnits(floatValue, currency)}
-                      value={amount ?? ''}
-                      onValueChange={({floatValue}) => setAmount(floatValue)}
-                      required
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="personal-expense-currency">{t('personalExpenseDialog.currencyLabel')}</Label>
-                  <select
-                      id="personal-expense-currency"
-                      className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
-                      value={currencyCode}
-                      onChange={(e) => setCurrencyCode(e.target.value)}
-                  >
-                    {currencyOptions.map((code) => (
-                        <option key={code} value={code}>
-                          {currencyNames.of(code)} ({code})
-                        </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="personal-expense-date">{t('personalExpenseDialog.dateLabel')}</Label>
-                <Input
-                    id="personal-expense-date"
-                    type="datetime-local"
-                    className="h-10 rounded-lg"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    required
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="personal-expense-tag">
-                  {t('personalExpenseDialog.tagLabel')}
-                  <span className="font-normal text-muted-foreground">{t('personalExpenseDialog.optional')}</span>
-                </Label>
-                <Input
-                    id="personal-expense-tag"
-                    list="personal-expense-tag-options"
-                    placeholder={t('personalExpenseDialog.tagPlaceholder')}
-                    className="h-10 rounded-lg"
-                    value={tag}
-                    onChange={(e) => setTag(e.target.value)}
-                    autoComplete="off"
-                />
-                <datalist id="personal-expense-tag-options">
-                  {tags.map((name) => (
-                      <option key={name} value={name}/>
-                  ))}
-                </datalist>
-              </div>
-
-              {error && (
-                  <p className="text-[13px] text-destructive" role="alert">
-                    {error}
-                  </p>
-              )}
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="personal-expense-title">{t('personalExpenseDialog.titleLabel')}</Label>
+              <Input
+                id="personal-expense-title"
+                placeholder={t('personalExpenseDialog.titlePlaceholder')}
+                className="h-10 rounded-lg"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                autoFocus
+                required
+              />
             </div>
 
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
-                  {t('personalExpenseDialog.cancel')}
-                </Button>
-              </DialogClose>
-              <Button type="submit" size="lg" className="rounded-lg px-4" disabled={!canSubmit}>
-                {editing ? t('personalExpenseDialog.save') : t('personalExpenseDialog.add')}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="personal-expense-amount">{t('personalExpenseDialog.amountLabel')}</Label>
+                {/* Only positive amounts with at most the currency's decimal places can be typed */}
+                <NumericFormat
+                  customInput={Input}
+                  id="personal-expense-amount"
+                  placeholder={zeroAmount(currency, i18n.language)}
+                  className="h-10 rounded-lg tabular-nums"
+                  decimalSeparator={decimalSeparator(i18n.language)}
+                  allowedDecimalSeparators={[',', '.']}
+                  decimalScale={currency.minorUnits}
+                  allowNegative={false}
+                  isAllowed={({floatValue}) => floatValue === undefined || fitsInMinorUnits(floatValue, currency)}
+                  value={amount ?? ''}
+                  onValueChange={({floatValue}) => setAmount(floatValue)}
+                  required
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="personal-expense-currency">{t('personalExpenseDialog.currencyLabel')}</Label>
+                <select
+                  id="personal-expense-currency"
+                  className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+                  value={currencyCode}
+                  onChange={(e) => setCurrencyCode(e.target.value)}
+                >
+                  {currencyOptions.map((code) => (
+                    <option key={code} value={code}>
+                      {currencyNames.of(code)} ({code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="personal-expense-date">{t('personalExpenseDialog.dateLabel')}</Label>
+              <Input
+                id="personal-expense-date"
+                type="datetime-local"
+                className="h-10 rounded-lg"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="personal-expense-tag">
+                {t('personalExpenseDialog.tagLabel')}
+                <span className="font-normal text-muted-foreground">{t('personalExpenseDialog.optional')}</span>
+              </Label>
+              <Input
+                id="personal-expense-tag"
+                list="personal-expense-tag-options"
+                placeholder={t('personalExpenseDialog.tagPlaceholder')}
+                className="h-10 rounded-lg"
+                value={tag}
+                onChange={(e) => setTag(e.target.value)}
+                autoComplete="off"
+              />
+              <datalist id="personal-expense-tag-options">
+                {tags.map((name) => (
+                  <option key={name} value={name} />
+                ))}
+              </datalist>
+            </div>
+
+            {error && (
+              <p className="text-[13px] text-destructive" role="alert">
+                {error}
+              </p>
+            )}
+          </div>
+
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
+                {t('personalExpenseDialog.cancel')}
               </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            </DialogClose>
+            <Button type="submit" size="lg" className="rounded-lg px-4" disabled={!canSubmit}>
+              {editing ? t('personalExpenseDialog.save') : t('personalExpenseDialog.add')}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

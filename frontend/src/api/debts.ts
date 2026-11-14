@@ -25,7 +25,7 @@ export const listDebts = (projectId: string) => apiFetch<Debt[]>(`/projects/${pr
 
 /** Pending settlements the current user requested or has to confirm. */
 export const listPendingSettlements = (projectId: string) =>
-    apiFetch<Settlement[]>(`/projects/${projectId}/settlements`)
+  apiFetch<Settlement[]>(`/projects/${projectId}/settlements`)
 
 /**
  * The current user asks `creditorId` to confirm receiving `amount`. The backend doesn't check it against
@@ -33,14 +33,14 @@ export const listPendingSettlements = (projectId: string) =>
  * Fails with 409 when a request to that creditor already awaits confirmation.
  */
 export const requestSettlement = (projectId: string, creditorId: string, amount: number) =>
-    apiFetch<Settlement>(`/projects/${projectId}/settlements`, {
-      method: 'POST',
-      body: JSON.stringify({creditorId, amount}),
-    })
+  apiFetch<Settlement>(`/projects/${projectId}/settlements`, {
+    method: 'POST',
+    body: JSON.stringify({creditorId, amount}),
+  })
 
 /**
  * `confirm` and `reject` are for the creditor, `cancel` for the debtor; anyone else gets 404.
  * Confirming fails with 409 when the debt has meanwhile become smaller than the declared amount.
  */
 export const resolveSettlement = (settlementId: string, action: 'confirm' | 'reject' | 'cancel') =>
-    apiFetch<Settlement>(`/settlements/${settlementId}/${action}`, {method: 'POST'})
+  apiFetch<Settlement>(`/settlements/${settlementId}/${action}`, {method: 'POST'})
