@@ -11,8 +11,9 @@ import java.util.UUID
 interface SettlementRepository :
     JpaRepository<Settlement, UUID>,
     JpaSpecificationExecutor<Settlement> {
-    fun existsByProjectIdAndCreditorAndStatus(
+    fun existsByProjectIdAndDebtorAndCreditorAndStatus(
         projectId: UUID,
+        debtor: UserId,
         creditor: UserId,
         status: Settlement.Status,
     ): Boolean

@@ -83,8 +83,9 @@ class SettlementController(
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "${creditor.value} is not project=$projectId member")
         }
         val alreadyPendingSettlement =
-            settlements.existsByProjectIdAndCreditorAndStatus(
+            settlements.existsByProjectIdAndDebtorAndCreditorAndStatus(
                 projectId,
+                currentUserId,
                 creditor,
                 Settlement.Status.PENDING,
             )

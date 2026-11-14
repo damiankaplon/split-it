@@ -136,6 +136,21 @@ class SettlementEndpointsIntegrationTest : RollbackIntegrationTest() {
     }
 
     @Test
+    fun `a pending settlement blocks only another one between the same debtor and creditor`() {
+        val project = projectWith("alice-id", "bob-id", "carol-id")
+
+        requestSettlement(project, "bob-id", """{"creditorId":"alice-id","amount":1000}""")
+            .andExpect { status { isCreated() } }
+
+        // Another debtor can pay the same creditor
+        requestSettlement(project, "carol-id", """{"creditorId":"alice-id","amount":1000}""")
+            .andExpect { status { isCreated() } }
+        // The same debtor can pay another creditor
+        requestSettlement(project, "bob-id", """{"creditorId":"carol-id","amount":1000}""")
+            .andExpect { status { isCreated() } }
+    }
+
+    @Test
     fun `any member can pay any other member`() {
         val project = projectWith("alice-id", "bob-id", "carol-id")
 
