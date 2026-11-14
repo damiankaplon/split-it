@@ -53,14 +53,25 @@ export function DeletePersonalExpenseDialog({expense, trigger, onDeleted}: Delet
             <DialogTitle className="text-lg">{t('personalDeleteDialog.title')}</DialogTitle>
             <DialogDescription>{t('personalDeleteDialog.description', {title: expense.title})}</DialogDescription>
           </DialogHeader>
-          {error && <p className="text-[13px] text-destructive" role="alert">{error}</p>}
+          {error && (
+              <p className="text-[13px] text-destructive" role="alert">
+                {error}
+              </p>
+          )}
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline" size="lg"
-                      className="rounded-lg px-4">{t('personalDeleteDialog.cancel')}</Button>
+              <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
+                {t('personalDeleteDialog.cancel')}
+              </Button>
             </DialogClose>
-            <Button type="button" variant="destructive" size="lg" className="rounded-lg px-4" disabled={deleting}
-                    onClick={() => void onConfirm()}>
+            <Button
+                type="button"
+                variant="destructive"
+                size="lg"
+                className="rounded-lg px-4"
+                disabled={deleting}
+                onClick={() => void onConfirm()}
+            >
               {t('personalDeleteDialog.confirm')}
             </Button>
           </DialogFooter>

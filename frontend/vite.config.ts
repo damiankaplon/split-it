@@ -10,11 +10,7 @@ export default defineConfig(({mode}) => {
   const backendUrl = env.BACKEND_URL ?? 'http://localhost:8080'
 
   return {
-    plugins: [
-      react(),
-      babel({presets: [reactCompilerPreset()]}),
-      tailwindcss(),
-    ],
+    plugins: [react(), babel({presets: [reactCompilerPreset()]}), tailwindcss()],
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, './src'),

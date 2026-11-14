@@ -80,9 +80,7 @@ export function SettleDialog({projectId, currency, debt, creditorName, trigger, 
           <form onSubmit={(e) => void onSubmit(e)} className="contents">
             <DialogHeader className="gap-1.5">
               <DialogTitle className="text-lg">{t('settle.title', {name: creditorName})}</DialogTitle>
-              <DialogDescription>
-                {t('settle.description', {name: creditorName, amount: fullAmount})}
-              </DialogDescription>
+              <DialogDescription>{t('settle.description', {name: creditorName, amount: fullAmount})}</DialogDescription>
             </DialogHeader>
 
             <div className="flex flex-col gap-2">
@@ -105,7 +103,11 @@ export function SettleDialog({projectId, currency, debt, creditorName, trigger, 
               <p className={tooMuch ? 'text-[13px] text-destructive' : 'text-[13px] text-muted-foreground'}>
                 {tooMuch ? t('settle.tooMuch', {amount: fullAmount}) : t('settle.partialHint')}
               </p>
-              {error && <p className="text-[13px] text-destructive" role="alert">{error}</p>}
+              {error && (
+                  <p className="text-[13px] text-destructive" role="alert">
+                    {error}
+                  </p>
+              )}
             </div>
 
             <DialogFooter>

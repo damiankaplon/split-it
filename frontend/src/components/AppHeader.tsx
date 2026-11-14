@@ -57,10 +57,10 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
               >
                 <DialogPrimitive.Title className="sr-only">{t('header.navigation')}</DialogPrimitive.Title>
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-[15px] font-semibold">
-                    <LogoMark/>
-                    SplitIt!
-                  </span>
+								<span className="flex items-center gap-2 text-[15px] font-semibold">
+									<LogoMark/>
+									SplitIt!
+								</span>
                   <DialogPrimitive.Close
                       aria-label={t('header.closeMenu')}
                       className="cursor-pointer rounded-lg p-2 outline-none hover:bg-secondary focus-visible:ring-[3px] focus-visible:ring-ring/50"
@@ -69,12 +69,20 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
                   </DialogPrimitive.Close>
                 </div>
                 <nav aria-label={t('header.navigation')} className="flex flex-col gap-1">
-                  <HeaderTab to="/" active={!isPersonal && !isSavings} onNavigate={() => setDrawerOpen(false)}
-                             className="py-2.5">
+                  <HeaderTab
+                      to="/"
+                      active={!isPersonal && !isSavings}
+                      onNavigate={() => setDrawerOpen(false)}
+                      className="py-2.5"
+                  >
                     {t('header.projects')}
                   </HeaderTab>
-                  <HeaderTab to="/personal" active={isPersonal} onNavigate={() => setDrawerOpen(false)}
-                             className="py-2.5">
+                  <HeaderTab
+                      to="/personal"
+                      active={isPersonal}
+                      onNavigate={() => setDrawerOpen(false)}
+                      className="py-2.5"
+                  >
                     {t('header.personal')}
                   </HeaderTab>
                   <HeaderTab to="/savings" active={isSavings} onNavigate={() => setDrawerOpen(false)}
@@ -90,9 +98,15 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
             SplitIt!
           </Link>
           <nav aria-label={t('header.navigation')} className="ml-4 hidden items-center gap-1 md:flex">
-            <HeaderTab to="/" active={!isPersonal && !isSavings}>{t('header.projects')}</HeaderTab>
-            <HeaderTab to="/personal" active={isPersonal}>{t('header.personal')}</HeaderTab>
-            <HeaderTab to="/savings" active={isSavings}>{t('header.savings')}</HeaderTab>
+            <HeaderTab to="/" active={!isPersonal && !isSavings}>
+              {t('header.projects')}
+            </HeaderTab>
+            <HeaderTab to="/personal" active={isPersonal}>
+              {t('header.personal')}
+            </HeaderTab>
+            <HeaderTab to="/savings" active={isSavings}>
+              {t('header.savings')}
+            </HeaderTab>
           </nav>
           <div className="grow"/>
           <DropdownMenu>
@@ -141,7 +155,13 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
   )
 }
 
-function HeaderTab({to, active, children, onNavigate, className}: {
+function HeaderTab({
+                     to,
+                     active,
+                     children,
+                     onNavigate,
+                     className,
+                   }: {
   to: string
   active: boolean
   children: ReactNode

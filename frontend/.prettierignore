@@ -1,0 +1,5 @@
+dist
+node_modules
+package-lock.json
+# shadcn/ui components are generated
+src/components/ui

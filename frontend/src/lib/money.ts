@@ -9,10 +9,11 @@ export const PROJECT_CURRENCIES = ['PLN', 'EUR', 'USD', 'GBP', 'CHF', 'CZK', 'SE
 /** Minor units come from the browser's ISO 4217 data, matching what the backend reports (e.g. JPY has none). */
 export const currencyOf = (code: string): Currency => ({
   code,
-  minorUnits: new Intl.NumberFormat('en', {
-    style: 'currency',
-    currency: code
-  }).resolvedOptions().maximumFractionDigits ?? 2,
+  minorUnits:
+      new Intl.NumberFormat('en', {
+        style: 'currency',
+        currency: code,
+      }).resolvedOptions().maximumFractionDigits ?? 2,
 })
 
 /** Formats minor units in the locale's number style, labelled with the currency code (e.g. "120,50 PLN"). */

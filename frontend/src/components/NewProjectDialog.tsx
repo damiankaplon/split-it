@@ -90,16 +90,23 @@ export function NewProjectDialog({onCreated}: NewProjectDialogProps) {
                   onChange={(e) => setCurrency(e.target.value)}
               >
                 {PROJECT_CURRENCIES.map((code) => (
-                    <option key={code} value={code}>{currencyNames.of(code)} ({code})</option>
+                    <option key={code} value={code}>
+                      {currencyNames.of(code)} ({code})
+                    </option>
                 ))}
               </select>
               <p className="text-[13px] text-muted-foreground">{t('newProject.currencyHint')}</p>
-              {error && <p className="text-[13px] text-destructive" role="alert">{error}</p>}
+              {error && (
+                  <p className="text-[13px] text-destructive" role="alert">
+                    {error}
+                  </p>
+              )}
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline" size="lg"
-                        className="rounded-lg px-4">{t('newProject.cancel')}</Button>
+                <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
+                  {t('newProject.cancel')}
+                </Button>
               </DialogClose>
               <Button type="submit" size="lg" className="rounded-lg px-4" disabled={submitting || !name.trim()}>
                 {t('newProject.submit')}

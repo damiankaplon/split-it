@@ -16,10 +16,7 @@ import {cn} from '@/lib/utils'
 
 const DEFAULT_CURRENCY = 'PLN'
 
-type LoadState<T> =
-    | { status: 'loading' }
-    | { status: 'error' }
-    | { status: 'loaded'; items: T[] }
+type LoadState<T> = { status: 'loading' } | { status: 'error' } | { status: 'loaded'; items: T[] }
 
 const formatDate = (instant: string, locale: string) => formatInstant(instant, locale, {dateStyle: 'medium'})
 
@@ -50,7 +47,8 @@ export function SavingsPage() {
         },
         () => {
           if (!cancelled) setSavings({status: 'error'})
-        })
+        },
+    )
     return () => {
       cancelled = true
     }
@@ -67,7 +65,8 @@ export function SavingsPage() {
         },
         () => {
           if (!cancelled) setIncomes({status: 'error'})
-        })
+        },
+    )
     return () => {
       cancelled = true
     }
@@ -89,8 +88,12 @@ export function SavingsPage() {
                 defaultCurrency={lastCurrency ?? DEFAULT_CURRENCY}
                 onSaved={onCreated}
                 trigger={
-                  <Button size="icon" className="rounded-lg" aria-label={t('incomeDialog.add')}
-                          title={t('incomeDialog.add')}>
+                  <Button
+                      size="icon"
+                      className="rounded-lg"
+                      aria-label={t('incomeDialog.add')}
+                      title={t('incomeDialog.add')}
+                  >
                     <Plus/>
                   </Button>
                 }
@@ -101,11 +104,15 @@ export function SavingsPage() {
 
         <section className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="outline" size="icon" className="size-10 shrink-0 rounded-lg bg-card"
-                    aria-expanded={filtersOpen}
-                    aria-label={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
-                    title={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
-                    onClick={() => setFiltersOpen((open) => !open)}>
+            <Button
+                variant="outline"
+                size="icon"
+                className="size-10 shrink-0 rounded-lg bg-card"
+                aria-expanded={filtersOpen}
+                aria-label={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
+                title={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
+                onClick={() => setFiltersOpen((open) => !open)}
+            >
               {filtersOpen ? <ChevronUp/> : <SlidersHorizontal/>}
             </Button>
             {filtersOpen && <DateRangeFilter value={dates} onChange={setDates}/>}
@@ -162,8 +169,12 @@ export function SavingsPage() {
                                   income={income}
                                   onSaved={reload}
                                   trigger={
-                                    <Button variant="ghost" size="icon-sm" className="rounded-lg text-muted-foreground"
-                                            aria-label={t('incomeDialog.edit', {title: income.title})}>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className="rounded-lg text-muted-foreground"
+                                        aria-label={t('incomeDialog.edit', {title: income.title})}
+                                    >
                                       <Pencil/>
                                     </Button>
                                   }
@@ -172,9 +183,12 @@ export function SavingsPage() {
                                   income={income}
                                   onDeleted={reload}
                                   trigger={
-                                    <Button variant="ghost" size="icon-sm"
-                                            className="rounded-lg text-muted-foreground hover:text-destructive"
-                                            aria-label={t('incomeDeleteDialog.trigger', {title: income.title})}>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className="rounded-lg text-muted-foreground hover:text-destructive"
+                                        aria-label={t('incomeDeleteDialog.trigger', {title: income.title})}
+                                    >
                                       <Trash2/>
                                     </Button>
                                   }
@@ -214,22 +228,21 @@ function SavingsCard({period, locale}: { period: Savings; locale: string }) {
   return (
       <Link to={`/personal?${params}`} className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <Card className="h-full gap-3 px-5 py-4 shadow-xs transition-colors hover:bg-accent/40">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[13px] text-muted-foreground">
-            {formatDate(period.start, locale)} – {period.end ? formatDate(period.end, locale) : t('savings.now')}
-          </span>
-          <span
-              className={cn('text-2xl font-semibold tabular-nums', period.saved < 0 && 'text-destructive')}>
-            {formatAmount(period.saved, currency, locale)}
-          </span>
-        </div>
-        <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
-          <dt className="text-muted-foreground">{t('savings.income')}</dt>
-          <dd className="tabular-nums">{formatAmount(period.income, currency, locale)}</dd>
-          <dt className="text-muted-foreground">{t('savings.expenses')}</dt>
-          <dd className="tabular-nums">{formatAmount(period.expenses, currency, locale)}</dd>
-        </dl>
-      </Card>
+          <div className="flex flex-col gap-0.5">
+					<span className="text-[13px] text-muted-foreground">
+						{formatDate(period.start, locale)} – {period.end ? formatDate(period.end, locale) : t('savings.now')}
+					</span>
+            <span className={cn('text-2xl font-semibold tabular-nums', period.saved < 0 && 'text-destructive')}>
+						{formatAmount(period.saved, currency, locale)}
+					</span>
+          </div>
+          <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
+            <dt className="text-muted-foreground">{t('savings.income')}</dt>
+            <dd className="tabular-nums">{formatAmount(period.income, currency, locale)}</dd>
+            <dt className="text-muted-foreground">{t('savings.expenses')}</dt>
+            <dd className="tabular-nums">{formatAmount(period.expenses, currency, locale)}</dd>
+          </dl>
+        </Card>
       </Link>
   )
 }
@@ -241,13 +254,13 @@ function IncomeRow({income, locale, actions}: { income: Income; locale: string; 
         <div className="flex min-w-0 grow flex-col gap-0.5">
           <span className="truncate font-medium">{income.title}</span>
           <span className="flex flex-wrap items-center gap-x-2 text-[13px] text-muted-foreground">
-            <span>{formatDate(income.date, locale)}</span>
-            <span>{income.delimiting ? t('incomeDialog.delimiting') : t('incomeDialog.nonDelimiting')}</span>
-          </span>
+					<span>{formatDate(income.date, locale)}</span>
+					<span>{income.delimiting ? t('incomeDialog.delimiting') : t('incomeDialog.nonDelimiting')}</span>
+				</span>
         </div>
         <span className="shrink-0 font-semibold tabular-nums">
-          {formatAmount(income.amount, income.currency, locale)}
-        </span>
+				{formatAmount(income.amount, income.currency, locale)}
+			</span>
         <div className="flex shrink-0 items-center">{actions}</div>
       </li>
   )

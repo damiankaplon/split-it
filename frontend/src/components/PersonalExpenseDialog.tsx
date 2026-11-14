@@ -45,10 +45,16 @@ export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, 
   const editing = expense !== undefined
   const currency = currencyOf(currencyCode)
   // An edited expense may use a currency outside the offered list
-  const currencyOptions = PROJECT_CURRENCIES.includes(currencyCode) ? PROJECT_CURRENCIES : [currencyCode, ...PROJECT_CURRENCIES]
+  const currencyOptions = PROJECT_CURRENCIES.includes(currencyCode)
+      ? PROJECT_CURRENCIES
+      : [currencyCode, ...PROJECT_CURRENCIES]
   const amountInMinorUnits = amount === undefined ? 0 : toMinorUnits(amount, currency)
-  const canSubmit = !submitting && title.trim() !== '' && amountInMinorUnits > 0
-      && fitsInMinorUnits(amount ?? 0, currency) && date !== ''
+  const canSubmit =
+      !submitting &&
+      title.trim() !== '' &&
+      amountInMinorUnits > 0 &&
+      fitsInMinorUnits(amount ?? 0, currency) &&
+      date !== ''
 
   const onOpenChange = (next: boolean) => {
     setOpen(next)
@@ -137,7 +143,9 @@ export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, 
                       onChange={(e) => setCurrencyCode(e.target.value)}
                   >
                     {currencyOptions.map((code) => (
-                        <option key={code} value={code}>{currencyNames.of(code)} ({code})</option>
+                        <option key={code} value={code}>
+                          {currencyNames.of(code)} ({code})
+                        </option>
                     ))}
                   </select>
                 </div>
@@ -170,17 +178,24 @@ export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, 
                     autoComplete="off"
                 />
                 <datalist id="personal-expense-tag-options">
-                  {tags.map((name) => <option key={name} value={name}/>)}
+                  {tags.map((name) => (
+                      <option key={name} value={name}/>
+                  ))}
                 </datalist>
               </div>
 
-              {error && <p className="text-[13px] text-destructive" role="alert">{error}</p>}
+              {error && (
+                  <p className="text-[13px] text-destructive" role="alert">
+                    {error}
+                  </p>
+              )}
             </div>
 
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline" size="lg"
-                        className="rounded-lg px-4">{t('personalExpenseDialog.cancel')}</Button>
+                <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
+                  {t('personalExpenseDialog.cancel')}
+                </Button>
               </DialogClose>
               <Button type="submit" size="lg" className="rounded-lg px-4" disabled={!canSubmit}>
                 {editing ? t('personalExpenseDialog.save') : t('personalExpenseDialog.add')}

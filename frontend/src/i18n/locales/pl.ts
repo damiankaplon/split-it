@@ -181,12 +181,14 @@ const pl = {
     confirmPrompt: '{{name}} zgłasza, że oddał(a) Ci {{amount}}. Czy otrzymałeś(-aś) tę kwotę?',
     confirm: 'Potwierdzam',
     reject: 'Nie otrzymałem(-am)',
-    confirmError: 'Nie udało się potwierdzić płatności — dług mógł się w międzyczasie zmniejszyć. Odrzuć ją, aby można było zgłosić nową.',
+    confirmError:
+        'Nie udało się potwierdzić płatności — dług mógł się w międzyczasie zmniejszyć. Odrzuć ją, aby można było zgłosić nową.',
     actionError: 'Nie udało się zapisać zmiany. Spróbuj ponownie.',
   },
   settle: {
     title: 'Rozlicz się z {{name}}',
-    description: 'Podaj, ile oddałeś(-aś) {{name}}. Dług zmniejszy się, gdy {{name}} potwierdzi otrzymanie pieniędzy. Cały dług to {{amount}}.',
+    description:
+        'Podaj, ile oddałeś(-aś) {{name}}. Dług zmniejszy się, gdy {{name}} potwierdzi otrzymanie pieniędzy. Cały dług to {{amount}}.',
     amountLabel: 'Kwota ({{currency}})',
     partialHint: 'Możesz rozliczyć część długu — reszta pozostanie do oddania.',
     tooMuch: 'Kwota nie może być większa niż dług ({{amount}}).',

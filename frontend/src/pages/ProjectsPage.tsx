@@ -8,10 +8,10 @@ import {NewProjectDialog} from '@/components/NewProjectDialog'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Card} from '@/components/ui/card'
 
-type ProjectsState =
-    | { status: 'loading' }
-    | { status: 'error'; message: string }
-    | { status: 'loaded'; projects: Project[] }
+type ProjectsState = { status: 'loading' } | { status: 'error'; message: string } | {
+  status: 'loaded';
+  projects: Project[]
+}
 
 export function ProjectsPage({currentUserId}: { currentUserId: string }) {
   const {t} = useTranslation()
@@ -55,16 +55,21 @@ export function ProjectsPage({currentUserId}: { currentUserId: string }) {
               {state.projects.map((project) => {
                 const isOwner = project.ownerId === currentUserId
                 return (
-                    <Card key={project.id}
-                          className="relative gap-5 p-5 shadow-xs transition-colors has-[a:hover]:border-ring">
+                    <Card
+                        key={project.id}
+                        className="relative gap-5 p-5 shadow-xs transition-colors has-[a:hover]:border-ring"
+                    >
                       <div className="flex flex-col gap-1">
                         {/* Stretched link: the whole card opens the project, while the invite button stays clickable */}
-                        <Link to={`/projects/${project.id}`}
-                              className="text-base font-semibold outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:ring-[3px] focus-visible:after:ring-ring/50">
+                        <Link
+                            to={`/projects/${project.id}`}
+                            className="text-base font-semibold outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:ring-[3px] focus-visible:after:ring-ring/50"
+                        >
                           {project.name}
                         </Link>
-                        <span
-                            className="text-[13px] text-muted-foreground">{isOwner ? t('projects.owner') : t('projects.member')} · {project.currency.code}</span>
+                        <span className="text-[13px] text-muted-foreground">
+										{isOwner ? t('projects.owner') : t('projects.member')} · {project.currency.code}
+									</span>
                       </div>
                       {isOwner && (
                           <div className="relative z-10 flex justify-end border-t pt-3.5">

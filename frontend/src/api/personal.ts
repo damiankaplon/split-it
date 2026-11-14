@@ -124,8 +124,7 @@ export const createIncome = (income: IncomeRequest) =>
 export const updateIncome = (incomeId: string, income: IncomeRequest) =>
     apiFetch<Income>(`/personal/incomes/${incomeId}`, {method: 'PUT', body: JSON.stringify(income)})
 
-export const deleteIncome = (incomeId: string) =>
-    apiFetch<void>(`/personal/incomes/${incomeId}`, {method: 'DELETE'})
+export const deleteIncome = (incomeId: string) => apiFetch<void>(`/personal/incomes/${incomeId}`, {method: 'DELETE'})
 
 /** What was saved in one currency from a delimiting income until the next one; amounts are in minor units. */
 export interface Savings {

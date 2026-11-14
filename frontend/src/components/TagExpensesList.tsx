@@ -16,9 +16,7 @@ interface Page<T> {
 }
 
 type ListState<T> =
-    | { status: 'loading' }
-    | { status: 'error' }
-    | { status: 'loaded'; items: T[]; page: number; hasNext: boolean }
+    { status: 'loading' } | { status: 'error' } | { status: 'loaded'; items: T[]; page: number; hasNext: boolean }
 
 interface TagExpensesListProps<T> {
   tag: string
@@ -32,8 +30,14 @@ interface TagExpensesListProps<T> {
 }
 
 /** The expenses of one tag within a date range, newest first, loaded page by page. */
-export function TagExpensesList<T extends { id: string; date: string }>(
-    {tag, from, to, reloadKey, load, renderItem}: TagExpensesListProps<T>) {
+export function TagExpensesList<T extends { id: string; date: string }>({
+                                                                          tag,
+                                                                          from,
+                                                                          to,
+                                                                          reloadKey,
+                                                                          load,
+                                                                          renderItem,
+                                                                        }: TagExpensesListProps<T>) {
   const {t, i18n} = useTranslation()
   const [state, setState] = useState<ListState<T>>({status: 'loading'})
   const [loadingMore, setLoadingMore] = useState(false)
@@ -52,7 +56,8 @@ export function TagExpensesList<T extends { id: string; date: string }>(
         },
         () => {
           if (!cancelled) setState({status: 'error'})
-        })
+        },
+    )
     return () => {
       cancelled = true
     }
@@ -63,9 +68,11 @@ export function TagExpensesList<T extends { id: string; date: string }>(
     setLoadingMore(true)
     try {
       const next = await loadRef.current({page: state.page + 1, size: PAGE_SIZE, tag, ...dateRangeQuery({from, to})})
-      setState((s) => s.status === 'loaded'
-          ? {status: 'loaded', items: [...s.items, ...next.items], page: next.page, hasNext: next.hasNext}
-          : s)
+      setState((s) =>
+          s.status === 'loaded'
+              ? {status: 'loaded', items: [...s.items, ...next.items], page: next.page, hasNext: next.hasNext}
+              : s,
+      )
     } catch {
       setState({status: 'error'})
     } finally {

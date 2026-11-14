@@ -9,7 +9,7 @@ import {
   listPersonalExpenses,
   listPersonalTags,
   type PersonalExpense,
-  type PersonalExpenseSum
+  type PersonalExpenseSum,
 } from '@/api/personal'
 import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DeletePersonalExpenseDialog} from '@/components/DeletePersonalExpenseDialog'
@@ -106,7 +106,8 @@ export function PersonalExpensesPage() {
         },
         () => {
           if (!cancelled) setSums(null)
-        })
+        },
+    )
     return () => {
       cancelled = true
     }
@@ -121,17 +122,19 @@ export function PersonalExpensesPage() {
         size: PAGE_SIZE,
         title,
         tag: tag ?? undefined,
-        ...dateRangeQuery(dates)
+        ...dateRangeQuery(dates),
       })
-      setExpenses((s) => s.status === 'loaded'
-          ? {
-            ...s,
-            items: [...s.items, ...next.items],
-            page: next.page,
-            hasNext: next.hasNext,
-            total: next.totalElements
-          }
-          : s)
+      setExpenses((s) =>
+          s.status === 'loaded'
+              ? {
+                ...s,
+                items: [...s.items, ...next.items],
+                page: next.page,
+                hasNext: next.hasNext,
+                total: next.totalElements,
+              }
+              : s,
+      )
     } catch {
       setExpenses({status: 'error'})
     } finally {
@@ -156,21 +159,26 @@ export function PersonalExpensesPage() {
   const onUpdated = (before: PersonalExpense, after: PersonalExpense) => {
     setChartsReloadKey((k) => k + 1)
     // A new date may move it elsewhere in the list, and new values may no longer match the filters
-    if (after.date !== before.date || after.amount !== before.amount || after.currency.code !== before.currency.code || filtered) {
+    if (
+        after.date !== before.date ||
+        after.amount !== before.amount ||
+        after.currency.code !== before.currency.code ||
+        filtered
+    ) {
       setReloadKey((k) => k + 1)
     } else {
-      setExpenses((s) => s.status === 'loaded'
-          ? {...s, items: s.items.map((item) => (item.id === after.id ? after : item))}
-          : s)
+      setExpenses((s) =>
+          s.status === 'loaded' ? {...s, items: s.items.map((item) => (item.id === after.id ? after : item))} : s,
+      )
     }
     refreshTagsIfNew(after)
   }
 
   const onDeleted = (expense: PersonalExpense) => {
     setChartsReloadKey((k) => k + 1)
-    setExpenses((s) => s.status === 'loaded'
-        ? {...s, items: s.items.filter((item) => item.id !== expense.id), total: s.total - 1}
-        : s)
+    setExpenses((s) =>
+        s.status === 'loaded' ? {...s, items: s.items.filter((item) => item.id !== expense.id), total: s.total - 1} : s,
+    )
     // The sums are computed by the backend
     setReloadKey((k) => k + 1)
   }
@@ -183,7 +191,8 @@ export function PersonalExpensesPage() {
             <p className="text-muted-foreground">
               {t('personal.subtitle')}
               {expenses.status === 'loaded' && !filtered && ` · ${t('project.expenseCount', {count: expenses.total})}`}
-              {sums !== null && sums.length > 0 &&
+              {sums !== null &&
+                  sums.length > 0 &&
                   ` · ${t('project.totalExpenses', {amount: sums.map((s) => formatAmount(s.total, s.currency, i18n.language)).join(' + ')})}`}
             </p>
           </div>
@@ -200,8 +209,10 @@ export function PersonalExpensesPage() {
           />
         </div>
 
-        <Tabs value={tab}
-              onValueChange={(value) => setSearchParams(value === 'charts' ? {tab: value} : {}, {replace: true})}>
+        <Tabs
+            value={tab}
+            onValueChange={(value) => setSearchParams(value === 'charts' ? {tab: value} : {}, {replace: true})}
+        >
           <TabsList>
             <TabsTrigger value="feed">{t('tabs.feed')}</TabsTrigger>
             <TabsTrigger value="charts">{t('tabs.charts')}</TabsTrigger>
@@ -243,31 +254,39 @@ export function PersonalExpensesPage() {
                       onChange={(e) => setSearchInput(e.target.value)}
                   />
                 </div>
-                <Button variant="outline" size="icon" className="size-10 shrink-0 rounded-lg bg-card"
-                        aria-expanded={filtersOpen}
-                        aria-label={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
-                        title={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
-                        onClick={() => setFiltersOpen((open) => !open)}>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className="size-10 shrink-0 rounded-lg bg-card"
+                    aria-expanded={filtersOpen}
+                    aria-label={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
+                    title={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
+                    onClick={() => setFiltersOpen((open) => !open)}
+                >
                   {filtersOpen ? <ChevronUp/> : <SlidersHorizontal/>}
                 </Button>
               </div>
-              {filtersOpen && <>
-          {tags.length > 0 && (
-              <select
-                  aria-label={t('project.filterByTag')}
-                  className="h-10 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm"
-                  value={tag ?? ''}
-                  onChange={(e) => setTag(e.target.value === '' ? null : e.target.value)}
-              >
-                <option value="">{t('project.allTags')}</option>
-                {tags.map((name) => (
-                    <option key={name} value={name}>{name}</option>
-                ))}
-              </select>
-          )}
-          <DateRangeFilter value={dates} onChange={setDates}/>
-              </>}
-        </div>
+              {filtersOpen && (
+                  <>
+                    {tags.length > 0 && (
+                        <select
+                            aria-label={t('project.filterByTag')}
+                            className="h-10 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm"
+                            value={tag ?? ''}
+                            onChange={(e) => setTag(e.target.value === '' ? null : e.target.value)}
+                        >
+                          <option value="">{t('project.allTags')}</option>
+                          {tags.map((name) => (
+                              <option key={name} value={name}>
+                                {name}
+                              </option>
+                          ))}
+                        </select>
+                    )}
+                    <DateRangeFilter value={dates} onChange={setDates}/>
+                  </>
+              )}
+            </div>
 
             {expenses.status === 'loading' && <p className="text-muted-foreground">{t('project.loadingExpenses')}</p>}
 
@@ -276,8 +295,11 @@ export function PersonalExpensesPage() {
                   <AlertCircle/>
                   <AlertTitle>{t('project.expensesError')}</AlertTitle>
                   <AlertDescription>
-                    <Button variant="link" className="h-auto p-0 text-destructive underline"
-                            onClick={() => setReloadKey((k) => k + 1)}>
+                    <Button
+                        variant="link"
+                        className="h-auto p-0 text-destructive underline"
+                        onClick={() => setReloadKey((k) => k + 1)}
+                    >
                       {t('project.retry')}
                     </Button>
                   </AlertDescription>
@@ -294,45 +316,54 @@ export function PersonalExpensesPage() {
             {expenses.status === 'loaded' && expenses.items.length > 0 && (
                 <div className="flex flex-col gap-5">
                   <Card className="gap-0 py-0 shadow-xs">
-                    <MonthGroupedList items={expenses.items} locale={i18n.language} renderItem={(expense) => (
-                          <PersonalExpenseRow
-                              key={expense.id}
-                              expense={expense}
-                              locale={i18n.language}
-                              actions={
-                                <>
-                                  <PersonalExpenseDialog
-                                      defaultCurrency={expense.currency.code}
-                                      tags={tags}
-                                      expense={expense}
-                                      onSaved={(updated) => onUpdated(expense, updated)}
-                                      trigger={
-                                        <Button variant="ghost" size="icon-sm"
-                                                className="rounded-lg text-muted-foreground"
-                                                aria-label={t('personalExpenseDialog.edit', {title: expense.title})}>
-                                          <Pencil/>
-                                        </Button>
-                                      }
-                                  />
-                                  <DeletePersonalExpenseDialog
-                                      expense={expense}
-                                      onDeleted={onDeleted}
-                                      trigger={
-                                        <Button variant="ghost" size="icon-sm"
-                                                className="rounded-lg text-muted-foreground hover:text-destructive"
-                                                aria-label={t('personalDeleteDialog.trigger', {title: expense.title})}>
-                                          <Trash2/>
-                                        </Button>
-                                      }
-                                  />
-                                </>
-                              }
-                          />
-                    )}/>
+                    <MonthGroupedList
+                        items={expenses.items}
+                        locale={i18n.language}
+                        renderItem={(expense) => (
+                            <PersonalExpenseRow
+                                key={expense.id}
+                                expense={expense}
+                                locale={i18n.language}
+                                actions={
+                                  <>
+                                    <PersonalExpenseDialog
+                                        defaultCurrency={expense.currency.code}
+                                        tags={tags}
+                                        expense={expense}
+                                        onSaved={(updated) => onUpdated(expense, updated)}
+                                        trigger={
+                                          <Button
+                                              variant="ghost"
+                                              size="icon-sm"
+                                              className="rounded-lg text-muted-foreground"
+                                              aria-label={t('personalExpenseDialog.edit', {title: expense.title})}
+                                          >
+                                            <Pencil/>
+                                          </Button>
+                                        }
+                                    />
+                                    <DeletePersonalExpenseDialog
+                                        expense={expense}
+                                        onDeleted={onDeleted}
+                                        trigger={
+                                          <Button
+                                              variant="ghost"
+                                              size="icon-sm"
+                                              className="rounded-lg text-muted-foreground hover:text-destructive"
+                                              aria-label={t('personalDeleteDialog.trigger', {title: expense.title})}
+                                          >
+                                            <Trash2/>
+                                          </Button>
+                                        }
+                                    />
+                                  </>
+                                }
+                            />
+                        )}
+                    />
                   </Card>
-                  {expenses.hasNext && (
-                      <InfiniteScrollTrigger loading={loadingMore} onLoadMore={() => void loadMore()}/>
-                  )}
+                  {expenses.hasNext &&
+                      <InfiniteScrollTrigger loading={loadingMore} onLoadMore={() => void loadMore()}/>}
                 </div>
             )}
           </TabsContent>
@@ -341,7 +372,11 @@ export function PersonalExpensesPage() {
   )
 }
 
-function PersonalExpenseRow({expense, locale, actions}: {
+function PersonalExpenseRow({
+                              expense,
+                              locale,
+                              actions,
+                            }: {
   expense: PersonalExpense
   locale: string
   actions: ReactNode
@@ -349,22 +384,20 @@ function PersonalExpenseRow({expense, locale, actions}: {
   // The backend sends an exact instant, shown in the user's zone
   const date = formatInstant(expense.date, locale, {
     dateStyle: 'medium',
-    timeStyle: 'short'
+    timeStyle: 'short',
   })
   return (
       <li className="flex items-center gap-3 px-4 py-3">
         <div className="flex min-w-0 grow flex-col gap-0.5">
           <span className="truncate font-medium">{expense.title}</span>
           <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
-            <span>{date}</span>
-            {expense.tag && (
-                <TagBadge name={expense.tag} color={expense.tagColor}/>
-            )}
-          </span>
+					<span>{date}</span>
+            {expense.tag && <TagBadge name={expense.tag} color={expense.tagColor}/>}
+				</span>
         </div>
         <span className="shrink-0 font-semibold tabular-nums">
-          {formatAmount(expense.amount, expense.currency, locale)}
-        </span>
+				{formatAmount(expense.amount, expense.currency, locale)}
+			</span>
         <div className="flex shrink-0 items-center">{actions}</div>
       </li>
   )

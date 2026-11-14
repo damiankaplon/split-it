@@ -9,10 +9,11 @@ import {initials} from '@/lib/initials'
 import {formatAmount} from '@/lib/money'
 import {cn} from '@/lib/utils'
 
-type DebtsState =
-    | { status: 'loading' }
-    | { status: 'error' }
-    | { status: 'loaded'; debts: Debt[]; pending: Settlement[] }
+type DebtsState = { status: 'loading' } | { status: 'error' } | {
+  status: 'loaded';
+  debts: Debt[];
+  pending: Settlement[]
+}
 
 /** One counterpart of the current user: the open debt between them and the settlement awaiting confirmation. */
 interface Row {
@@ -71,7 +72,11 @@ export function DebtsPanel({projectId, currency, currentUserId, memberName, relo
   const format = (amount: number) => formatAmount(amount, currency, i18n.language)
 
   if (state.status === 'loading') {
-    return <PanelShell><p className="px-4 py-3 text-muted-foreground">{t('debts.loading')}</p></PanelShell>
+    return (
+        <PanelShell>
+          <p className="px-4 py-3 text-muted-foreground">{t('debts.loading')}</p>
+        </PanelShell>
+    )
   }
 
   if (state.status === 'error') {
@@ -126,34 +131,55 @@ export function DebtsPanel({projectId, currency, currentUserId, memberName, relo
               )}
               {totalOwedToMe > 0 && (
                   <span className="text-emerald-700 dark:text-emerald-400">
-                    {t('debts.owedToYouTotal', {amount: format(totalOwedToMe)})}
-                  </span>
+							{t('debts.owedToYouTotal', {amount: format(totalOwedToMe)})}
+						</span>
               )}
               {toConfirm > 0 && <span className="text-primary">{t('debts.toConfirm', {count: toConfirm})}</span>}
             </>
           }
       >
         {actionError && (
-            <p className="border-b px-4 py-2 text-[13px] text-destructive" role="alert">{actionError}</p>
+            <p className="border-b px-4 py-2 text-[13px] text-destructive" role="alert">
+              {actionError}
+            </p>
         )}
         <ul className="divide-y">
           {iOwe.map(({creditorId, debt, pending}) => {
             const name = memberName(creditorId)
             return (
-                <DebtRow key={creditorId} name={name} label={t('debts.youOwe', {name})}
-                         amount={debt && format(debt.amount)} owing
-                         note={pending && t('debts.awaitingConfirmation', {name, amount: format(pending.amount)})}>
+                <DebtRow
+                    key={creditorId}
+                    name={name}
+                    label={t('debts.youOwe', {name})}
+                    amount={debt && format(debt.amount)}
+                    owing
+                    note={pending && t('debts.awaitingConfirmation', {name, amount: format(pending.amount)})}
+                >
                   {pending ? (
-                      <Button size="sm" variant="outline" className="rounded-lg" disabled={resolving === pending.id}
-                              onClick={() => void resolve(pending, 'cancel')}>
+                      <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-lg"
+                          disabled={resolving === pending.id}
+                          onClick={() => void resolve(pending, 'cancel')}
+                      >
                         {t('debts.cancelRequest')}
                       </Button>
-                  ) : debt && (
-                      <SettleDialog
-                          projectId={projectId} currency={currency} debt={debt} creditorName={name}
-                          onChanged={reload}
-                          trigger={<Button size="sm" className="rounded-lg">{t('debts.settleUp')}</Button>}
-                      />
+                  ) : (
+                      debt && (
+                          <SettleDialog
+                              projectId={projectId}
+                              currency={currency}
+                              debt={debt}
+                              creditorName={name}
+                              onChanged={reload}
+                              trigger={
+                                <Button size="sm" className="rounded-lg">
+                                  {t('debts.settleUp')}
+                                </Button>
+                              }
+                          />
+                      )
                   )}
                 </DebtRow>
             )
@@ -161,17 +187,31 @@ export function DebtsPanel({projectId, currency, currentUserId, memberName, relo
           {owedToMe.map(({debtorId, debt, pending}) => {
             const name = memberName(debtorId)
             return (
-                <DebtRow key={debtorId} name={name} label={t('debts.owesYou', {name})}
-                         amount={debt && format(debt.amount)} owing={false}
-                         note={pending && t('debts.confirmPrompt', {name, amount: format(pending.amount)})}>
+                <DebtRow
+                    key={debtorId}
+                    name={name}
+                    label={t('debts.owesYou', {name})}
+                    amount={debt && format(debt.amount)}
+                    owing={false}
+                    note={pending && t('debts.confirmPrompt', {name, amount: format(pending.amount)})}
+                >
                   {pending && (
                       <>
-                        <Button size="sm" variant="outline" className="rounded-lg" disabled={resolving === pending.id}
-                                onClick={() => void resolve(pending, 'reject')}>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-lg"
+                            disabled={resolving === pending.id}
+                            onClick={() => void resolve(pending, 'reject')}
+                        >
                           {t('debts.reject')}
                         </Button>
-                        <Button size="sm" className="rounded-lg" disabled={resolving === pending.id}
-                                onClick={() => void resolve(pending, 'confirm')}>
+                        <Button
+                            size="sm"
+                            className="rounded-lg"
+                            disabled={resolving === pending.id}
+                            onClick={() => void resolve(pending, 'confirm')}
+                        >
                           {t('debts.confirm')}
                         </Button>
                       </>
@@ -189,7 +229,9 @@ function PanelShell({summary, children}: { summary?: ReactNode; children: ReactN
   return (
       <section className="flex flex-col gap-2" aria-labelledby="debts-heading">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h2 id="debts-heading" className="text-base font-semibold">{t('debts.title')}</h2>
+          <h2 id="debts-heading" className="text-base font-semibold">
+            {t('debts.title')}
+          </h2>
           {summary && <div className="flex flex-wrap gap-x-3 text-[13px] font-medium">{summary}</div>}
         </div>
         <Card className="gap-0 py-0 shadow-xs">{children}</Card>
@@ -197,7 +239,14 @@ function PanelShell({summary, children}: { summary?: ReactNode; children: ReactN
   )
 }
 
-function DebtRow({name, label, amount, owing, note, children}: {
+function DebtRow({
+                   name,
+                   label,
+                   amount,
+                   owing,
+                   note,
+                   children,
+                 }: {
   name: string
   label: string
   /** Formatted debt; missing when only a pending settlement is left. */
@@ -210,22 +259,25 @@ function DebtRow({name, label, amount, owing, note, children}: {
 }) {
   return (
       <li className="flex flex-wrap items-center gap-3 px-4 py-3">
-        <span
-            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold"
-            title={name}>
-          {initials(name)}
-        </span>
+			<span
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold"
+                title={name}
+            >
+				{initials(name)}
+			</span>
         <span className="flex min-w-0 grow flex-col gap-0.5">
-          <span className="truncate">{label}</span>
+				<span className="truncate">{label}</span>
           {note && <span className="text-[13px] text-muted-foreground">{note}</span>}
-        </span>
+			</span>
         {amount && (
-            <span className={cn(
-                'shrink-0 font-semibold tabular-nums',
-                owing ? 'text-destructive' : 'text-emerald-700 dark:text-emerald-400',
-            )}>
-              {amount}
-            </span>
+            <span
+                className={cn(
+                    'shrink-0 font-semibold tabular-nums',
+                    owing ? 'text-destructive' : 'text-emerald-700 dark:text-emerald-400',
+                )}
+            >
+					{amount}
+				</span>
         )}
         <span className="flex shrink-0 gap-2">{children}</span>
       </li>

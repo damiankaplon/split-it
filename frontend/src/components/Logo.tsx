@@ -16,7 +16,7 @@ export function LogoMark({size = 'sm', className}: { size?: keyof typeof sizes; 
               className,
           )}
       >
-      <Maximize2 className={sizes[size].icon} aria-hidden="true"/>
-    </span>
+			<Maximize2 className={sizes[size].icon} aria-hidden="true"/>
+		</span>
   )
 }

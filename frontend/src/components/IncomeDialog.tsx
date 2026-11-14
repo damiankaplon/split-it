@@ -28,7 +28,8 @@ interface IncomeDialogProps {
   onSaved: (income: Income) => void
 }
 
-const SELECT_CLASS = 'h-10 w-full rounded-lg border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30'
+const SELECT_CLASS =
+    'h-10 w-full rounded-lg border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30'
 
 export function IncomeDialog({defaultCurrency, income, trigger, onSaved}: IncomeDialogProps) {
   const {t, i18n} = useTranslation()
@@ -45,10 +46,16 @@ export function IncomeDialog({defaultCurrency, income, trigger, onSaved}: Income
   const editing = income !== undefined
   const currency = currencyOf(currencyCode)
   // An edited income may use a currency outside the offered list
-  const currencyOptions = PROJECT_CURRENCIES.includes(currencyCode) ? PROJECT_CURRENCIES : [currencyCode, ...PROJECT_CURRENCIES]
+  const currencyOptions = PROJECT_CURRENCIES.includes(currencyCode)
+      ? PROJECT_CURRENCIES
+      : [currencyCode, ...PROJECT_CURRENCIES]
   const amountInMinorUnits = amount === undefined ? 0 : toMinorUnits(amount, currency)
-  const canSubmit = !submitting && title.trim() !== '' && amountInMinorUnits > 0
-      && fitsInMinorUnits(amount ?? 0, currency) && date !== ''
+  const canSubmit =
+      !submitting &&
+      title.trim() !== '' &&
+      amountInMinorUnits > 0 &&
+      fitsInMinorUnits(amount ?? 0, currency) &&
+      date !== ''
 
   const onOpenChange = (next: boolean) => {
     setOpen(next)
@@ -136,7 +143,9 @@ export function IncomeDialog({defaultCurrency, income, trigger, onSaved}: Income
                       onChange={(e) => setCurrencyCode(e.target.value)}
                   >
                     {currencyOptions.map((code) => (
-                        <option key={code} value={code}>{currencyNames.of(code)} ({code})</option>
+                        <option key={code} value={code}>
+                          {currencyNames.of(code)} ({code})
+                        </option>
                     ))}
                   </select>
                 </div>
@@ -168,13 +177,18 @@ export function IncomeDialog({defaultCurrency, income, trigger, onSaved}: Income
                 <p className="text-[13px] text-muted-foreground">{t('incomeDialog.typeHint')}</p>
               </div>
 
-              {error && <p className="text-[13px] text-destructive" role="alert">{error}</p>}
+              {error && (
+                  <p className="text-[13px] text-destructive" role="alert">
+                    {error}
+                  </p>
+              )}
             </div>
 
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline" size="lg"
-                        className="rounded-lg px-4">{t('incomeDialog.cancel')}</Button>
+                <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
+                  {t('incomeDialog.cancel')}
+                </Button>
               </DialogClose>
               <Button type="submit" size="lg" className="rounded-lg px-4" disabled={!canSubmit}>
                 {editing ? t('incomeDialog.save') : t('incomeDialog.add')}

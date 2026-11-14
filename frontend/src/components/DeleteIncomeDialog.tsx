@@ -53,14 +53,25 @@ export function DeleteIncomeDialog({income, trigger, onDeleted}: DeleteIncomeDia
             <DialogTitle className="text-lg">{t('incomeDeleteDialog.title')}</DialogTitle>
             <DialogDescription>{t('incomeDeleteDialog.description', {title: income.title})}</DialogDescription>
           </DialogHeader>
-          {error && <p className="text-[13px] text-destructive" role="alert">{error}</p>}
+          {error && (
+              <p className="text-[13px] text-destructive" role="alert">
+                {error}
+              </p>
+          )}
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline" size="lg"
-                      className="rounded-lg px-4">{t('incomeDeleteDialog.cancel')}</Button>
+              <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
+                {t('incomeDeleteDialog.cancel')}
+              </Button>
             </DialogClose>
-            <Button type="button" variant="destructive" size="lg" className="rounded-lg px-4" disabled={deleting}
-                    onClick={() => void onConfirm()}>
+            <Button
+                type="button"
+                variant="destructive"
+                size="lg"
+                className="rounded-lg px-4"
+                disabled={deleting}
+                onClick={() => void onConfirm()}
+            >
               {t('incomeDeleteDialog.confirm')}
             </Button>
           </DialogFooter>

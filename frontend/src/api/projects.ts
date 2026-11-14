@@ -49,5 +49,4 @@ export const acceptInvitation = (invitation: Invitation) =>
     apiFetch<void>(`/invitations?${invitationQuery(invitation)}`, {method: 'POST'})
 
 /** Frontend URL that lands an invitee on the join page. */
-export const invitationUrl = ({projectId, token}: Invitation) =>
-    `${window.location.origin}/join/${projectId}/${token}`
+export const invitationUrl = ({projectId, token}: Invitation) => `${window.location.origin}/join/${projectId}/${token}`

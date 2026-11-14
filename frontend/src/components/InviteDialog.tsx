@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react'
 import {Check, Copy, UserPlus} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
-import {createInvitation, invitationUrl, listMembers, type Project, type ProjectMember,} from '@/api/projects'
+import {createInvitation, invitationUrl, listMembers, type Project, type ProjectMember} from '@/api/projects'
 import {Button} from '@/components/ui/button'
 import {
   Dialog,
@@ -87,7 +87,9 @@ export function InviteDialog({project, currentUserId}: InviteDialogProps) {
             </div>
             <div className="flex items-center justify-between text-[13px] text-muted-foreground">
               {link.status === 'error' ? (
-                  <span className="text-destructive" role="alert">{t('invite.error')}</span>
+                  <span className="text-destructive" role="alert">
+								{t('invite.error')}
+							</span>
               ) : (
                   <span>{t('invite.singleUse')}</span>
               )}
@@ -107,7 +109,9 @@ export function InviteDialog({project, currentUserId}: InviteDialogProps) {
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" size="lg" className="rounded-lg px-4">{t('invite.done')}</Button>
+              <Button variant="outline" size="lg" className="rounded-lg px-4">
+                {t('invite.done')}
+              </Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>
@@ -132,17 +136,17 @@ function MemberList({project, currentUserId}: InviteDialogProps) {
             <ul className="flex flex-col gap-2.5">
               {members.map((member) => (
                   <li key={member.memberId} className="flex items-center gap-2.5">
-              <span
-                  className="inline-flex size-7 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold">
-                {initials(member.name)}
-              </span>
+							<span
+                                className="inline-flex size-7 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold">
+								{initials(member.name)}
+							</span>
                     <span className="grow">
-                {member.name}
+								{member.name}
                       {member.memberId === currentUserId && ` ${t('invite.you')}`}
-              </span>
+							</span>
                     <span className="text-[13px] text-muted-foreground">
-                {member.memberId === project.ownerId ? t('projects.owner') : t('projects.member')}
-              </span>
+								{member.memberId === project.ownerId ? t('projects.owner') : t('projects.member')}
+							</span>
                   </li>
               ))}
             </ul>

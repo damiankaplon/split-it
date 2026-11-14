@@ -16,7 +16,9 @@ export function DateRangeFilter({value, onChange}: { value: DateRange; onChange:
             max={value.to || undefined}
             onChange={(e) => onChange({...value, from: e.target.value})}
         />
-        <span aria-hidden className="text-muted-foreground">–</span>
+        <span aria-hidden className="text-muted-foreground">
+				–
+			</span>
         <Input
             type="date"
             aria-label={t('project.dateTo')}
@@ -26,8 +28,13 @@ export function DateRangeFilter({value, onChange}: { value: DateRange; onChange:
             onChange={(e) => onChange({...value, to: e.target.value})}
         />
         {isDateRangeSet(value) && (
-            <Button variant="ghost" size="icon-sm" className="shrink-0 rounded-lg text-muted-foreground"
-                    aria-label={t('project.clearDates')} onClick={() => onChange(EMPTY_DATE_RANGE)}>
+            <Button
+                variant="ghost"
+                size="icon-sm"
+                className="shrink-0 rounded-lg text-muted-foreground"
+                aria-label={t('project.clearDates')}
+                onClick={() => onChange(EMPTY_DATE_RANGE)}
+            >
               <X/>
             </Button>
         )}

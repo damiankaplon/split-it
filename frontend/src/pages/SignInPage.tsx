@@ -26,7 +26,9 @@ export function SignInPage({onSignIn, keycloakUnavailable}: SignInPageProps) {
             {t('signIn.button')}
           </Button>
           {keycloakUnavailable ? (
-              <p className="text-center text-[13px] text-destructive" role="alert">{t('signIn.keycloakUnavailable')}</p>
+              <p className="text-center text-[13px] text-destructive" role="alert">
+                {t('signIn.keycloakUnavailable')}
+              </p>
           ) : (
               <p className="text-center text-[13px] text-muted-foreground">{t('signIn.hint')}</p>
           )}

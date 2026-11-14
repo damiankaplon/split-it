@@ -183,12 +183,14 @@ const en: Translations = {
     confirmPrompt: '{{name}} says they paid you {{amount}}. Did you receive it?',
     confirm: 'Confirm',
     reject: "Didn't receive",
-    confirmError: "Couldn't confirm the payment; the debt may have shrunk since. Reject it so a new one can be requested.",
+    confirmError:
+        "Couldn't confirm the payment; the debt may have shrunk since. Reject it so a new one can be requested.",
     actionError: "Couldn't save the change. Please try again.",
   },
   settle: {
     title: 'Settle up with {{name}}',
-    description: 'Enter how much you paid {{name}}. The debt goes down once {{name}} confirms receiving the money. The full debt is {{amount}}.',
+    description:
+        'Enter how much you paid {{name}}. The debt goes down once {{name}} confirms receiving the money. The full debt is {{amount}}.',
     amountLabel: 'Amount ({{currency}})',
     partialHint: 'You can settle part of the debt; the rest stays open.',
     tooMuch: "The amount can't be more than the debt ({{amount}}).",

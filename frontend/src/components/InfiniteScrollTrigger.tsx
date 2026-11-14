@@ -18,9 +18,12 @@ export function InfiniteScrollTrigger({loading, onLoadMore}: { loading: boolean;
     const element = ref.current
     if (!element || loading) return
     // A fresh observer reports the current state at once, so a sentinel still in view after a load fetches again.
-    const observer = new IntersectionObserver((entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) onLoadMoreRef.current()
-    }, {rootMargin: PRELOAD_MARGIN})
+    const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) onLoadMoreRef.current()
+        },
+        {rootMargin: PRELOAD_MARGIN},
+    )
     observer.observe(element)
     return () => observer.disconnect()
   }, [loading])

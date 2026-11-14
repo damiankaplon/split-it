@@ -149,17 +149,24 @@ export function ExpenseDialog({projectId, currency, tags, expense, trigger, onSa
                     autoComplete="off"
                 />
                 <datalist id="expense-tag-options">
-                  {tags.map((name) => <option key={name} value={name}/>)}
+                  {tags.map((name) => (
+                      <option key={name} value={name}/>
+                  ))}
                 </datalist>
               </div>
 
-              {error && <p className="text-[13px] text-destructive" role="alert">{error}</p>}
+              {error && (
+                  <p className="text-[13px] text-destructive" role="alert">
+                    {error}
+                  </p>
+              )}
             </div>
 
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline" size="lg"
-                        className="rounded-lg px-4">{t('expenseDialog.cancel')}</Button>
+                <Button type="button" variant="outline" size="lg" className="rounded-lg px-4">
+                  {t('expenseDialog.cancel')}
+                </Button>
               </DialogClose>
               <Button type="submit" size="lg" className="rounded-lg px-4" disabled={!canSubmit}>
                 {editing ? t('expenseDialog.save') : t('expenseDialog.add')}
