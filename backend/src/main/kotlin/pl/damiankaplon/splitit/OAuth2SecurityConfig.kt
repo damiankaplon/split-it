@@ -10,6 +10,7 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.server.ResponseStatusException
+import pl.damiankaplon.splitit.kernel.UserId
 
 @Configuration(proxyBeanMethods = false)
 class OAuth2SecurityConfig {

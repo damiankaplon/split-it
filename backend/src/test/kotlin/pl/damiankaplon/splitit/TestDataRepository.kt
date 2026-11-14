@@ -1,26 +1,24 @@
 package pl.damiankaplon.splitit
 
 import org.springframework.boot.test.context.TestComponent
-import pl.damiankaplon.splitit.balancing.Balance
-import pl.damiankaplon.splitit.balancing.BalanceRepository
-import pl.damiankaplon.splitit.expense.ExpenseService
-import pl.damiankaplon.splitit.project.Project
-import pl.damiankaplon.splitit.project.ProjectMember
-import pl.damiankaplon.splitit.project.ProjectRepository
+import pl.damiankaplon.splitit.kernel.UserId
+import pl.damiankaplon.splitit.project.core.Project
+import pl.damiankaplon.splitit.project.core.ProjectMember
+import pl.damiankaplon.splitit.project.core.ProjectRepository
+import pl.damiankaplon.splitit.project.expense.ExpenseService
 import java.time.Instant
 import java.util.UUID
 
 /**
  * Test-only repository for prepopulating the database: every state a
  * test starts from is inserted here rather than through the API or the
- * production repositories. It leaves the data as the application would,
- * e.g. an expense also moves the balances and the members' personal
- * expenses.
+ * production repositories. Only the data of the module that owns it: the
+ * events a change publishes are never delivered to other modules, since
+ * tests roll back and events are delivered only after a commit.
  */
 @TestComponent
 class TestDataRepository(
     private val projects: ProjectRepository,
-    private val balances: BalanceRepository,
     private val expenseService: ExpenseService,
 ) {
     fun createProject(
@@ -32,7 +30,6 @@ class TestDataRepository(
         val project = Project(name, ProjectMember(ownerId, ownerName), PLN)
         memberIds.forEach { project.add(ProjectMember(it, it)) }
         projects.save(project)
-        balances.save(Balance(project.id))
         return project
     }
 
