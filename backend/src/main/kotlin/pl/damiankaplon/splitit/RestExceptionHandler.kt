@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class RestExceptionHandler {
-
     /**
      * Repositories' lookups; also covers entities the current user may not
      * access.

@@ -10,8 +10,6 @@ import pl.damiankaplon.splitit.kernel.ExpenseData
 @DiscriminatorValue("MANUAL")
 class ManualPersonalExpense(
     ownerId: UserId,
-
     data: ExpenseData,
-
     tag: PersonalExpenseTag?,
 ) : PersonalExpense(ownerId, data, tag)

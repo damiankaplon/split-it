@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class SplititApplication
 
 fun main(args: Array<String>) {
-	runApplication<SplititApplication>(*args)
+    runApplication<SplititApplication>(*args)
 }

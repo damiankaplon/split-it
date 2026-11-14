@@ -11,14 +11,23 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.project.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
 import java.time.Instant
 import java.time.ZonedDateTime
-import java.util.*
+import java.util.UUID
 
 @RestController
 @RequestMapping("/projects/{projectId}")
@@ -28,7 +37,6 @@ class ExpenseController(
     private val projects: ProjectRepository,
     private val expenseService: ExpenseService,
 ) {
-
     data class ExpenseRequest(
         @field:NotBlank val title: String,
         val date: Instant,
@@ -100,7 +108,9 @@ class ExpenseController(
         )
     }
 
-    data class ExpenseTotal(val total: Long)
+    data class ExpenseTotal(
+        val total: Long,
+    )
 
     private fun filterSpec(
         projectId: UUID,
@@ -109,14 +119,15 @@ class ExpenseController(
         createdBy: String?,
         from: ZonedDateTime?,
         to: ZonedDateTime?,
-    ): Specification<Expense> = listOfNotNull(
-        ExpenseSpecifications.inProject(projectId),
-        tag?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::hasTag),
-        title?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::titleContains),
-        createdBy?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::createdBy),
-        from?.toInstant()?.let(ExpenseSpecifications::dateFrom),
-        to?.toInstant()?.let(ExpenseSpecifications::dateTo),
-    ).fold(Specification.unrestricted<Expense>()) { acc, next -> acc.and(next) }
+    ): Specification<Expense> =
+        listOfNotNull(
+            ExpenseSpecifications.inProject(projectId),
+            tag?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::hasTag),
+            title?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::titleContains),
+            createdBy?.trim()?.takeIf { it.isNotEmpty() }?.let(ExpenseSpecifications::createdBy),
+            from?.toInstant()?.let(ExpenseSpecifications::dateFrom),
+            to?.toInstant()?.let(ExpenseSpecifications::dateTo),
+        ).fold(Specification.unrestricted<Expense>()) { acc, next -> acc.and(next) }
 
     /**
      * Sum of the project's expenses matching the same optional filters as the
@@ -151,11 +162,14 @@ class ExpenseController(
         @AuthenticationPrincipal jwt: Jwt,
     ): List<TagTotal> {
         requireMember(projectId, jwt)
-        if (from.toInstant().isAfter(to.toInstant())) throw ResponseStatusException(
-            HttpStatus.BAD_REQUEST,
-            "from must not be after to"
-        )
-        return expenses.sumAmountByTag(projectId, from.toInstant(), to.toInstant())
+        if (from.toInstant().isAfter(to.toInstant())) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "from must not be after to",
+            )
+        }
+        return expenses
+            .sumAmountByTag(projectId, from.toInstant(), to.toInstant())
             .sortedWith(compareByDescending<TagTotal> { it.total }.thenBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.tag })
     }
 
@@ -205,7 +219,10 @@ class ExpenseController(
         return tags.findByIdProjectIdOrderByIdNameAsc(projectId).map(ExpenseTag::name)
     }
 
-    private fun requireMember(projectId: UUID, jwt: Jwt): UserId {
+    private fun requireMember(
+        projectId: UUID,
+        jwt: Jwt,
+    ): UserId {
         val userId = jwt.subjectOrThrow()
         if (!projects.existsByIdAndMemberUserId(projectId, userId)) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not project=$projectId member")
@@ -216,7 +233,10 @@ class ExpenseController(
     private fun ExpenseRequest.toDetails() = ExpenseService.ExpenseDetails(title, date, amount, tag)
 
     private fun Expense.toResponse(
-        tagColor: String? = tagName?.let { tags.findById(ProjectTagId(projectId, it)).orElse(null)?.color },
+        tagColor: String? =
+            tagName?.let {
+                tags.findById(ProjectTagId(projectId, it)).orElse(null)?.color
+            },
     ) = ExpenseResponse(id, projectId, data.title, data.date, data.amount, tagName, tagColor, createdBy)
 
     /** Colors of the project's tags by name. */

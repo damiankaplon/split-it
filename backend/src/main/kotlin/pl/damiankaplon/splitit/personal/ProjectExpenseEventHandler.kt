@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import pl.damiankaplon.splitit.expense.ExpenseEvent
 import pl.damiankaplon.splitit.kernel.ExpenseData
 import pl.damiankaplon.splitit.kernel.Tag
-import java.util.*
+import java.util.UUID
 
 private val LOGGER = KotlinLogging.logger {}
 
@@ -21,7 +21,6 @@ class ProjectExpenseEventHandler(
     private val personalExpenses: ProjectPersonalExpenseRepository,
     private val tags: PersonalExpenseTagRepository,
 ) {
-
     fun handle(event: ExpenseEvent) {
         when (event) {
             is ExpenseEvent.ExpenseCreated -> handle(event)
@@ -39,7 +38,8 @@ class ProjectExpenseEventHandler(
     private fun handle(event: ExpenseEvent.ExpenseUpdated) {
         LOGGER.info { "Handling : $event" }
         val sharing = event.splits.map { it.userId }.toSet()
-        personalExpenses.findByProjectExpenseId(event.expenseId)
+        personalExpenses
+            .findByProjectExpenseId(event.expenseId)
             .filter { it.ownerId !in sharing }
             .let(personalExpenses::deleteAll)
         event.splits.forEach { saveShare(event.expenseId, event.projectId, event.data, event.tag, it) }

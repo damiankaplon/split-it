@@ -14,7 +14,6 @@ private val LOGGER = KotlinLogging.logger {}
 class BalanceExpenseEventHandler(
     private val balances: BalanceRepository,
 ) {
-
     fun handle(event: ExpenseEvent) {
         when (event) {
             is ExpenseEvent.ExpenseCreated -> handle(event)
@@ -41,6 +40,9 @@ class BalanceExpenseEventHandler(
         balances.findByProjectIdOrThrow(event.projectId).remove(expenseOf(event.payer, event.amount, event.splits))
     }
 
-    private fun expenseOf(payer: UserId, amount: Int, splits: List<ExpenseEvent.Split>) =
-        Expense(payer, amount, splits.associate { it.userId to it.amount })
+    private fun expenseOf(
+        payer: UserId,
+        amount: Int,
+        splits: List<ExpenseEvent.Split>,
+    ) = Expense(payer, amount, splits.associate { it.userId to it.amount })
 }

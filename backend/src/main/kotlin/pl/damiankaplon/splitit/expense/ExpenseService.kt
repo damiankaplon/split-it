@@ -11,7 +11,8 @@ import pl.damiankaplon.splitit.project.Project
 import pl.damiankaplon.splitit.project.ProjectMember
 import pl.damiankaplon.splitit.project.ProjectRepository
 import java.time.Instant
-import java.util.*
+import java.util.Currency
+import java.util.UUID
 import pl.damiankaplon.splitit.personal.ProjectExpenseEventHandler as PersonalExpenseEventHandler
 
 /**
@@ -29,7 +30,6 @@ class ExpenseService(
     private val balanceExpenseEventHandler: BalanceExpenseEventHandler,
     private val personalExpenseEventHandler: PersonalExpenseEventHandler,
 ) {
-
     data class ExpenseDetails(
         val title: String,
         val date: Instant,
@@ -37,17 +37,22 @@ class ExpenseService(
         val tag: String?,
     )
 
-    fun create(projectId: UUID, payer: UserId, details: ExpenseDetails): Expense {
+    fun create(
+        projectId: UUID,
+        payer: UserId,
+        details: ExpenseDetails,
+    ): Expense {
         val project = projects.findByIdOrThrow(projectId)
         val tag = findOrCreateTag(projectId, details.tag)
         val data = details.toData(project.currency)
-        val expense = Expense(
-            projectId = projectId,
-            data = data,
-            tag = tag,
-            createdBy = payer.value,
-            splits = project.split(data.amount),
-        ).let(expenses::save)
+        val expense =
+            Expense(
+                projectId = projectId,
+                data = data,
+                tag = tag,
+                createdBy = payer.value,
+                splits = project.split(data.amount),
+            ).let(expenses::save)
 
         publish(
             ExpenseEvent.ExpenseCreated(
@@ -57,12 +62,16 @@ class ExpenseService(
                 data = expense.data,
                 tag = tag?.toTag(),
                 splits = expense.splits.toEvent(),
-            )
+            ),
         )
         return expense
     }
 
-    fun update(projectId: UUID, expenseId: UUID, details: ExpenseDetails): Expense {
+    fun update(
+        projectId: UUID,
+        expenseId: UUID,
+        details: ExpenseDetails,
+    ): Expense {
         val project = projects.findByIdOrThrow(projectId)
         val expense = expenses.findByIdAndProjectIdOrThrow(expenseId, projectId)
         val payer = UserId(expense.createdBy)
@@ -82,12 +91,15 @@ class ExpenseService(
                 splits = expense.splits.toEvent(),
                 previousAmount = previousAmount,
                 previousSplits = previousSplits,
-            )
+            ),
         )
         return expense
     }
 
-    fun delete(projectId: UUID, expenseId: UUID) {
+    fun delete(
+        projectId: UUID,
+        expenseId: UUID,
+    ) {
         val expense = expenses.findByIdAndProjectIdOrThrow(expenseId, projectId)
         expenses.delete(expense)
 
@@ -98,7 +110,7 @@ class ExpenseService(
                 payer = UserId(expense.createdBy),
                 amount = expense.data.amount,
                 splits = expense.splits.toEvent(),
-            )
+            ),
         )
     }
 
@@ -118,7 +130,11 @@ class ExpenseService(
      */
     private fun Project.split(
         amount: Int,
-        among: Set<UserId> = this.members.map(ProjectMember::userId).map(::UserId).toSet(),
+        among: Set<UserId> =
+            this.members
+                .map(ProjectMember::userId)
+                .map(::UserId)
+                .toSet(),
     ): Set<ExpenseSplit> {
         val expense = SplitPolicy.Expense(amount, among)
         return splitPolicy.policy.calculate(expense).mapTo(linkedSetOf()) { ExpenseSplit(it.userId, it.amount) }
@@ -128,7 +144,10 @@ class ExpenseService(
      * Reuses an existing project tag (case-insensitive) or creates a new one;
      * a blank name means no tag.
      */
-    private fun findOrCreateTag(projectId: UUID, name: String?): ExpenseTag? {
+    private fun findOrCreateTag(
+        projectId: UUID,
+        name: String?,
+    ): ExpenseTag? {
         val trimmed = name?.trim()?.takeIf { it.isNotEmpty() } ?: return null
         return tags.findByIdProjectIdAndIdNameIgnoreCase(projectId, trimmed)
             ?: tags.save(ExpenseTag(projectId, trimmed))

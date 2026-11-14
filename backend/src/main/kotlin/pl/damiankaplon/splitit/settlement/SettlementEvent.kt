@@ -1,7 +1,7 @@
 package pl.damiankaplon.splitit.settlement
 
 import pl.damiankaplon.splitit.UserId
-import java.util.*
+import java.util.UUID
 
 sealed interface SettlementEvent {
     val projectId: UUID

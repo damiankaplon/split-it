@@ -12,7 +12,16 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.TagColors
 import pl.damiankaplon.splitit.UserId
@@ -21,7 +30,8 @@ import pl.damiankaplon.splitit.project.IsoCurrency
 import pl.damiankaplon.splitit.userIdOrThrow
 import java.time.Instant
 import java.time.ZonedDateTime
-import java.util.*
+import java.util.Currency
+import java.util.UUID
 
 private const val DEFAULT_PAGE_SIZE = 20
 private const val MAX_PAGE_SIZE = 100L
@@ -33,7 +43,6 @@ class PersonalExpenseController(
     private val expenses: PersonalExpenseRepository,
     private val tags: PersonalExpenseTagRepository,
 ) {
-
     data class PersonalExpenseRequest(
         @field:NotBlank val title: String,
         val date: Instant,
@@ -111,11 +120,12 @@ class PersonalExpenseController(
         val result = expenses.findAll(spec, PageRequest.of(page, size))
         val tagColors = tagColors(ownerId)
         return PersonalExpensePage(
-            items = result.content.map { expense: PersonalExpense ->
-                expense.toResponse(
-                    tagColor = expense.tagName?.let(tagColors::get)
-                )
-            },
+            items =
+                result.content.map { expense: PersonalExpense ->
+                    expense.toResponse(
+                        tagColor = expense.tagName?.let(tagColors::get),
+                    )
+                },
             page = result.number,
             size = result.size,
             totalElements = result.totalElements,
@@ -130,13 +140,14 @@ class PersonalExpenseController(
         title: String?,
         from: ZonedDateTime?,
         to: ZonedDateTime?,
-    ): Specification<PersonalExpense> = listOfNotNull(
-        PersonalExpenseSpecifications.ownedBy(ownerId),
-        tag?.trim()?.takeIf { it.isNotEmpty() }?.let(PersonalExpenseSpecifications::hasTag),
-        title?.trim()?.takeIf { it.isNotEmpty() }?.let(PersonalExpenseSpecifications::titleContains),
-        from?.toInstant()?.let(PersonalExpenseSpecifications::dateFrom),
-        to?.toInstant()?.let(PersonalExpenseSpecifications::dateTo),
-    ).fold(Specification.unrestricted()) { acc, next -> acc.and(next) }
+    ): Specification<PersonalExpense> =
+        listOfNotNull(
+            PersonalExpenseSpecifications.ownedBy(ownerId),
+            tag?.trim()?.takeIf { it.isNotEmpty() }?.let(PersonalExpenseSpecifications::hasTag),
+            title?.trim()?.takeIf { it.isNotEmpty() }?.let(PersonalExpenseSpecifications::titleContains),
+            from?.toInstant()?.let(PersonalExpenseSpecifications::dateFrom),
+            to?.toInstant()?.let(PersonalExpenseSpecifications::dateTo),
+        ).fold(Specification.unrestricted()) { acc, next -> acc.and(next) }
 
     data class CurrencySum(
         val currency: CurrencyResponse,
@@ -157,15 +168,15 @@ class PersonalExpenseController(
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: ZonedDateTime?,
         @AuthenticationPrincipal jwt: Jwt,
     ): List<CurrencySum> =
-        expenses.findAll(filterSpec(jwt.userIdOrThrow(), tag, title, from, to))
+        expenses
+            .findAll(filterSpec(jwt.userIdOrThrow(), tag, title, from, to))
             .groupBy { it.data.currency }
             .map { (currency, group) ->
                 CurrencySum(
                     currency = CurrencyResponse(currency.currencyCode, currency.defaultFractionDigits),
                     total = group.sumOf { it.data.amount.toLong() },
                 )
-            }
-            .sortedBy { it.currency.code }
+            }.sortedBy { it.currency.code }
 
     data class TagTotalResponse(
         val tag: String?,
@@ -186,16 +197,21 @@ class PersonalExpenseController(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: ZonedDateTime,
         @AuthenticationPrincipal jwt: Jwt,
     ): List<TagTotalResponse> {
-        if (from.toInstant().isAfter(to.toInstant())) throw ResponseStatusException(
-            HttpStatus.BAD_REQUEST,
-            "from must not be after to"
-        )
+        if (from.toInstant().isAfter(to.toInstant())) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "from must not be after to",
+            )
+        }
         val ownerId = jwt.userIdOrThrow()
-        val spec = PersonalExpenseSpecifications.ownedBy(ownerId)
-            .and(PersonalExpenseSpecifications.dateFrom(from.toInstant()))
-            .and(PersonalExpenseSpecifications.dateTo(to.toInstant()))
+        val spec =
+            PersonalExpenseSpecifications
+                .ownedBy(ownerId)
+                .and(PersonalExpenseSpecifications.dateFrom(from.toInstant()))
+                .and(PersonalExpenseSpecifications.dateTo(to.toInstant()))
         val tagColors = tagColors(ownerId)
-        return expenses.findAll(spec)
+        return expenses
+            .findAll(spec)
             .groupBy { it.data.currency to it.tagName }
             .map { (key, group) ->
                 val (currency, tag) = key
@@ -205,11 +221,10 @@ class PersonalExpenseController(
                     currency = CurrencyResponse(currency.currencyCode, currency.defaultFractionDigits),
                     total = group.sumOf { it.data.amount.toLong() },
                 )
-            }
-            .sortedWith(
+            }.sortedWith(
                 compareBy<TagTotalResponse> { it.currency.code }
                     .thenByDescending { it.total }
-                    .thenBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.tag }
+                    .thenBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.tag },
             )
     }
 
@@ -254,15 +269,22 @@ class PersonalExpenseController(
      */
     @GetMapping("/tags")
     @Transactional(readOnly = true)
-    fun listTags(@AuthenticationPrincipal jwt: Jwt): List<String> =
-        tags.findByIdOwnerIdOrderByIdNameAsc(jwt.userIdOrThrow()).map(PersonalExpenseTag::name)
+    fun listTags(
+        @AuthenticationPrincipal jwt: Jwt,
+    ): List<String> =
+        tags
+            .findByIdOwnerIdOrderByIdNameAsc(jwt.userIdOrThrow())
+            .map(PersonalExpenseTag::name)
             .sortedWith(String.CASE_INSENSITIVE_ORDER)
 
     /**
      * Reuses an existing tag of the owner (case-insensitive) or creates a new
      * one; a blank name means no tag.
      */
-    private fun findOrCreateTag(ownerId: UserId, name: String?): PersonalExpenseTag? {
+    private fun findOrCreateTag(
+        ownerId: UserId,
+        name: String?,
+    ): PersonalExpenseTag? {
         val trimmed = name?.trim()?.takeIf { it.isNotEmpty() } ?: return null
         return tags.findOrCreate(ownerId, trimmed, TagColors.random())
     }
@@ -273,21 +295,21 @@ class PersonalExpenseController(
     private fun tagColors(ownerId: UserId): Map<String, String> =
         tags.findByIdOwnerIdOrderByIdNameAsc(ownerId).associate { it.name to it.color }
 
-    private fun PersonalExpense.toResponse(
-        tagColor: String?,
-    ) = PersonalExpenseResponse(
-        id = id,
-        title = data.title,
-        date = data.date,
-        amount = data.amount,
-        currency = CurrencyResponse(data.currency.currencyCode, data.currency.defaultFractionDigits),
-        tag = tagName,
-        tagColor = tagColor,
-        source = when (this) {
-            is ManualPersonalExpense -> Source.MANUAL
-            is ProjectPersonalExpense -> Source.PROJECT
-            else -> error("Unknown personal expense type ${this::class}")
-        },
-        projectId = (this as? ProjectPersonalExpense)?.projectId,
-    )
+    private fun PersonalExpense.toResponse(tagColor: String?) =
+        PersonalExpenseResponse(
+            id = id,
+            title = data.title,
+            date = data.date,
+            amount = data.amount,
+            currency = CurrencyResponse(data.currency.currencyCode, data.currency.defaultFractionDigits),
+            tag = tagName,
+            tagColor = tagColor,
+            source =
+                when (this) {
+                    is ManualPersonalExpense -> Source.MANUAL
+                    is ProjectPersonalExpense -> Source.PROJECT
+                    else -> error("Unknown personal expense type ${this::class}")
+                },
+            projectId = (this as? ProjectPersonalExpense)?.projectId,
+        )
 }

@@ -1,23 +1,29 @@
 package pl.damiankaplon.splitit.expense
 
-import jakarta.persistence.*
+import jakarta.persistence.CollectionTable
+import jakarta.persistence.Column
+import jakarta.persistence.ElementCollection
+import jakarta.persistence.Embeddable
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.Table
+import jakarta.persistence.Version
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.kernel.ExpenseData
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "expense")
 class Expense(
     @Column(name = "project_id", nullable = false)
     val projectId: UUID,
-
     data: ExpenseData,
-
     tag: ExpenseTag?,
-
     @Column(name = "created_by", nullable = false)
     val createdBy: String,
-
     splits: Set<ExpenseSplit>,
 ) {
     @Embedded
@@ -48,7 +54,11 @@ class Expense(
         requireSplitsOf(data, splits)
     }
 
-    fun update(data: ExpenseData, tag: ExpenseTag?, splits: Set<ExpenseSplit>) {
+    fun update(
+        data: ExpenseData,
+        tag: ExpenseTag?,
+        splits: Set<ExpenseSplit>,
+    ) {
         requireProjectTag(tag)
         requireSplitsOf(data, splits)
         this.data = data
@@ -60,7 +70,10 @@ class Expense(
     private fun requireProjectTag(tag: ExpenseTag?) =
         require(tag == null || tag.projectId == projectId) { "Tag $tag is not of project=$projectId" }
 
-    private fun requireSplitsOf(data: ExpenseData, splits: Set<ExpenseSplit>) {
+    private fun requireSplitsOf(
+        data: ExpenseData,
+        splits: Set<ExpenseSplit>,
+    ) {
         require(splits.isNotEmpty()) { "Expense must be split among at least one member" }
         require(splits.map { it.userId }.toSet().size == splits.size) { "A member can have only one split" }
         require(splits.sumOf { it.amount } == data.amount) {
@@ -81,7 +94,6 @@ class Expense(
 data class ExpenseSplit(
     @Column(name = "user_id", nullable = false)
     val userId: UserId,
-
     @Column(name = "amount", nullable = false)
     val amount: Int,
 )

@@ -4,7 +4,7 @@ import jakarta.validation.Constraint
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
 import jakarta.validation.Payload
-import java.util.*
+import java.util.Currency
 import java.util.Currency.getInstance
 import kotlin.reflect.KClass
 
@@ -19,7 +19,11 @@ annotation class IsoCurrency(
 )
 
 class IsoCurrencyValidator : ConstraintValidator<IsoCurrency, String> {
-    override fun isValid(value: String?, context: ConstraintValidatorContext): Boolean =
-        value == null || runCatching<Currency> { getInstance(value.trim().uppercase()) }.getOrNull()
+    override fun isValid(
+        value: String?,
+        context: ConstraintValidatorContext,
+    ): Boolean =
+        value == null || runCatching<Currency> { getInstance(value.trim().uppercase()) }
+            .getOrNull()
             ?.takeIf { it.defaultFractionDigits >= 0 } != null
 }

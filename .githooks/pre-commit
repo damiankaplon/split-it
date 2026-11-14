@@ -1,0 +1,29 @@
+#!/bin/sh
+# Fail the commit if staged files are not formatted.
+#  - backend/*.kt, *.kts : Spotless / ktlint (whole backend)
+#  - frontend/**         : Prettier (staged files only)
+# Enable with: git config core.hooksPath .githooks
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+
+if echo "$staged" | grep -qE '^backend/.*\.(kt|kts)$'; then
+  # Git started from an IDE may not have JAVA_HOME; fall back to a JDK downloaded by IntelliJ.
+  if [ -z "$JAVA_HOME" ] && ! command -v java >/dev/null 2>&1; then
+    JAVA_HOME=$(ls -d "$HOME"/.jdks/*/ 2>/dev/null | sort | tail -n 1)
+    JAVA_HOME=${JAVA_HOME%/}
+    export JAVA_HOME
+  fi
+
+  if ! (cd backend && ./gradlew spotlessCheck -q); then
+    echo "Backend formatting check failed. Run './gradlew spotlessApply' in backend/, stage the changes and commit again." >&2
+    exit 1
+  fi
+fi
+
+frontend_files=$(echo "$staged" | grep '^frontend/' | sed 's#^frontend/##')
+if [ -n "$frontend_files" ]; then
+  if ! echo "$frontend_files" | tr '\n' '\0' | (cd frontend && xargs -0 npx --no-install prettier --check --ignore-unknown); then
+    echo "Frontend formatting check failed. Run 'npm run format' in frontend/, stage the changes and commit again." >&2
+    exit 1
+  fi
+fi

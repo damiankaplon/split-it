@@ -5,10 +5,9 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import pl.damiankaplon.splitit.UserId
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 class SettlementTest {
-
     private val projectId = UUID.randomUUID()
     private val alice = UserId("alice")
     private val bob = UserId("bob")

@@ -1,9 +1,15 @@
 package pl.damiankaplon.splitit.settlement
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.Table
+import jakarta.persistence.Version
 import pl.damiankaplon.splitit.UserId
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 /**
  * A four-eyes settlement: the debtor declares they paid [amount] to the
@@ -15,16 +21,12 @@ import java.util.*
 class Settlement(
     @Column(name = "project_id", nullable = false)
     val projectId: UUID,
-
     @Column(name = "debtor_id", nullable = false)
     val debtor: UserId,
-
     @Column(name = "creditor_id", nullable = false)
     val creditor: UserId,
-
     @Column(nullable = false)
     val amount: Int,
-
     @Column(name = "created_at", nullable = false)
     val createdAt: Instant,
 ) {
@@ -64,7 +66,10 @@ class Settlement(
     /** The debtor withdraws the request. */
     fun cancel(now: Instant) = resolve(Status.CANCELLED, now)
 
-    private fun resolve(next: Status, now: Instant) {
+    private fun resolve(
+        next: Status,
+        now: Instant,
+    ) {
         check(status == Status.PENDING) { "Settlement $id is already $status" }
         status = next
         resolvedAt = now

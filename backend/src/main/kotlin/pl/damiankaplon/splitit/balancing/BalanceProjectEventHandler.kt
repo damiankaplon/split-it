@@ -13,7 +13,6 @@ import pl.damiankaplon.splitit.project.ProjectEvent
 class BalanceProjectEventHandler(
     private val balances: BalanceRepository,
 ) {
-
     fun handle(event: ProjectEvent) {
         when (event) {
             is ProjectEvent.ProjectCreated -> balances.save(Balance(event.projectId))

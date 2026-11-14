@@ -8,7 +8,12 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.Time
 import pl.damiankaplon.splitit.UserId
@@ -17,7 +22,7 @@ import pl.damiankaplon.splitit.project.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
 import pl.damiankaplon.splitit.userIdOrThrow
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @RestController
 class SettlementController(
@@ -26,7 +31,6 @@ class SettlementController(
     private val balanceSettlementEventHandler: BalanceSettlementEventHandler,
     private val time: Time,
 ) {
-
     data class SettlementResponse(
         val id: UUID,
         val debtorId: String,
@@ -43,9 +47,11 @@ class SettlementController(
         @AuthenticationPrincipal jwt: Jwt,
     ): List<SettlementResponse> {
         val currentUserId = jwt.subjectOrThrow().let(::UserId)
-        val spec = SettlementSpecifications.inProject(projectId)
-            .and(SettlementSpecifications.hasStatus(Settlement.Status.PENDING))
-            .and(SettlementSpecifications.involves(currentUserId))
+        val spec =
+            SettlementSpecifications
+                .inProject(projectId)
+                .and(SettlementSpecifications.hasStatus(Settlement.Status.PENDING))
+                .and(SettlementSpecifications.involves(currentUserId))
         val oldestFirst = Sort.by(Sort.Order.asc(Settlement::createdAt.name))
         return settlements.findAll(spec, oldestFirst).map { it.toResponse() }
     }
@@ -76,24 +82,26 @@ class SettlementController(
         if (!projects.existsByIdAndMemberUserId(projectId, creditor.value)) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "${creditor.value} is not project=$projectId member")
         }
-        val alreadyPendingSettlement = settlements.existsByProjectIdAndCreditorAndStatus(
-            projectId,
-            creditor,
-            Settlement.Status.PENDING
-        )
+        val alreadyPendingSettlement =
+            settlements.existsByProjectIdAndCreditorAndStatus(
+                projectId,
+                creditor,
+                Settlement.Status.PENDING,
+            )
         if (alreadyPendingSettlement) {
             throw ResponseStatusException(
                 HttpStatus.CONFLICT,
-                "A settlement with ${request.creditorId} awaits confirmation"
+                "A settlement with ${request.creditorId} awaits confirmation",
             )
         }
-        val settlement = Settlement(
-            projectId = projectId,
-            debtor = currentUserId,
-            creditor = creditor,
-            amount = request.amount,
-            createdAt = time.now()
-        )
+        val settlement =
+            Settlement(
+                projectId = projectId,
+                debtor = currentUserId,
+                creditor = creditor,
+                amount = request.amount,
+                createdAt = time.now(),
+            )
         settlements.save(settlement)
         return settlement.toResponse()
     }
@@ -141,6 +149,5 @@ class SettlementController(
         return settlement.toResponse()
     }
 
-    private fun Settlement.toResponse() =
-        SettlementResponse(id, debtor.value, creditor.value, amount, status, createdAt)
+    private fun Settlement.toResponse() = SettlementResponse(id, debtor.value, creditor.value, amount, status, createdAt)
 }

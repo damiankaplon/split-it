@@ -4,13 +4,18 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.balancing.BalanceProjectEventHandler
 import pl.damiankaplon.splitit.project.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
 import pl.damiankaplon.splitit.usernameOrThrow
-import java.util.*
+import java.util.UUID
 
 @RestController
 class InvitationController(
@@ -19,7 +24,6 @@ class InvitationController(
     private val projects: ProjectRepository,
     private val balanceProjectEventHandler: BalanceProjectEventHandler,
 ) {
-
     data class InvitationResponse(
         val projectId: UUID,
         val token: String,
@@ -33,7 +37,8 @@ class InvitationController(
     ): InvitationResponse {
         val command = InvitationCommandHandler.CreateInvitation(projectId, jwt.subjectOrThrow())
         return try {
-            invitationCommandHandler.handle(command)
+            invitationCommandHandler
+                .handle(command)
                 .let { created -> InvitationResponse(created.projectId, created.token) }
         } catch (t: Throwable) {
             throw ResponseStatusException(HttpStatus.PRECONDITION_FAILED, "Domain error", t)
@@ -47,12 +52,13 @@ class InvitationController(
         @RequestParam("token") token: String,
         @AuthenticationPrincipal jwt: Jwt,
     ) {
-        val command = InvitationCommandHandler.AcceptInvitation(
-            jwt.subjectOrThrow(),
-            jwt.usernameOrThrow(),
-            projectId,
-            token
-        )
+        val command =
+            InvitationCommandHandler.AcceptInvitation(
+                jwt.subjectOrThrow(),
+                jwt.usernameOrThrow(),
+                projectId,
+                token,
+            )
         try {
             val memberJoined = invitationCommandHandler.handle(command)
             balanceProjectEventHandler.handle(memberJoined)

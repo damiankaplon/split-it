@@ -1,5 +1,5 @@
 package pl.damiankaplon.splitit
 
-import java.util.*
+import java.util.Currency
 
 val PLN: Currency = Currency.getInstance("PLN")

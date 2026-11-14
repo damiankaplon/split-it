@@ -1,6 +1,6 @@
 package pl.damiankaplon.splitit.invitation
 
-import java.util.*
+import java.util.UUID
 
 sealed interface ProjectInvitationEvent {
     val invitationId: UUID

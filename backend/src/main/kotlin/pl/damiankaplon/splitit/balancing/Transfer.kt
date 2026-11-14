@@ -12,10 +12,8 @@ import pl.damiankaplon.splitit.UserId
 data class Transfer(
     @Column(name = "from_user_id", nullable = false)
     val from: UserId,
-
     @Column(name = "to_user_id", nullable = false)
     val to: UserId,
-
     @Column(name = "amount", nullable = false)
     val amount: Long,
 ) {

@@ -1,9 +1,17 @@
 package pl.damiankaplon.splitit.personal
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorColumn
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Inheritance
+import jakarta.persistence.InheritanceType
+import jakarta.persistence.Table
+import jakarta.persistence.Version
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.kernel.ExpenseData
-import java.util.*
+import java.util.UUID
 
 /**
  * An expense visible only to its owner: either entered manually
@@ -18,9 +26,7 @@ import java.util.*
 abstract class PersonalExpense(
     @Column(name = "owner_id", nullable = false)
     val ownerId: UserId,
-
     data: ExpenseData,
-
     tag: PersonalExpenseTag?,
 ) {
     @Id
@@ -46,7 +52,10 @@ abstract class PersonalExpense(
         requireOwnTag(tag)
     }
 
-    fun update(data: ExpenseData, tag: PersonalExpenseTag?) {
+    fun update(
+        data: ExpenseData,
+        tag: PersonalExpenseTag?,
+    ) {
         requireOwnTag(tag)
         this.data = data
         this.tagName = tag?.name

@@ -10,9 +10,7 @@ import pl.damiankaplon.splitit.RollbackIntegrationTest
 import pl.damiankaplon.splitit.project.Project
 
 class SettlementEndpointsIntegrationTest : RollbackIntegrationTest() {
-
-    private fun projectWith(vararg userIds: String): Project =
-        testData.createProject(userIds.first(), *userIds.drop(1).toTypedArray())
+    private fun projectWith(vararg userIds: String): Project = testData.createProject(userIds.first(), *userIds.drop(1).toTypedArray())
 
     /** alice paid 100.00 and bob 20.00, so bob owes alice 40.00. */
     private fun bobOwesAlice4000(): Project {
@@ -22,39 +20,52 @@ class SettlementEndpointsIntegrationTest : RollbackIntegrationTest() {
         return project
     }
 
-    private fun addExpense(project: Project, userId: String, amount: Int) {
-        mockMvc.post("/projects/${project.id}/expenses") {
-            with(asUser(userId))
-            contentType = MediaType.APPLICATION_JSON
-            content = """{"title":"Dinner","date":"2026-10-03T19:30:00Z","amount":$amount}"""
-        }.andExpect { status { isCreated() } }
+    private fun addExpense(
+        project: Project,
+        userId: String,
+        amount: Int,
+    ) {
+        mockMvc
+            .post("/projects/${project.id}/expenses") {
+                with(asUser(userId))
+                contentType = MediaType.APPLICATION_JSON
+                content = """{"title":"Dinner","date":"2026-10-03T19:30:00Z","amount":$amount}"""
+            }.andExpect { status { isCreated() } }
     }
 
-    private fun requestSettlement(project: Project, debtorId: String, body: String) =
-        mockMvc.post("/projects/${project.id}/settlements") {
-            with(asUser(debtorId))
-            contentType = MediaType.APPLICATION_JSON
-            content = body
-        }
+    private fun requestSettlement(
+        project: Project,
+        debtorId: String,
+        body: String,
+    ) = mockMvc.post("/projects/${project.id}/settlements") {
+        with(asUser(debtorId))
+        contentType = MediaType.APPLICATION_JSON
+        content = body
+    }
 
     private fun ResultActionsDsl.settlementId(): String =
         andReturn().response.contentAsString.let { Regex("\"id\":\"([^\"]+)\"").find(it)!!.groupValues[1] }
 
-    private fun resolve(settlementId: String, action: String, userId: String) =
-        mockMvc.post("/settlements/$settlementId/$action") { with(asUser(userId)) }
+    private fun resolve(
+        settlementId: String,
+        action: String,
+        userId: String,
+    ) = mockMvc.post("/settlements/$settlementId/$action") { with(asUser(userId)) }
 
-    private fun expectDebt(project: Project, amount: Int?) =
-        mockMvc.get("/projects/${project.id}/debts") { with(asUser("alice-id")) }.andExpect {
-            status { isOk() }
-            if (amount == null) {
-                jsonPath("$.length()") { value(0) }
-            } else {
-                jsonPath("$.length()") { value(1) }
-                jsonPath("$[0].debtorId") { value("bob-id") }
-                jsonPath("$[0].creditorId") { value("alice-id") }
-                jsonPath("$[0].amount") { value(amount) }
-            }
+    private fun expectDebt(
+        project: Project,
+        amount: Int?,
+    ) = mockMvc.get("/projects/${project.id}/debts") { with(asUser("alice-id")) }.andExpect {
+        status { isOk() }
+        if (amount == null) {
+            jsonPath("$.length()") { value(0) }
+        } else {
+            jsonPath("$.length()") { value(1) }
+            jsonPath("$[0].debtorId") { value("bob-id") }
+            jsonPath("$[0].creditorId") { value("alice-id") }
+            jsonPath("$[0].amount") { value(amount) }
         }
+    }
 
     @Test
     fun `members see who owes whom`() {
@@ -67,11 +78,13 @@ class SettlementEndpointsIntegrationTest : RollbackIntegrationTest() {
     fun `settlement of the whole debt clears it once the creditor confirms`() {
         val project = bobOwesAlice4000()
 
-        val id = requestSettlement(project, "bob-id", """{"creditorId":"alice-id","amount":4000}""").andExpect {
-            status { isCreated() }
-            jsonPath("$.amount") { value(4000) }
-            jsonPath("$.status") { value("PENDING") }
-        }.settlementId()
+        val id =
+            requestSettlement(project, "bob-id", """{"creditorId":"alice-id","amount":4000}""")
+                .andExpect {
+                    status { isCreated() }
+                    jsonPath("$.amount") { value(4000) }
+                    jsonPath("$.status") { value("PENDING") }
+                }.settlementId()
         // The debt stays until confirmed
         expectDebt(project, 4000)
 
@@ -122,7 +135,7 @@ class SettlementEndpointsIntegrationTest : RollbackIntegrationTest() {
         requestSettlement(
             otherProject,
             "bob-id",
-            """{"creditorId":"alice-id","amount":4000}"""
+            """{"creditorId":"alice-id","amount":4000}""",
         ).andExpect { status { isCreated() } }
 
         listOf("alice-id", "bob-id").forEach { user ->
@@ -137,7 +150,8 @@ class SettlementEndpointsIntegrationTest : RollbackIntegrationTest() {
             jsonPath("$.length()") { value(0) }
         }
         resolve(id, "confirm", "alice-id")
-        mockMvc.get("/projects/${project.id}/settlements") { with(asUser("bob-id")) }
+        mockMvc
+            .get("/projects/${project.id}/settlements") { with(asUser("bob-id")) }
             .andExpect { jsonPath("$.length()") { value(0) } }
     }
 
@@ -161,12 +175,12 @@ class SettlementEndpointsIntegrationTest : RollbackIntegrationTest() {
         requestSettlement(
             project,
             "bob-id",
-            """{"creditorId":"alice-id","amount":4000}"""
+            """{"creditorId":"alice-id","amount":4000}""",
         ).andExpect { status { isCreated() } }
         requestSettlement(
             project,
             "bob-id",
-            """{"creditorId":"alice-id","amount":4000}"""
+            """{"creditorId":"alice-id","amount":4000}""",
         ).andExpect { status { isConflict() } }
         requestSettlement(project, "bob-id", """{"creditorId":"alice-id","amount":0}""")
             .andExpect { status { isBadRequest() } }
@@ -175,11 +189,21 @@ class SettlementEndpointsIntegrationTest : RollbackIntegrationTest() {
     }
 
     /** Exactly the [expected] (debtor, creditor, amount) debts, in any order. */
-    private fun expectDebts(project: Project, vararg expected: Triple<String, String, Int>) {
-        val body = mockMvc.get("/projects/${project.id}/debts") { with(asUser("alice-id")) }
-            .andExpect { status { isOk() } }.andReturn().response.contentAsString
-        val debts = Regex("\"debtorId\":\"([^\"]+)\",\"creditorId\":\"([^\"]+)\",\"amount\":(\\d+)")
-            .findAll(body).map { Triple(it.groupValues[1], it.groupValues[2], it.groupValues[3].toInt()) }.toList()
+    private fun expectDebts(
+        project: Project,
+        vararg expected: Triple<String, String, Int>,
+    ) {
+        val body =
+            mockMvc
+                .get("/projects/${project.id}/debts") { with(asUser("alice-id")) }
+                .andExpect { status { isOk() } }
+                .andReturn()
+                .response.contentAsString
+        val debts =
+            Regex("\"debtorId\":\"([^\"]+)\",\"creditorId\":\"([^\"]+)\",\"amount\":(\\d+)")
+                .findAll(body)
+                .map { Triple(it.groupValues[1], it.groupValues[2], it.groupValues[3].toInt()) }
+                .toList()
         assertThat(debts).containsExactlyInAnyOrder(*expected)
     }
 

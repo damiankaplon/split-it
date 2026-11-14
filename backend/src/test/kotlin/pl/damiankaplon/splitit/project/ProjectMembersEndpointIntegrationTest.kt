@@ -5,13 +5,13 @@ import org.springframework.test.web.servlet.get
 import pl.damiankaplon.splitit.RollbackIntegrationTest
 
 class ProjectMembersEndpointIntegrationTest : RollbackIntegrationTest() {
-
     @Test
     fun `project members endpoint returns the members stored in the repository`() {
         val project = testData.createProject("alice-id", ownerName = "alice")
         testData.addMember(project, "bob-id", "bob")
 
-        mockMvc.get("/projects/${project.id}") { with(asUser("bob-id")) }
+        mockMvc
+            .get("/projects/${project.id}") { with(asUser("bob-id")) }
             .andExpect {
                 status { isOk() }
                 jsonPath("$.length()") { value(2) }
@@ -24,7 +24,8 @@ class ProjectMembersEndpointIntegrationTest : RollbackIntegrationTest() {
     fun `project members endpoint is forbidden for non-members`() {
         val project = testData.createProject("alice-id", ownerName = "alice")
 
-        mockMvc.get("/projects/${project.id}") { with(asUser("stranger-id")) }
+        mockMvc
+            .get("/projects/${project.id}") { with(asUser("stranger-id")) }
             .andExpect { status { isForbidden() } }
     }
 
@@ -34,7 +35,8 @@ class ProjectMembersEndpointIntegrationTest : RollbackIntegrationTest() {
         testData.createProject("alice-id", name = "Other", ownerName = "alice")
         testData.addMember(joined, "carol-id", "carol")
 
-        mockMvc.get("/projects") { with(asUser("carol-id")) }
+        mockMvc
+            .get("/projects") { with(asUser("carol-id")) }
             .andExpect {
                 status { isOk() }
                 jsonPath("$.length()") { value(1) }

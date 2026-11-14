@@ -1,9 +1,14 @@
 package pl.damiankaplon.splitit.personal
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
+import jakarta.persistence.Version
 import pl.damiankaplon.splitit.UserId
 import java.time.Instant
-import java.util.*
+import java.util.Currency
+import java.util.UUID
 
 /**
  * Money the owner received. A [delimiting] income starts a new savings
@@ -16,20 +21,15 @@ import java.util.*
 class Income(
     @Column(name = "owner_id", nullable = false)
     val ownerId: UserId,
-
     @Column(nullable = false)
     var title: String,
-
     @Column(nullable = false)
     var date: Instant,
-
     @Column(nullable = false)
     var delimiting: Boolean,
-
     /** In the currency's minor units. */
     @Column(nullable = false)
     var amount: Int,
-
     @Column(nullable = false)
     var currency: Currency,
 ) {

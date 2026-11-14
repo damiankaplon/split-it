@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.project.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
-import java.util.*
+import java.util.UUID
 
 @RestController
 @RequestMapping("/projects/{projectId}")
@@ -19,7 +19,6 @@ class BalanceController(
     private val balances: BalanceRepository,
     private val projects: ProjectRepository,
 ) {
-
     /** `amount` is in the project currency's minor units. */
     data class DebtResponse(
         val debtorId: String,
@@ -40,7 +39,8 @@ class BalanceController(
         if (!projects.existsByIdAndMemberUserId(projectId, jwt.subjectOrThrow())) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not project=$projectId member")
         }
-        return balances.findTransfersByProjectId(projectId)
+        return balances
+            .findTransfersByProjectId(projectId)
             .map { DebtResponse(it.from.value, it.to.value, it.amount) }
             .sortedByDescending { it.amount }
     }

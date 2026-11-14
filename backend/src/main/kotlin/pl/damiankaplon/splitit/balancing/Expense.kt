@@ -7,7 +7,11 @@ import pl.damiankaplon.splitit.UserId
  * [splits] values add up exactly to [amount]. The payer may or may not be
  * in [splits].
  */
-data class Expense(val payer: UserId, val amount: Int, val splits: Map<UserId, Int>) {
+data class Expense(
+    val payer: UserId,
+    val amount: Int,
+    val splits: Map<UserId, Int>,
+) {
     init {
         require(amount > 0) { "Expense amount must be positive, was $amount" }
         require(splits.isNotEmpty()) { "Expense must be shared by at least one user" }

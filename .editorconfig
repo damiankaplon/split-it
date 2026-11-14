@@ -1,0 +1,24 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.{kt,kts,java}]
+indent_size = 4
+
+[*.{kt,kts}]
+ktlint_code_style = ktlint_official
+# Forbid wildcard imports: ktlint reports them, IntelliJ never collapses imports into `.*`
+ktlint_standard_no-wildcard-imports = enabled
+ij_kotlin_name_count_to_use_star_import = 2147483647
+ij_kotlin_name_count_to_use_star_import_for_members = 2147483647
+# By default IntelliJ and ktlint still allow `java.util.*` (plus kotlinx.android.synthetic.** and io.ktor.**)
+ij_kotlin_packages_to_use_import_on_demand = unset
+
+[*.bat]
+end_of_line = crlf

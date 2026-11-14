@@ -3,7 +3,7 @@ package pl.damiankaplon.splitit.expense
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.kernel.ExpenseData
 import pl.damiankaplon.splitit.kernel.Tag
-import java.util.*
+import java.util.UUID
 
 /**
  * What happened to a project's expenses. Every consumer is handed every

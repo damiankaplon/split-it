@@ -2,7 +2,10 @@ package pl.damiankaplon.splitit.expense
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.any
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import pl.damiankaplon.splitit.PLN
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.balancing.BalanceExpenseEventHandler
@@ -19,7 +22,6 @@ import java.time.Instant
  * and after every change.
  */
 class ExpenseServiceTest {
-
     private val alice = UserId("alice")
     private val bob = UserId("bob")
     private val carol = UserId("carol")
@@ -31,13 +33,14 @@ class ExpenseServiceTest {
     private val balance = mock(BalanceExpenseEventHandler::class.java)
     private val personal = mock(ProjectExpenseEventHandler::class.java)
 
-    private val service = ExpenseService(
-        expenses = expenses,
-        tags = mock(ExpenseTagRepository::class.java),
-        projects = projects,
-        balanceExpenseEventHandler = balance,
-        personalExpenseEventHandler = personal,
-    )
+    private val service =
+        ExpenseService(
+            expenses = expenses,
+            tags = mock(ExpenseTagRepository::class.java),
+            projects = projects,
+            balanceExpenseEventHandler = balance,
+            personalExpenseEventHandler = personal,
+        )
 
     init {
         `when`(projects.findByIdOrThrow(project.id)).thenReturn(project)
@@ -52,15 +55,25 @@ class ExpenseServiceTest {
      * Alice's expense of [amount], split by [splits], as the repository
      * returns it.
      */
-    private fun existingExpense(amount: Int, vararg splits: Pair<UserId, Int>): Expense {
-        val expenseSplits = if (splits.isEmpty()) setOf(ExpenseSplit(alice, amount))
-        else splits.mapTo(mutableSetOf()) { ExpenseSplit(it.first, it.second) }
+    private fun existingExpense(
+        amount: Int,
+        vararg splits: Pair<UserId, Int>,
+    ): Expense {
+        val expenseSplits =
+            if (splits.isEmpty()) {
+                setOf(ExpenseSplit(alice, amount))
+            } else {
+                splits.mapTo(mutableSetOf()) { ExpenseSplit(it.first, it.second) }
+            }
         val expense = Expense(project.id, data(amount), null, alice.value, expenseSplits)
         `when`(expenses.findByIdAndProjectIdOrThrow(expense.id, project.id)).thenReturn(expense)
         return expense
     }
 
-    private fun updateAmount(expense: Expense, amount: Int) = service.update(project.id, expense.id, details(amount))
+    private fun updateAmount(
+        expense: Expense,
+        amount: Int,
+    ) = service.update(project.id, expense.id, details(amount))
 
     @Test
     fun `a new expense is split equally among the members and published with the splits`() {
@@ -69,14 +82,15 @@ class ExpenseServiceTest {
 
         val expense = service.create(project.id, alice, details(1000))
 
-        val event = ExpenseEvent.ExpenseCreated(
-            projectId = project.id,
-            expenseId = expense.id,
-            payer = alice,
-            data = data(1000),
-            tag = null,
-            splits = listOf(Split(alice, 334), Split(bob, 333), Split(carol, 333)),
-        )
+        val event =
+            ExpenseEvent.ExpenseCreated(
+                projectId = project.id,
+                expenseId = expense.id,
+                payer = alice,
+                data = data(1000),
+                tag = null,
+                splits = listOf(Split(alice, 334), Split(bob, 333), Split(carol, 333)),
+            )
         verify(balance).handle(event)
         verify(personal).handle(event)
     }
@@ -90,16 +104,17 @@ class ExpenseServiceTest {
 
         updateAmount(expense, 1001)
 
-        val event = ExpenseEvent.ExpenseUpdated(
-            projectId = project.id,
-            expenseId = expense.id,
-            payer = alice,
-            data = data(1001),
-            tag = null,
-            splits = listOf(Split(alice, 501), Split(bob, 500)),
-            previousAmount = 900,
-            previousSplits = listOf(Split(alice, 450), Split(bob, 450)),
-        )
+        val event =
+            ExpenseEvent.ExpenseUpdated(
+                projectId = project.id,
+                expenseId = expense.id,
+                payer = alice,
+                data = data(1001),
+                tag = null,
+                splits = listOf(Split(alice, 501), Split(bob, 500)),
+                previousAmount = 900,
+                previousSplits = listOf(Split(alice, 450), Split(bob, 450)),
+            )
         verify(balance).handle(event)
         verify(personal).handle(event)
     }
@@ -120,13 +135,14 @@ class ExpenseServiceTest {
 
         service.delete(project.id, expense.id)
 
-        val event = ExpenseEvent.ExpenseDeleted(
-            projectId = project.id,
-            expenseId = expense.id,
-            payer = alice,
-            amount = 1000,
-            splits = listOf(Split(alice, 400), Split(bob, 600)),
-        )
+        val event =
+            ExpenseEvent.ExpenseDeleted(
+                projectId = project.id,
+                expenseId = expense.id,
+                payer = alice,
+                amount = 1000,
+                splits = listOf(Split(alice, 400), Split(bob, 600)),
+            )
         verify(balance).handle(event)
         verify(personal).handle(event)
     }

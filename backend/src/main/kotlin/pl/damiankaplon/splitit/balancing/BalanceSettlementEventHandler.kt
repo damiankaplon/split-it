@@ -13,11 +13,13 @@ import pl.damiankaplon.splitit.settlement.SettlementEvent
 class BalanceSettlementEventHandler(
     private val balances: BalanceRepository,
 ) {
-
     fun handle(event: SettlementEvent) {
         when (event) {
-            is SettlementEvent.SettlementConfirmed -> balances.findByProjectIdOrThrow(event.projectId)
-                .record(Transfer(from = event.debtor, to = event.creditor, amount = event.amount.toLong()))
+            is SettlementEvent.SettlementConfirmed -> {
+                balances
+                    .findByProjectIdOrThrow(event.projectId)
+                    .record(Transfer(from = event.debtor, to = event.creditor, amount = event.amount.toLong()))
+            }
         }
     }
 }

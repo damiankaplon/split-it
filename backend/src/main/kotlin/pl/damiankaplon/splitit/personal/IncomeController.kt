@@ -8,14 +8,24 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.Time
 import pl.damiankaplon.splitit.project.IsoCurrency
 import pl.damiankaplon.splitit.userIdOrThrow
 import java.time.Instant
 import java.time.ZonedDateTime
-import java.util.*
+import java.util.Currency
+import java.util.UUID
 
 /** Every endpoint works only on the calling user's own incomes. */
 @RestController
@@ -25,7 +35,6 @@ class IncomeController(
     private val expenses: PersonalExpenseRepository,
     private val time: Time,
 ) {
-
     data class IncomeRequest(
         @field:NotBlank val title: String,
         val date: Instant,
@@ -56,20 +65,22 @@ class IncomeController(
     fun create(
         @Valid @RequestBody request: IncomeRequest,
         @AuthenticationPrincipal jwt: Jwt,
-    ): IncomeResponse = Income(
-        ownerId = jwt.userIdOrThrow(),
-        title = request.title.trim(),
-        date = request.date,
-        delimiting = request.delimiting,
-        amount = request.amount,
-        currency = request.currencyCode,
-    ).let(incomes::save).toResponse()
+    ): IncomeResponse =
+        Income(
+            ownerId = jwt.userIdOrThrow(),
+            title = request.title.trim(),
+            date = request.date,
+            delimiting = request.delimiting,
+            amount = request.amount,
+            currency = request.currencyCode,
+        ).let(incomes::save).toResponse()
 
     /** Newest first. */
     @GetMapping("/incomes")
     @Transactional(readOnly = true)
-    fun list(@AuthenticationPrincipal jwt: Jwt): List<IncomeResponse> =
-        incomes.findByOwnerIdOrderByDateDescIdDesc(jwt.userIdOrThrow()).map { it.toResponse() }
+    fun list(
+        @AuthenticationPrincipal jwt: Jwt,
+    ): List<IncomeResponse> = incomes.findByOwnerIdOrderByDateDescIdDesc(jwt.userIdOrThrow()).map { it.toResponse() }
 
     @PutMapping("/incomes/{incomeId}")
     @Transactional
@@ -129,24 +140,28 @@ class IncomeController(
         val zone = (to ?: from)?.zone ?: time.zone()
         val rangeTo = to?.toInstant() ?: time.now()
         val rangeFrom = from?.toInstant() ?: rangeTo.atZone(zone).minusYears(1).toInstant()
-        if (rangeFrom.isAfter(rangeTo)) throw ResponseStatusException(
-            HttpStatus.BAD_REQUEST,
-            "from must not be after to"
-        )
+        if (rangeFrom.isAfter(rangeTo)) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "from must not be after to",
+            )
+        }
 
         val ownerId = jwt.userIdOrThrow()
         val (delimiting, other) = incomes.findByOwnerIdOrderByDateDescIdDesc(ownerId).partition { it.delimiting }
         if (delimiting.isEmpty()) return emptyList()
         val firstStart = delimiting.minOf { it.date }
-        val spent = expenses.findAll(
-            PersonalExpenseSpecifications.ownedBy(ownerId).and(PersonalExpenseSpecifications.dateFrom(firstStart))
-        )
+        val spent =
+            expenses.findAll(
+                PersonalExpenseSpecifications.ownedBy(ownerId).and(PersonalExpenseSpecifications.dateFrom(firstStart)),
+            )
 
-        return Savings.periods(
-            delimitingIncomes = delimiting.map { Flow(it.date, it.amount, it.currency) },
-            otherIncomes = other.map { Flow(it.date, it.amount, it.currency) },
-            expenses = spent.map { Flow(it.data.date, it.data.amount, it.data.currency) },
-        ).filter { it.start <= rangeTo && (it.end == null || it.end > rangeFrom) }
+        return Savings
+            .periods(
+                delimitingIncomes = delimiting.map { Flow(it.date, it.amount, it.currency) },
+                otherIncomes = other.map { Flow(it.date, it.amount, it.currency) },
+                expenses = spent.map { Flow(it.data.date, it.data.amount, it.data.currency) },
+            ).filter { it.start <= rangeTo && (it.end == null || it.end > rangeFrom) }
             .map {
                 SavingsResponse(
                     currency = CurrencyResponse(it.currency.currencyCode, it.currency.defaultFractionDigits),
@@ -159,12 +174,13 @@ class IncomeController(
             }
     }
 
-    private fun Income.toResponse() = IncomeResponse(
-        id = id,
-        title = title,
-        date = date,
-        delimiting = delimiting,
-        amount = amount,
-        currency = CurrencyResponse(currency.currencyCode, currency.defaultFractionDigits),
-    )
+    private fun Income.toResponse() =
+        IncomeResponse(
+            id = id,
+            title = title,
+            date = date,
+            delimiting = delimiting,
+            amount = amount,
+            currency = CurrencyResponse(currency.currencyCode, currency.defaultFractionDigits),
+        )
 }

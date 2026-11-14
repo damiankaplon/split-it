@@ -8,7 +8,7 @@ import pl.damiankaplon.splitit.project.Project
 import pl.damiankaplon.splitit.project.ProjectMember
 import pl.damiankaplon.splitit.project.ProjectRepository
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 /**
  * Test-only repository for prepopulating the database: every state a
@@ -23,7 +23,6 @@ class TestDataRepository(
     private val balances: BalanceRepository,
     private val expenseService: ExpenseService,
 ) {
-
     fun createProject(
         ownerId: String,
         vararg memberIds: String,
@@ -37,8 +36,11 @@ class TestDataRepository(
         return project
     }
 
-    fun addMember(project: Project, userId: String, name: String = userId): Project =
-        projects.save(project.apply { add(ProjectMember(userId, name)) })
+    fun addMember(
+        project: Project,
+        userId: String,
+        name: String = userId,
+    ): Project = projects.save(project.apply { add(ProjectMember(userId, name)) })
 
     /**
      * [date] is an ISO local date-time, e.g. `2026-10-03T19:30:00`. Returns
@@ -51,9 +53,11 @@ class TestDataRepository(
         date: String = "2026-10-03T19:30:00Z",
         amount: Int = 1000,
         tag: String? = null,
-    ): UUID = expenseService.create(
-        project.id,
-        UserId(userId),
-        ExpenseService.ExpenseDetails(title, Instant.parse(date), amount, tag),
-    ).id
+    ): UUID =
+        expenseService
+            .create(
+                project.id,
+                UserId(userId),
+                ExpenseService.ExpenseDetails(title, Instant.parse(date), amount, tag),
+            ).id
 }

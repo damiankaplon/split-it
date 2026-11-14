@@ -5,18 +5,25 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 import pl.damiankaplon.splitit.UserId
-import java.util.*
+import java.util.UUID
 
 @Repository
-interface PersonalExpenseRepository : JpaRepository<PersonalExpense, UUID>, JpaSpecificationExecutor<PersonalExpense> {
-
-    fun findByIdAndOwnerId(id: UUID, ownerId: UserId): PersonalExpense?
+interface PersonalExpenseRepository :
+    JpaRepository<PersonalExpense, UUID>,
+    JpaSpecificationExecutor<PersonalExpense> {
+    fun findByIdAndOwnerId(
+        id: UUID,
+        ownerId: UserId,
+    ): PersonalExpense?
 
     /**
      * Someone else's expense is reported as missing, so its existence isn't
      * revealed.
      */
-    fun findByIdAndOwnerIdOrThrow(id: UUID, ownerId: UserId): PersonalExpense =
+    fun findByIdAndOwnerIdOrThrow(
+        id: UUID,
+        ownerId: UserId,
+    ): PersonalExpense =
         findByIdAndOwnerId(id, ownerId)
             ?: throw EntityNotFoundException("${PersonalExpense::class.qualifiedName} not found by id=$id, ownerId=${ownerId.value}")
 }

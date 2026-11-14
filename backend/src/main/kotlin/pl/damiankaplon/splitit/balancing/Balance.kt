@@ -1,8 +1,18 @@
 package pl.damiankaplon.splitit.balancing
 
-import jakarta.persistence.*
+import jakarta.persistence.CollectionTable
+import jakarta.persistence.Column
+import jakarta.persistence.ElementCollection
+import jakarta.persistence.Embeddable
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.Table
+import jakarta.persistence.Version
 import pl.damiankaplon.splitit.UserId
-import java.util.*
+import java.util.PriorityQueue
+import java.util.UUID
 
 /**
  * What a project's users owe each other, kept as one signed amount per
@@ -22,7 +32,6 @@ class Balance(
     @Column(name = "project_id", nullable = false)
     val projectId: UUID,
 ) {
-
     /**
      * Only users with a non-zero amount are in it, each at most once.
      *
@@ -56,7 +65,10 @@ class Balance(
      * Same as [remove] of [old] followed by [add] of [new], applied as one net
      * change, so a user who ends up where they started is left untouched.
      */
-    fun change(old: Expense, new: Expense) = applyChanges {
+    fun change(
+        old: Expense,
+        new: Expense,
+    ) = applyChanges {
         accumulate(old, -1)
         accumulate(new, 1)
     }
@@ -67,10 +79,11 @@ class Balance(
      * pays more than they owed is then owed the difference, and [settlements]
      * are recalculated to match.
      */
-    fun record(transfer: Transfer) = applyChanges {
-        accumulate(transfer.from, transfer.amount)
-        accumulate(transfer.to, -transfer.amount)
-    }
+    fun record(transfer: Transfer) =
+        applyChanges {
+            accumulate(transfer.from, transfer.amount)
+            accumulate(transfer.to, -transfer.amount)
+        }
 
     /** The user's net amount; 0 if they have no entry. */
     fun of(user: UserId): Long = userBalanceOf(user)?.amount ?: 0
@@ -134,7 +147,10 @@ class Balance(
         return result
     }
 
-    private fun adjust(user: UserId, change: Long) {
+    private fun adjust(
+        user: UserId,
+        change: Long,
+    ) {
         if (change == 0L) return
         val current = userBalanceOf(user)
         val amount = Math.addExact(current?.amount ?: 0L, change)
@@ -144,12 +160,18 @@ class Balance(
 
     private fun userBalanceOf(user: UserId) = userBalances.find { it.userId == user }
 
-    private fun MutableMap<UserId, Long>.accumulate(user: UserId, change: Long) {
+    private fun MutableMap<UserId, Long>.accumulate(
+        user: UserId,
+        change: Long,
+    ) {
         this[user] = Math.addExact(this[user] ?: 0L, change)
     }
 
     /** [direction] is 1 to apply the expense and -1 to undo it. */
-    private fun MutableMap<UserId, Long>.accumulate(expense: Expense, direction: Long) {
+    private fun MutableMap<UserId, Long>.accumulate(
+        expense: Expense,
+        direction: Long,
+    ) {
         accumulate(expense.payer, direction * expense.amount)
         expense.splits.forEach { (user, share) -> accumulate(user, -direction * share) }
     }
@@ -166,7 +188,6 @@ class Balance(
     private data class UserBalance(
         @Column(name = "user_id", nullable = false)
         val userId: UserId,
-
         @Column(name = "amount", nullable = false)
         val amount: Long,
     )

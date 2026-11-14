@@ -5,7 +5,7 @@ import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
 import pl.damiankaplon.splitit.UserId
 import pl.damiankaplon.splitit.kernel.ExpenseData
-import java.util.*
+import java.util.UUID
 
 /**
  * The owner's share of a project expense, as divided by the
@@ -17,14 +17,10 @@ import java.util.*
 @DiscriminatorValue("PROJECT")
 class ProjectPersonalExpense(
     ownerId: UserId,
-
     @Column(name = "project_expense_id")
     val projectExpenseId: UUID,
-
     @Column(name = "project_id")
     val projectId: UUID,
-
     data: ExpenseData,
-
     tag: PersonalExpenseTag?,
 ) : PersonalExpense(ownerId, data, tag)

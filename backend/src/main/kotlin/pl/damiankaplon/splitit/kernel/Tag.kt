@@ -5,4 +5,7 @@ package pl.damiankaplon.splitit.kernel
  *
  * @param color - `#rrggbb`
  */
-data class Tag(val name: String, val color: String)
+data class Tag(
+    val name: String,
+    val color: String,
+)

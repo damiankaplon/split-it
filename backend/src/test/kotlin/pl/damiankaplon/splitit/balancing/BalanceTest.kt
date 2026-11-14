@@ -4,11 +4,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import pl.damiankaplon.splitit.UserId
-import java.util.*
+import java.util.UUID
 import kotlin.random.Random
 
 class BalanceTest {
-
     private val alice = UserId("alice")
     private val bob = UserId("bob")
     private val carol = UserId("carol")
@@ -18,8 +17,10 @@ class BalanceTest {
     private fun balance() = Balance(UUID.randomUUID())
 
     /** [payer] paid for [shares], whose total is the expense amount. */
-    private fun expense(payer: UserId, vararg shares: Pair<UserId, Int>) =
-        Expense(payer, shares.sumOf { it.second }, shares.toMap())
+    private fun expense(
+        payer: UserId,
+        vararg shares: Pair<UserId, Int>,
+    ) = Expense(payer, shares.sumOf { it.second }, shares.toMap())
 
     private fun Balance.amounts() = everyone.associateWith { of(it) }
 
@@ -169,7 +170,10 @@ class BalanceTest {
         assertThat(balance.amounts()).isEqualTo(before)
     }
 
-    private fun assertChangeEqualsAddingNew(old: Expense, new: Expense) {
+    private fun assertChangeEqualsAddingNew(
+        old: Expense,
+        new: Expense,
+    ) {
         val other = expense(carol, alice to 5_00, dave to 15_00)
         val changed = balance().withExpenses(other, old)
         val fresh = balance().withExpenses(other, new)
@@ -236,10 +240,11 @@ class BalanceTest {
 
     @Test
     fun `biggest debtor pays biggest creditor`() {
-        val balance = balance().withExpenses(
-            expense(alice, carol to 30_00, dave to 40_00),
-            expense(bob, carol to 20_00),
-        )
+        val balance =
+            balance().withExpenses(
+                expense(alice, carol to 30_00, dave to 40_00),
+                expense(bob, carol to 20_00),
+            )
         // alice +70, bob +20, carol -50, dave -40
 
         assertThat(balance.settlements()).containsExactly(
@@ -251,10 +256,11 @@ class BalanceTest {
 
     @Test
     fun `equal creditors are paid in user id order whatever order they appeared in`() {
-        val balance = balance().withExpenses(
-            expense(bob, dave to 30_00),
-            expense(alice, dave to 30_00),
-        )
+        val balance =
+            balance().withExpenses(
+                expense(bob, dave to 30_00),
+                expense(alice, dave to 30_00),
+            )
 
         assertThat(balance.settlements()).containsExactly(
             Transfer(dave, alice, 30_00),
@@ -275,11 +281,12 @@ class BalanceTest {
 
     @Test
     fun `debtors that become equal while settling are told apart by user id`() {
-        val balance = balance().withExpenses(
-            expense(bob, dave to 30_00),
-            expense(alice, dave to 30_00),
-            expense(dave, carol to 10_00, bob to 10_00),
-        )
+        val balance =
+            balance().withExpenses(
+                expense(bob, dave to 30_00),
+                expense(alice, dave to 30_00),
+                expense(dave, carol to 10_00, bob to 10_00),
+            )
         // alice +30, bob +20, carol -10, dave -40
 
         assertThat(balance.settlements()).containsExactly(
@@ -291,10 +298,11 @@ class BalanceTest {
 
     @Test
     fun `ties decide who pays whom`() {
-        val balance = balance().withExpenses(
-            expense(dave, alice to 10_00),
-            expense(carol, bob to 10_00),
-        )
+        val balance =
+            balance().withExpenses(
+                expense(dave, alice to 10_00),
+                expense(carol, bob to 10_00),
+            )
         // alice -10, bob -10, carol +10, dave +10: both debtors and both creditors are tied. Going by who
         // appeared first would have alice pay dave and bob pay carol.
 
@@ -318,10 +326,11 @@ class BalanceTest {
 
     @Test
     fun `there are fewer settlements than users with a debt or credit`() {
-        val balance = balance().withExpenses(
-            expense(alice, alice to 10_00, bob to 20_00, carol to 30_00, dave to 40_00),
-            expense(bob, alice to 17_00, dave to 3_00),
-        )
+        val balance =
+            balance().withExpenses(
+                expense(alice, alice to 10_00, bob to 20_00, carol to 30_00, dave to 40_00),
+                expense(bob, alice to 17_00, dave to 3_00),
+            )
         // alice +73, bob 0, carol -30, dave -43
 
         assertThat(balance.settlements()).containsExactly(
@@ -340,9 +349,24 @@ class BalanceTest {
 
             repeat(40) {
                 when (random.nextInt(if (live.isEmpty()) 2 else 4)) {
-                    0 -> randomExpense(random, everyone).also { live += it; balance.add(it) }
-                    1 -> randomTransfer(random, everyone).also { transfers += it; balance.record(it) }
-                    2 -> live.removeAt(random.nextInt(live.size)).also(balance::remove)
+                    0 -> {
+                        randomExpense(random, everyone).also {
+                            live += it
+                            balance.add(it)
+                        }
+                    }
+
+                    1 -> {
+                        randomTransfer(random, everyone).also {
+                            transfers += it
+                            balance.record(it)
+                        }
+                    }
+
+                    2 -> {
+                        live.removeAt(random.nextInt(live.size)).also(balance::remove)
+                    }
+
                     else -> {
                         val index = random.nextInt(live.size)
                         val new = randomExpense(random, everyone)
@@ -363,11 +387,18 @@ class BalanceTest {
      * Compares [balance] with amounts worked out from scratch from what has
      * happened to it.
      */
-    private fun assertConsistent(balance: Balance, expenses: List<Expense>, transfers: List<Transfer>) {
-        val expected = everyone.associateWith { user ->
-            expenses.sumOf { (if (it.payer == user) it.amount.toLong() else 0L) - (it.splits[user] ?: 0).toLong() } +
+    private fun assertConsistent(
+        balance: Balance,
+        expenses: List<Expense>,
+        transfers: List<Transfer>,
+    ) {
+        val expected =
+            everyone.associateWith { user ->
+                expenses.sumOf {
+                    (if (it.payer == user) it.amount.toLong() else 0L) - (it.splits[user] ?: 0).toLong()
+                } +
                     transfers.sumOf { (if (it.from == user) it.amount else 0L) - (if (it.to == user) it.amount else 0L) }
-        }
+            }
         assertThat(balance.amounts()).isEqualTo(expected)
         assertThat(expected.values.sum()).isZero()
 

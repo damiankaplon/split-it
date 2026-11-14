@@ -1,17 +1,20 @@
 package pl.damiankaplon.splitit.expense
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
+import jakarta.persistence.EmbeddedId
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
 import org.hibernate.annotations.BatchSize
 import pl.damiankaplon.splitit.TagColors
 import java.io.Serializable
-import java.util.*
+import java.util.UUID
 
 /** Key of a tag scoped to a project: its name is unique within the project. */
 @Embeddable
 data class ProjectTagId(
     @Column(name = "project_id", nullable = false)
     val projectId: UUID,
-
     @Column(name = "name", nullable = false)
     val name: String,
 ) : Serializable
@@ -26,12 +29,10 @@ data class ProjectTagId(
 class ExpenseTag(
     @EmbeddedId
     val id: ProjectTagId,
-
     /** `#rrggbb`, picked at random when the tag is created. */
     @Column(nullable = false)
     val color: String = TagColors.random(),
 ) {
-
     constructor(projectId: UUID, name: String) : this(ProjectTagId(projectId, name))
 
     val projectId: UUID get() = id.projectId

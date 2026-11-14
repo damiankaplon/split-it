@@ -21,15 +21,16 @@ import org.springframework.transaction.annotation.Transactional
 @AutoConfigureMockMvc
 @Import(PostgreTestContainerConfig::class, TestDataRepository::class)
 abstract class IntegrationTest {
-
     @Autowired
     protected lateinit var mockMvc: MockMvc
 
     @Autowired
     protected lateinit var testData: TestDataRepository
 
-    protected fun asUser(id: String, username: String = id) =
-        jwt().jwt { it.subject(id).claim("preferred_username", username) }
+    protected fun asUser(
+        id: String,
+        username: String = id,
+    ) = jwt().jwt { it.subject(id).claim("preferred_username", username) }
 
     protected fun idOf(response: String) = Regex("\"id\":\"([^\"]+)\"").find(response)!!.groupValues[1]
 }

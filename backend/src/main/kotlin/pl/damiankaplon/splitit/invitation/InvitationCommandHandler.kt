@@ -9,7 +9,8 @@ import pl.damiankaplon.splitit.project.ProjectMember
 import pl.damiankaplon.splitit.project.ProjectRepository
 import java.security.SecureRandom
 import java.time.Duration
-import java.util.*
+import java.util.Base64
+import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
@@ -20,7 +21,6 @@ class InvitationCommandHandler(
     private val invitations: ProjectInvitationRepository,
     private val time: Time,
 ) {
-
     private val random = SecureRandom()
 
     data class CreateInvitation(
@@ -37,24 +37,26 @@ class InvitationCommandHandler(
 
     fun handle(command: CreateInvitation): ProjectInvitationEvent.ProjectInvitationCreated {
         logger.info { "Received command: $command" }
-            val project = projects.findByIdOrThrow(command.projectId)
-            require(project.ownerId == command.userId)
-            fun newToken(): String {
-                val bytes = ByteArray(32).also { random.nextBytes(it) }
-                return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
-            }
+        val project = projects.findByIdOrThrow(command.projectId)
+        require(project.ownerId == command.userId)
 
-            val invitation = Invitation(
+        fun newToken(): String {
+            val bytes = ByteArray(32).also { random.nextBytes(it) }
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+        }
+
+        val invitation =
+            Invitation(
                 projectId = command.projectId,
                 token = newToken(),
                 expiresAt = time.now().plus(Duration.ofDays(5)),
                 createdAt = time.now(),
             ).also(invitations::save)
         return ProjectInvitationEvent.ProjectInvitationCreated(
-                invitation.id,
-                invitation.token,
-                invitation.projectId
-            )
+            invitation.id,
+            invitation.token,
+            invitation.projectId,
+        )
     }
 
     fun handle(command: AcceptInvitation): ProjectEvent.MemberJoined {
