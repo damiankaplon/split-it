@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.settlement
+package pl.damiankaplon.splitit.project.internal.settlement
 
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.kernel.Time
 import pl.damiankaplon.splitit.kernel.UserId
-import pl.damiankaplon.splitit.project.core.ProjectRepository
+import pl.damiankaplon.splitit.project.internal.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
 import pl.damiankaplon.splitit.userIdOrThrow
 import java.time.Instant

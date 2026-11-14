@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.invitation
+package pl.damiankaplon.splitit.project.internal.invitation
 
 import java.util.UUID
 

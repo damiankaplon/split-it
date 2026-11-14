@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.core
+package pl.damiankaplon.splitit.project.internal
 
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable

@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.settlement
+package pl.damiankaplon.splitit.project.internal.settlement
 
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.jpa.repository.JpaRepository

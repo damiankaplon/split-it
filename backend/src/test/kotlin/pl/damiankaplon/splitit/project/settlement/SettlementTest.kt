@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import pl.damiankaplon.splitit.kernel.UserId
 import pl.damiankaplon.splitit.project.SettlementEvent
+import pl.damiankaplon.splitit.project.internal.settlement.Settlement
 import java.time.Instant
 import java.util.UUID
 

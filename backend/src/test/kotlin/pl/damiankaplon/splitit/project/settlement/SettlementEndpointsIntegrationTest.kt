@@ -6,7 +6,7 @@ import org.springframework.test.web.servlet.ResultActionsDsl
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import pl.damiankaplon.splitit.RollbackIntegrationTest
-import pl.damiankaplon.splitit.project.core.Project
+import pl.damiankaplon.splitit.project.internal.Project
 
 /**
  * The settlement workflow. What a confirmed settlement does to the debts is

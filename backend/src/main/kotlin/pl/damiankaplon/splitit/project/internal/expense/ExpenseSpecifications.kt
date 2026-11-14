@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.expense
+package pl.damiankaplon.splitit.project.internal.expense
 
 import jakarta.persistence.criteria.Path
 import jakarta.persistence.criteria.Root

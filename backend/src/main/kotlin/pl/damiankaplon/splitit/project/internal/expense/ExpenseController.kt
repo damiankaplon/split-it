@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.expense
+package pl.damiankaplon.splitit.project.internal.expense
 
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.kernel.UserId
-import pl.damiankaplon.splitit.project.core.ProjectRepository
+import pl.damiankaplon.splitit.project.internal.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
 import java.time.Instant
 import java.time.ZonedDateTime

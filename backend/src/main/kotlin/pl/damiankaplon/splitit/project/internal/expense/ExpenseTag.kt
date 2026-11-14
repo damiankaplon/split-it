@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.expense
+package pl.damiankaplon.splitit.project.internal.expense
 
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable

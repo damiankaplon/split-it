@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.settlement
+package pl.damiankaplon.splitit.project.internal.settlement
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

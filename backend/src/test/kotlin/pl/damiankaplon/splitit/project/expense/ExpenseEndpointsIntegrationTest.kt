@@ -10,7 +10,8 @@ import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.put
 import pl.damiankaplon.splitit.RollbackIntegrationTest
-import pl.damiankaplon.splitit.project.core.Project
+import pl.damiankaplon.splitit.project.internal.Project
+import pl.damiankaplon.splitit.project.internal.expense.ExpenseRepository
 
 class ExpenseEndpointsIntegrationTest
     @Autowired

@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.expense
+package pl.damiankaplon.splitit.project.internal.expense
 
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.jpa.repository.JpaRepository
@@ -18,7 +18,7 @@ interface ExpenseRepository :
      */
     @Query(
         """
-        select new pl.damiankaplon.splitit.project.expense.TagTotal(e.tagName, t.color, sum(e.data.amount))
+        select new pl.damiankaplon.splitit.project.internal.expense.TagTotal(e.tagName, t.color, sum(e.data.amount))
         from Expense e left join ExpenseTag t on t.id.projectId = e.projectId and t.id.name = e.tagName
         where e.projectId = :projectId and e.data.date >= :from and e.data.date <= :to
         group by e.tagName, t.color

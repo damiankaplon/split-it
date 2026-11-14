@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.invitation
+package pl.damiankaplon.splitit.project.internal.invitation
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import pl.damiankaplon.splitit.project.core.ProjectRepository
+import pl.damiankaplon.splitit.project.internal.ProjectRepository
 import pl.damiankaplon.splitit.subjectOrThrow
 import pl.damiankaplon.splitit.usernameOrThrow
 import java.util.UUID

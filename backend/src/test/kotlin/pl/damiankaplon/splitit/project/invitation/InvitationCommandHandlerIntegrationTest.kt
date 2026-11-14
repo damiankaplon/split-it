@@ -12,9 +12,12 @@ import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import pl.damiankaplon.splitit.IntegrationTest
 import pl.damiankaplon.splitit.PLN
 import pl.damiankaplon.splitit.project.ProjectEvent
-import pl.damiankaplon.splitit.project.core.Project
-import pl.damiankaplon.splitit.project.core.ProjectMember
-import pl.damiankaplon.splitit.project.core.ProjectRepository
+import pl.damiankaplon.splitit.project.internal.Project
+import pl.damiankaplon.splitit.project.internal.ProjectMember
+import pl.damiankaplon.splitit.project.internal.ProjectRepository
+import pl.damiankaplon.splitit.project.internal.invitation.Invitation
+import pl.damiankaplon.splitit.project.internal.invitation.InvitationCommandHandler
+import pl.damiankaplon.splitit.project.internal.invitation.ProjectInvitationRepository
 import java.time.Instant
 import java.util.UUID
 

@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.invitation
+package pl.damiankaplon.splitit.project.internal.invitation
 
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.jpa.repository.JpaRepository

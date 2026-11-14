@@ -1,7 +1,7 @@
-package pl.damiankaplon.splitit.project.policy
+package pl.damiankaplon.splitit.project.internal.policy
 
 import pl.damiankaplon.splitit.kernel.UserId
-import pl.damiankaplon.splitit.project.policy.SplitPolicy.Split
+import pl.damiankaplon.splitit.project.internal.policy.SplitPolicy.Split
 
 interface SplitPolicy {
     data class Expense(

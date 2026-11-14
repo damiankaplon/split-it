@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.settlement
+package pl.damiankaplon.splitit.project.internal.settlement
 
 import org.springframework.data.jpa.domain.Specification
 import pl.damiankaplon.splitit.kernel.UserId

@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.expense
+package pl.damiankaplon.splitit.project.internal.expense
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
@@ -7,10 +7,10 @@ import pl.damiankaplon.splitit.kernel.ExpenseData
 import pl.damiankaplon.splitit.kernel.Tag
 import pl.damiankaplon.splitit.kernel.UserId
 import pl.damiankaplon.splitit.project.ExpenseEvent
-import pl.damiankaplon.splitit.project.core.Project
-import pl.damiankaplon.splitit.project.core.ProjectMember
-import pl.damiankaplon.splitit.project.core.ProjectRepository
-import pl.damiankaplon.splitit.project.policy.SplitPolicy
+import pl.damiankaplon.splitit.project.internal.Project
+import pl.damiankaplon.splitit.project.internal.ProjectMember
+import pl.damiankaplon.splitit.project.internal.ProjectRepository
+import pl.damiankaplon.splitit.project.internal.policy.SplitPolicy
 import java.time.Instant
 import java.util.Currency
 import java.util.UUID

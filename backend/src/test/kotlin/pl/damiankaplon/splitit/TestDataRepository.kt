@@ -2,10 +2,10 @@ package pl.damiankaplon.splitit
 
 import org.springframework.boot.test.context.TestComponent
 import pl.damiankaplon.splitit.kernel.UserId
-import pl.damiankaplon.splitit.project.core.Project
-import pl.damiankaplon.splitit.project.core.ProjectMember
-import pl.damiankaplon.splitit.project.core.ProjectRepository
-import pl.damiankaplon.splitit.project.expense.ExpenseService
+import pl.damiankaplon.splitit.project.internal.Project
+import pl.damiankaplon.splitit.project.internal.ProjectMember
+import pl.damiankaplon.splitit.project.internal.ProjectRepository
+import pl.damiankaplon.splitit.project.internal.expense.ExpenseService
 import java.time.Instant
 import java.util.UUID
 

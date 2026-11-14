@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.core
+package pl.damiankaplon.splitit.project.internal
 
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import pl.damiankaplon.splitit.kernel.IsoCurrency
 import pl.damiankaplon.splitit.project.ProjectEvent
-import pl.damiankaplon.splitit.project.policy.SplitPolicyType
+import pl.damiankaplon.splitit.project.internal.policy.SplitPolicyType
 import pl.damiankaplon.splitit.subjectOrThrow
 import pl.damiankaplon.splitit.usernameOrThrow
 import java.util.Currency

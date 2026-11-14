@@ -13,9 +13,14 @@ import pl.damiankaplon.splitit.kernel.ExpenseData
 import pl.damiankaplon.splitit.kernel.UserId
 import pl.damiankaplon.splitit.project.ExpenseEvent
 import pl.damiankaplon.splitit.project.ExpenseEvent.Split
-import pl.damiankaplon.splitit.project.core.Project
-import pl.damiankaplon.splitit.project.core.ProjectMember
-import pl.damiankaplon.splitit.project.core.ProjectRepository
+import pl.damiankaplon.splitit.project.internal.Project
+import pl.damiankaplon.splitit.project.internal.ProjectMember
+import pl.damiankaplon.splitit.project.internal.ProjectRepository
+import pl.damiankaplon.splitit.project.internal.expense.Expense
+import pl.damiankaplon.splitit.project.internal.expense.ExpenseRepository
+import pl.damiankaplon.splitit.project.internal.expense.ExpenseService
+import pl.damiankaplon.splitit.project.internal.expense.ExpenseSplit
+import pl.damiankaplon.splitit.project.internal.expense.ExpenseTagRepository
 import java.time.Instant
 
 /**

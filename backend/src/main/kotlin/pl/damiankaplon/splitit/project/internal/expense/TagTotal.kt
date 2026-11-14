@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.expense
+package pl.damiankaplon.splitit.project.internal.expense
 
 /**
  * Sum of a tag's expenses in minor units; a null tag stands for the

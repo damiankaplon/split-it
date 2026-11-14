@@ -7,6 +7,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import pl.damiankaplon.splitit.RollbackIntegrationTest
+import pl.damiankaplon.splitit.project.internal.ProjectRepository
 import java.util.UUID
 
 class ProjectEndpointsIntegrationTest

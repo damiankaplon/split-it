@@ -1,4 +1,4 @@
-package pl.damiankaplon.splitit.project.policy
+package pl.damiankaplon.splitit.project.internal.policy
 
 /**
  * The [SplitPolicy] a project divides its expenses with; stored on the

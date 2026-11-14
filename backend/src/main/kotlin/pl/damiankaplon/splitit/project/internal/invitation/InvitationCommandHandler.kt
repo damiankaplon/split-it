@@ -1,12 +1,12 @@
-package pl.damiankaplon.splitit.project.invitation
+package pl.damiankaplon.splitit.project.internal.invitation
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import pl.damiankaplon.splitit.kernel.Time
 import pl.damiankaplon.splitit.project.ProjectEvent
-import pl.damiankaplon.splitit.project.core.ProjectMember
-import pl.damiankaplon.splitit.project.core.ProjectRepository
+import pl.damiankaplon.splitit.project.internal.ProjectMember
+import pl.damiankaplon.splitit.project.internal.ProjectRepository
 import java.security.SecureRandom
 import java.time.Duration
 import java.util.Base64
