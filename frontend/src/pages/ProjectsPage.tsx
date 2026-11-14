@@ -8,8 +8,11 @@ import {NewProjectDialog} from '@/components/NewProjectDialog'
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Card} from '@/components/ui/card'
 
-type ProjectsState = { status: 'loading' } | { status: 'error'; message: string } | {
-  status: 'loaded';
+type ProjectsState =
+    | { status: 'loading' }
+    | { status: 'error'; message: string }
+    | {
+  status: 'loaded'
   projects: Project[]
 }
 
@@ -68,8 +71,8 @@ export function ProjectsPage({currentUserId}: { currentUserId: string }) {
                           {project.name}
                         </Link>
                         <span className="text-[13px] text-muted-foreground">
-										{isOwner ? t('projects.owner') : t('projects.member')} · {project.currency.code}
-									</span>
+                    {isOwner ? t('projects.owner') : t('projects.member')} · {project.currency.code}
+                  </span>
                       </div>
                       {isOwner && (
                           <div className="relative z-10 flex justify-end border-t pt-3.5">

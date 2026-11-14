@@ -88,8 +88,8 @@ export function InviteDialog({project, currentUserId}: InviteDialogProps) {
             <div className="flex items-center justify-between text-[13px] text-muted-foreground">
               {link.status === 'error' ? (
                   <span className="text-destructive" role="alert">
-								{t('invite.error')}
-							</span>
+                {t('invite.error')}
+              </span>
               ) : (
                   <span>{t('invite.singleUse')}</span>
               )}
@@ -136,17 +136,17 @@ function MemberList({project, currentUserId}: InviteDialogProps) {
             <ul className="flex flex-col gap-2.5">
               {members.map((member) => (
                   <li key={member.memberId} className="flex items-center gap-2.5">
-							<span
-                                className="inline-flex size-7 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold">
-								{initials(member.name)}
-							</span>
+              <span
+                  className="inline-flex size-7 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold">
+                {initials(member.name)}
+              </span>
                     <span className="grow">
-								{member.name}
+                {member.name}
                       {member.memberId === currentUserId && ` ${t('invite.you')}`}
-							</span>
+              </span>
                     <span className="text-[13px] text-muted-foreground">
-								{member.memberId === project.ownerId ? t('projects.owner') : t('projects.member')}
-							</span>
+                {member.memberId === project.ownerId ? t('projects.owner') : t('projects.member')}
+              </span>
                   </li>
               ))}
             </ul>

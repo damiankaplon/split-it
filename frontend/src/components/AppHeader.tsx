@@ -57,10 +57,10 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
               >
                 <DialogPrimitive.Title className="sr-only">{t('header.navigation')}</DialogPrimitive.Title>
                 <div className="flex items-center justify-between">
-								<span className="flex items-center gap-2 text-[15px] font-semibold">
-									<LogoMark/>
-									SplitIt!
-								</span>
+                <span className="flex items-center gap-2 text-[15px] font-semibold">
+                  <LogoMark/>
+                  SplitIt!
+                </span>
                   <DialogPrimitive.Close
                       aria-label={t('header.closeMenu')}
                       className="cursor-pointer rounded-lg p-2 outline-none hover:bg-secondary focus-visible:ring-[3px] focus-visible:ring-ring/50"

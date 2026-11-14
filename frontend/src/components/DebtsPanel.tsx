@@ -9,9 +9,12 @@ import {initials} from '@/lib/initials'
 import {formatAmount} from '@/lib/money'
 import {cn} from '@/lib/utils'
 
-type DebtsState = { status: 'loading' } | { status: 'error' } | {
-  status: 'loaded';
-  debts: Debt[];
+type DebtsState =
+    | { status: 'loading' }
+    | { status: 'error' }
+    | {
+  status: 'loaded'
+  debts: Debt[]
   pending: Settlement[]
 }
 
@@ -131,8 +134,8 @@ export function DebtsPanel({projectId, currency, currentUserId, memberName, relo
               )}
               {totalOwedToMe > 0 && (
                   <span className="text-emerald-700 dark:text-emerald-400">
-							{t('debts.owedToYouTotal', {amount: format(totalOwedToMe)})}
-						</span>
+              {t('debts.owedToYouTotal', {amount: format(totalOwedToMe)})}
+            </span>
               )}
               {toConfirm > 0 && <span className="text-primary">{t('debts.toConfirm', {count: toConfirm})}</span>}
             </>
@@ -259,16 +262,16 @@ function DebtRow({
 }) {
   return (
       <li className="flex flex-wrap items-center gap-3 px-4 py-3">
-			<span
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold"
-                title={name}
-            >
-				{initials(name)}
-			</span>
+      <span
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold"
+          title={name}
+      >
+        {initials(name)}
+      </span>
         <span className="flex min-w-0 grow flex-col gap-0.5">
-				<span className="truncate">{label}</span>
+        <span className="truncate">{label}</span>
           {note && <span className="text-[13px] text-muted-foreground">{note}</span>}
-			</span>
+      </span>
         {amount && (
             <span
                 className={cn(
@@ -276,8 +279,8 @@ function DebtRow({
                     owing ? 'text-destructive' : 'text-emerald-700 dark:text-emerald-400',
                 )}
             >
-					{amount}
-				</span>
+          {amount}
+        </span>
         )}
         <span className="flex shrink-0 gap-2">{children}</span>
       </li>

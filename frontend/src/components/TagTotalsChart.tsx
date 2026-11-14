@@ -185,8 +185,8 @@ function TagTotalsChart({
                       </button>
                   ) : (
                       <span className="truncate" title={tagName(total)}>
-									{tagName(total)}
-								</span>
+                  {tagName(total)}
+                </span>
                   )}
                   <div className="h-5 rounded-[4px] bg-muted/50" aria-hidden>
                     <div
@@ -198,8 +198,8 @@ function TagTotalsChart({
                     />
                   </div>
                   <span className="min-w-20 text-right font-medium tabular-nums">
-								{formatAmount(total.total, currency, locale)}
-							</span>
+                {formatAmount(total.total, currency, locale)}
+              </span>
                 </li>
             )
           })}

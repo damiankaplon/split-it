@@ -391,13 +391,13 @@ function PersonalExpenseRow({
         <div className="flex min-w-0 grow flex-col gap-0.5">
           <span className="truncate font-medium">{expense.title}</span>
           <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
-					<span>{date}</span>
+          <span>{date}</span>
             {expense.tag && <TagBadge name={expense.tag} color={expense.tagColor}/>}
-				</span>
+        </span>
         </div>
         <span className="shrink-0 font-semibold tabular-nums">
-				{formatAmount(expense.amount, expense.currency, locale)}
-			</span>
+        {formatAmount(expense.amount, expense.currency, locale)}
+      </span>
         <div className="flex shrink-0 items-center">{actions}</div>
       </li>
   )

@@ -229,12 +229,12 @@ function SavingsCard({period, locale}: { period: Savings; locale: string }) {
       <Link to={`/personal?${params}`} className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <Card className="h-full gap-3 px-5 py-4 shadow-xs transition-colors hover:bg-accent/40">
           <div className="flex flex-col gap-0.5">
-					<span className="text-[13px] text-muted-foreground">
-						{formatDate(period.start, locale)} – {period.end ? formatDate(period.end, locale) : t('savings.now')}
-					</span>
+          <span className="text-[13px] text-muted-foreground">
+            {formatDate(period.start, locale)} – {period.end ? formatDate(period.end, locale) : t('savings.now')}
+          </span>
             <span className={cn('text-2xl font-semibold tabular-nums', period.saved < 0 && 'text-destructive')}>
-						{formatAmount(period.saved, currency, locale)}
-					</span>
+            {formatAmount(period.saved, currency, locale)}
+          </span>
           </div>
           <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
             <dt className="text-muted-foreground">{t('savings.income')}</dt>
@@ -254,13 +254,13 @@ function IncomeRow({income, locale, actions}: { income: Income; locale: string; 
         <div className="flex min-w-0 grow flex-col gap-0.5">
           <span className="truncate font-medium">{income.title}</span>
           <span className="flex flex-wrap items-center gap-x-2 text-[13px] text-muted-foreground">
-					<span>{formatDate(income.date, locale)}</span>
-					<span>{income.delimiting ? t('incomeDialog.delimiting') : t('incomeDialog.nonDelimiting')}</span>
-				</span>
+          <span>{formatDate(income.date, locale)}</span>
+          <span>{income.delimiting ? t('incomeDialog.delimiting') : t('incomeDialog.nonDelimiting')}</span>
+        </span>
         </div>
         <span className="shrink-0 font-semibold tabular-nums">
-				{formatAmount(income.amount, income.currency, locale)}
-			</span>
+        {formatAmount(income.amount, income.currency, locale)}
+      </span>
         <div className="flex shrink-0 items-center">{actions}</div>
       </li>
   )

@@ -485,20 +485,20 @@ function ExpenseRow({
   })
   return (
       <li className="flex items-center gap-3 px-4 py-3">
-			<span
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold"
-                title={author}
-            >
-				{initials(author)}
-			</span>
+      <span
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold"
+          title={author}
+      >
+        {initials(author)}
+      </span>
         <div className="flex min-w-0 grow flex-col gap-0.5">
           <span className="truncate font-medium">{expense.title}</span>
           <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
-					<span>{isMine ? t('project.addedByYou') : t('project.addedBy', {name: author})}</span>
-					<span aria-hidden>·</span>
-					<span>{date}</span>
+          <span>{isMine ? t('project.addedByYou') : t('project.addedBy', {name: author})}</span>
+          <span aria-hidden>·</span>
+          <span>{date}</span>
             {expense.tag && <TagBadge name={expense.tag} color={expense.tagColor}/>}
-				</span>
+        </span>
         </div>
         <span className="shrink-0 font-semibold tabular-nums">{formatAmount(expense.amount, currency, locale)}</span>
         {action}

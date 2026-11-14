@@ -17,8 +17,8 @@ export function DateRangeFilter({value, onChange}: { value: DateRange; onChange:
             onChange={(e) => onChange({...value, from: e.target.value})}
         />
         <span aria-hidden className="text-muted-foreground">
-				–
-			</span>
+        –
+      </span>
         <Input
             type="date"
             aria-label={t('project.dateTo')}
