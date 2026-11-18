@@ -11,6 +11,11 @@ import java.util.UUID
 interface PersonalExpenseRepository :
     JpaRepository<PersonalExpense, UUID>,
     JpaSpecificationExecutor<PersonalExpense> {
+    fun findByOwnerIdAndTagName(
+        ownerId: UserId,
+        tagName: String,
+    ): List<PersonalExpense>
+
     fun findByIdAndOwnerId(
         id: UUID,
         ownerId: UserId,

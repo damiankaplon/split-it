@@ -89,6 +89,10 @@ export interface PersonalTagTotal extends TagTotal {
 export const getPersonalTotalsByTag = (from: string, to: string) =>
   apiFetch<PersonalTagTotal[]>(`/personal/expenses/totals-by-tag?${dayRangeParams(from, to)}`)
 
+/** Moves all the user's personal expenses tagged `from` to the tag `to`; the former tag is removed. */
+export const mergePersonalTags = (from: string, to: string) =>
+  apiFetch<void>('/personal/tags/merge', {method: 'POST', body: JSON.stringify({from, to})})
+
 /** Tags the user has already used on personal expenses, sorted by name. */
 export const listPersonalTags = () => apiFetch<string[]>('/personal/tags')
 

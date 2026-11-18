@@ -8,6 +8,7 @@ import {
   getPersonalTotalsByTag,
   listPersonalExpenses,
   listPersonalTags,
+  mergePersonalTags,
   type PersonalExpense,
   type PersonalExpenseSum,
 } from '@/api/personal'
@@ -222,6 +223,13 @@ export function PersonalExpensesPage() {
           <TagTotalsCharts
             load={getPersonalTotalsByTag}
             reloadKey={chartsReloadKey}
+            onMergeTags={async (from, into) => {
+              await mergePersonalTags(from, into)
+              setChartsReloadKey((k) => k + 1)
+              setReloadKey((k) => k + 1)
+              if (tag === from) setTag(null)
+              void reloadTags()
+            }}
             initialRange={dates}
             renderTagExpenses={({tag: selected, from, to}) => (
               <TagExpensesList

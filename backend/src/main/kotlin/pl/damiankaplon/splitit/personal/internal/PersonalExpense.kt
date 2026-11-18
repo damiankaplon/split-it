@@ -61,6 +61,12 @@ abstract class PersonalExpense(
         this.tagName = tag?.name
     }
 
+    /** Only moves the expense to another of the owner's tags. */
+    fun retag(tag: PersonalExpenseTag) {
+        requireOwnTag(tag)
+        this.tagName = tag.name
+    }
+
     private fun requireOwnTag(tag: PersonalExpenseTag?) =
         require(tag == null || tag.ownerId == ownerId) { "Tag $tag is not of owner=${ownerId.value}" }
 }

@@ -189,6 +189,47 @@ class PersonalExpenseEndpointsIntegrationTest
                 .andExpect { jsonPath("$.length()") { value(0) } }
         }
 
+        private fun mergeTags(
+            userId: String,
+            from: String,
+            to: String,
+        ) = mockMvc.post("/personal/tags/merge") {
+            with(asUser(userId))
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"from":"$from","to":"$to"}"""
+        }
+
+        @Test
+        fun `merging tags moves the user's expenses only and drops the first tag`() {
+            val alice = newUser()
+            val bob = newUser()
+            createExpense(alice, """{"title":"A","date":"2026-10-01T10:00:00Z","amount":1,"currency":"PLN","tag":"Food"}""")
+            createExpense(alice, """{"title":"B","date":"2026-10-01T10:00:00Z","amount":1,"currency":"PLN","tag":"Bars"}""")
+            createExpense(bob, """{"title":"C","date":"2026-10-01T10:00:00Z","amount":1,"currency":"PLN","tag":"Food"}""")
+
+            mergeTags(alice, "Food", "Bars").andExpect { status { isNoContent() } }
+
+            assertEquals(listOf("B", "A"), titles(alice, "tag" to "Bars").sorted().reversed())
+            assertEquals(emptyList<String>(), titles(alice, "tag" to "Food"))
+            assertEquals(listOf("C"), titles(bob, "tag" to "Food"))
+            mockMvc
+                .get("/personal/tags") { with(asUser(alice)) }
+                .andExpect {
+                    jsonPath("$.length()") { value(1) }
+                    jsonPath("$[0]") { value("Bars") }
+                }
+        }
+
+        @Test
+        fun `merging a tag into itself changes nothing and unknown tags are not found`() {
+            val alice = newUser()
+            createExpense(alice, """{"title":"A","date":"2026-10-01T10:00:00Z","amount":1,"currency":"PLN","tag":"Food"}""")
+
+            mergeTags(alice, "Food", "food").andExpect { status { isNoContent() } }
+            assertEquals(listOf("A"), titles(alice, "tag" to "Food"))
+            mergeTags(alice, "Food", "Nope").andExpect { status { isNotFound() } }
+        }
+
         @Test
         fun `user updates their expense`() {
             val alice = newUser()

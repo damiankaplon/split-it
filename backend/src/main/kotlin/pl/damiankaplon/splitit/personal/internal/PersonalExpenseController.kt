@@ -1,5 +1,6 @@
 package pl.damiankaplon.splitit.personal.internal
 
+import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
@@ -276,6 +277,38 @@ class PersonalExpenseController(
             .findByIdOwnerIdOrderByIdNameAsc(jwt.userIdOrThrow())
             .map(PersonalExpenseTag::name)
             .sortedWith(String.CASE_INSENSITIVE_ORDER)
+
+    data class MergeTagsRequest(
+        @field:NotBlank val from: String,
+        @field:NotBlank val to: String,
+    )
+
+    /**
+     * Moves all the user's expenses tagged [MergeTagsRequest.from] to their tag
+     * [MergeTagsRequest.to]; the former tag is removed. Project expenses are
+     * not affected.
+     */
+    @PostMapping("/tags/merge")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
+    fun mergeTags(
+        @Valid @RequestBody request: MergeTagsRequest,
+        @AuthenticationPrincipal jwt: Jwt,
+    ) {
+        val ownerId = jwt.userIdOrThrow()
+        val source = findTagOrThrow(ownerId, request.from)
+        val target = findTagOrThrow(ownerId, request.to)
+        if (source.id == target.id) return
+        expenses.findByOwnerIdAndTagName(ownerId, source.name).forEach { it.retag(target) }
+        tags.delete(source)
+    }
+
+    private fun findTagOrThrow(
+        ownerId: UserId,
+        name: String,
+    ): PersonalExpenseTag =
+        tags.findByIdOwnerIdAndIdNameIgnoreCase(ownerId, name.trim())
+            ?: throw EntityNotFoundException("${PersonalExpenseTag::class.qualifiedName} not found by name=$name, ownerId=${ownerId.value}")
 
     /**
      * Reuses an existing tag of the owner (case-insensitive) or creates a new
