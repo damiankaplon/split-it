@@ -239,7 +239,8 @@ function TagTotalsChart({
                     {mergeSource === null ? <ArrowRight className="size-4" /> : <ArrowLeft className="size-4" />}
                   </button>
                 ) : (
-                  <span aria-hidden />
+                  // Same size as the button, as every row is its own grid and an empty cell would collapse
+                  <span aria-hidden className="size-6" />
                 ))}
               {selectable ? (
                 <button
