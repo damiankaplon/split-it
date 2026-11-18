@@ -219,6 +219,28 @@ class ExpenseController(
         return tags.findByIdProjectIdOrderByIdNameAsc(projectId).map(ExpenseTag::name)
     }
 
+    data class MergeTagsRequest(
+        @field:NotBlank val from: String,
+        @field:NotBlank val to: String,
+    )
+
+    /**
+     * Moves all expenses tagged [MergeTagsRequest.from] to the tag
+     * [MergeTagsRequest.to]; the former tag is removed. Personal expenses are
+     * not affected.
+     */
+    @PostMapping("/tags/merge")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
+    fun mergeTags(
+        @PathVariable projectId: UUID,
+        @Valid @RequestBody request: MergeTagsRequest,
+        @AuthenticationPrincipal jwt: Jwt,
+    ) {
+        requireMember(projectId, jwt)
+        expenseService.mergeTags(projectId, request.from, request.to)
+    }
+
     private fun requireMember(
         projectId: UUID,
         jwt: Jwt,

@@ -1,5 +1,6 @@
 package pl.damiankaplon.splitit.project.internal.expense
 
+import jakarta.persistence.EntityNotFoundException
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -112,6 +113,32 @@ class ExpenseService(
             ),
         )
     }
+
+    /**
+     * Moves every expense of the project's tag [from] to the tag [to] and
+     * removes [from]. Only the project's expenses change: no event is
+     * published, so members' personal expenses keep their own tags, and
+     * balances are untouched as no amount changes. Merging a tag into itself
+     * changes nothing.
+     */
+    fun mergeTags(
+        projectId: UUID,
+        from: String,
+        to: String,
+    ) {
+        val source = findTagOrThrow(projectId, from)
+        val target = findTagOrThrow(projectId, to)
+        if (source.id == target.id) return
+        expenses.findByProjectIdAndTagName(projectId, source.name).forEach { it.retag(target) }
+        tags.delete(source)
+    }
+
+    private fun findTagOrThrow(
+        projectId: UUID,
+        name: String,
+    ): ExpenseTag =
+        tags.findByIdProjectIdAndIdNameIgnoreCase(projectId, name.trim())
+            ?: throw EntityNotFoundException("${ExpenseTag::class.qualifiedName} not found by name=$name, projectId=$projectId")
 
     private fun ExpenseDetails.toData(currency: Currency) = ExpenseData(title, date, amount, currency)
 

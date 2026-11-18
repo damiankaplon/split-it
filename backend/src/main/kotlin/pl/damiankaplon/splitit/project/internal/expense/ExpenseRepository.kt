@@ -30,6 +30,11 @@ interface ExpenseRepository :
         to: Instant,
     ): List<TagTotal>
 
+    fun findByProjectIdAndTagName(
+        projectId: UUID,
+        tagName: String,
+    ): List<Expense>
+
     fun findByIdAndProjectId(
         id: UUID,
         projectId: UUID,

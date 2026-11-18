@@ -4,7 +4,7 @@ import {AlertCircle, ArrowLeft, ChevronUp, Pencil, Plus, Search, SlidersHorizont
 import {useTranslation} from 'react-i18next'
 import {Link, useParams, useSearchParams} from 'react-router'
 import {ApiError} from '@/api/client'
-import {type Expense, getExpensesTotal, getTotalsByTag, listExpenses, listTags} from '@/api/expenses'
+import {type Expense, getExpensesTotal, getTotalsByTag, listExpenses, listTags, mergeTags} from '@/api/expenses'
 import {type Currency, listMembers, listProjects, type Project, type ProjectMember} from '@/api/projects'
 import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DebtsPanel} from '@/components/DebtsPanel'
@@ -293,6 +293,13 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
               )
             }
             reloadKey={chartsReloadKey}
+            onMergeTags={async (from, into) => {
+              await mergeTags(project.id, from, into)
+              setChartsReloadKey((k) => k + 1)
+              setReloadKey((k) => k + 1)
+              if (tag === from) setTag(null)
+              onTagsChanged()
+            }}
             initialRange={dates}
             renderTagExpenses={({tag: selected, from, to}) => (
               <TagExpensesList

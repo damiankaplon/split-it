@@ -251,6 +251,13 @@ const pl = {
     empty: 'Brak wydatków w tym okresie.',
     invalidRange: 'Data początkowa nie może być późniejsza niż końcowa.',
     expensesOf: 'Wydatki z tagiem „{{tag}}”',
+    merge: {
+      start: 'Scal „{{tag}}” z innym tagiem',
+      into: 'Scal z „{{tag}}”',
+      title: 'Scalanie „{{tag}}”',
+      hint: 'Wybierz teraz tag docelowy: wszystkie wydatki z tagiem „{{tag}}” dostaną ten tag. Ponowny wybór „{{tag}}” niczego nie zmieni.',
+      error: 'Nie udało się scalić tagów',
+    },
   },
 }
 

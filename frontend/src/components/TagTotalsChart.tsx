@@ -1,10 +1,10 @@
 import {Fragment, type ReactNode, useEffect, useState} from 'react'
-import {AlertCircle} from 'lucide-react'
+import {AlertCircle, ArrowLeft, ArrowRight, Info} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {Temporal} from 'temporal-polyfill'
 import type {TagTotal} from '@/api/expenses'
 import type {Currency} from '@/api/projects'
-import {Alert, AlertTitle} from '@/components/ui/alert'
+import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Card} from '@/components/ui/card'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
@@ -26,6 +26,8 @@ interface TagTotalsChartsProps {
   initialRange?: DateRange
   /** Rendered below the charts for the selected tag and the charted range (both ISO, inclusive). */
   renderTagExpenses?: (selection: {tag: string; from: string; to: string}) => ReactNode
+  /** Moves all expenses of the `from` tag to the `to` tag; the merge buttons are only shown when given. */
+  onMergeTags?: (from: string, to: string) => Promise<void>
 }
 
 /** Bar charts of the expense sums per tag in a date range, one per currency; the last month by default. */
@@ -34,6 +36,7 @@ export function TagTotalsCharts({
   reloadKey,
   initialRange = EMPTY_DATE_RANGE,
   renderTagExpenses,
+  onMergeTags,
 }: TagTotalsChartsProps) {
   const {t, i18n} = useTranslation()
   const [to, setTo] = useState(() => initialRange.to || Temporal.Now.plainDateISO().toString())
@@ -42,6 +45,10 @@ export function TagTotalsCharts({
   )
   const [totals, setTotals] = useState<TotalsState>({status: 'loading'})
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  // The tag whose expenses the next picked tag takes over
+  const [mergeSource, setMergeSource] = useState<string | null>(null)
+  const [mergeFailed, setMergeFailed] = useState(false)
+  const [mergeHintDismissed, setMergeHintDismissed] = useState(false)
   // Cleared date inputs report an empty value
   const validRange = from !== '' && to !== '' && Temporal.PlainDate.compare(from, to) <= 0
 
@@ -61,6 +68,23 @@ export function TagTotalsCharts({
       cancelled = true
     }
   }, [load, from, to, validRange, reloadKey])
+
+  const onPickMergeTag = (name: string) => {
+    setMergeFailed(false)
+    if (mergeSource === null) {
+      setMergeHintDismissed(false)
+      setMergeSource(name)
+      return
+    }
+    const source = mergeSource
+    setMergeSource(null)
+    // Picking the same tag again only cancels the merge
+    if (!onMergeTags || source === name) return
+    onMergeTags(source, name).then(
+      () => setSelectedTag((current) => (current === source ? name : current)),
+      () => setMergeFailed(true),
+    )
+  }
 
   const byCurrency = new Map<string, CurrencyTagTotal[]>()
   if (totals.status === 'loaded') {
@@ -100,6 +124,26 @@ export function TagTotalsCharts({
 
       {!validRange && <p className="text-sm text-destructive">{t('charts.invalidRange')}</p>}
 
+      {mergeSource !== null && !mergeHintDismissed && (
+        // Floating popup: clicking it dismisses it, and picking any tag closes it too
+        <Alert
+          role="alert"
+          className="fixed inset-x-4 bottom-4 z-50 mx-auto w-auto max-w-md cursor-pointer shadow-lg"
+          onClick={() => setMergeHintDismissed(true)}
+        >
+          <Info />
+          <AlertTitle>{t('charts.merge.title', {tag: mergeSource})}</AlertTitle>
+          <AlertDescription>{t('charts.merge.hint', {tag: mergeSource})}</AlertDescription>
+        </Alert>
+      )}
+
+      {mergeFailed && (
+        <Alert variant="destructive" className="max-w-xl">
+          <AlertCircle />
+          <AlertTitle>{t('charts.merge.error')}</AlertTitle>
+        </Alert>
+      )}
+
       {validRange && totals.status === 'loading' && <p className="text-muted-foreground">{t('charts.loading')}</p>}
 
       {validRange && totals.status === 'error' && (
@@ -128,6 +172,8 @@ export function TagTotalsCharts({
             onSelectTag={
               renderTagExpenses ? (name) => setSelectedTag((current) => (current === name ? null : name)) : undefined
             }
+            mergeSource={mergeSource}
+            onMergeTag={onMergeTags ? onPickMergeTag : undefined}
           />
         ))}
 
@@ -146,6 +192,8 @@ function TagTotalsChart({
   locale,
   selectedTag,
   onSelectTag,
+  mergeSource,
+  onMergeTag,
 }: {
   title: string
   totals: CurrencyTagTotal[]
@@ -154,12 +202,18 @@ function TagTotalsChart({
   selectedTag: string | null
   /** Absent when tags can't be selected; untagged expenses never can. */
   onSelectTag?: (tag: string) => void
+  /** The tag picked to be merged into another one, if any. */
+  mergeSource: string | null
+  /** Absent when tags can't be merged; untagged expenses never can. */
+  onMergeTag?: (tag: string) => void
 }) {
   const {t} = useTranslation()
   const tagName = (total: TagTotal) => total.tag ?? t('charts.untagged')
   // Biggest first; expense amounts are positive, so the first one is the longest bar
   const sorted = [...totals].sort((a, b) => b.total - a.total)
   const largest = sorted[0].total
+  const mergeLabel = (tag: string) =>
+    mergeSource === null ? t('charts.merge.start', {tag}) : t('charts.merge.into', {tag})
 
   return (
     <Card className="gap-4 px-4 py-5 shadow-xs sm:px-6">
@@ -171,8 +225,22 @@ function TagTotalsChart({
           return (
             <li
               key={total.tag ?? ''}
-              className={`grid grid-cols-[minmax(4rem,7rem)_1fr_auto] items-center gap-3 rounded-md text-sm ${selected ? 'bg-accent' : ''}`}
+              className={`grid ${onMergeTag ? 'grid-cols-[auto_minmax(4rem,7rem)_1fr_auto]' : 'grid-cols-[minmax(4rem,7rem)_1fr_auto]'} items-center gap-3 rounded-md text-sm ${selected ? 'bg-accent' : ''}`}
             >
+              {onMergeTag &&
+                (total.tag !== null ? (
+                  <button
+                    type="button"
+                    aria-label={mergeLabel(total.tag)}
+                    title={mergeLabel(total.tag)}
+                    className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                    onClick={() => onMergeTag(total.tag as string)}
+                  >
+                    {mergeSource === null ? <ArrowRight className="size-4" /> : <ArrowLeft className="size-4" />}
+                  </button>
+                ) : (
+                  <span aria-hidden />
+                ))}
               {selectable ? (
                 <button
                   type="button"

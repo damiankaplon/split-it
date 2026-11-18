@@ -75,5 +75,9 @@ export interface TagTotal {
 export const getTotalsByTag = (projectId: string, from: string, to: string) =>
   apiFetch<TagTotal[]>(`/projects/${projectId}/expenses/totals-by-tag?${dayRangeParams(from, to)}`)
 
+/** Moves all of the project's expenses tagged `from` to the tag `to`; the former tag is removed. */
+export const mergeTags = (projectId: string, from: string, to: string) =>
+  apiFetch<void>(`/projects/${projectId}/tags/merge`, {method: 'POST', body: JSON.stringify({from, to})})
+
 /** Tags already used in the project, sorted by name. */
 export const listTags = (projectId: string) => apiFetch<string[]>(`/projects/${projectId}/tags`)

@@ -253,6 +253,13 @@ const en: Translations = {
     empty: 'No expenses in this period.',
     invalidRange: "The start date can't be after the end date.",
     expensesOf: 'Expenses tagged “{{tag}}”',
+    merge: {
+      start: 'Merge “{{tag}}” into another tag',
+      into: 'Merge into “{{tag}}”',
+      title: 'Merging “{{tag}}”',
+      hint: 'Now pick the tag to merge into: all expenses tagged “{{tag}}” will get that tag instead. Picking “{{tag}}” again changes nothing.',
+      error: "Couldn't merge the tags",
+    },
   },
 }
 

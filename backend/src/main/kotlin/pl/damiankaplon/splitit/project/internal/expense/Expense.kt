@@ -67,6 +67,11 @@ class Expense(
         _splits.addAll(splits)
     }
 
+    fun retag(tag: ExpenseTag) {
+        requireProjectTag(tag)
+        this.tagName = tag.name
+    }
+
     private fun requireProjectTag(tag: ExpenseTag?) =
         require(tag == null || tag.projectId == projectId) { "Tag $tag is not of project=$projectId" }
 

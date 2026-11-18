@@ -216,6 +216,72 @@ class ExpenseEndpointsIntegrationTest
         }
 
         @Test
+        fun `merging tags moves the expenses to the second tag and drops the first`() {
+            val project = projectWithMember("alice-id")
+            testData.createExpense(project, "alice-id", "A", "2026-10-01T10:00:00Z", 1, "Food")
+            testData.createExpense(project, "alice-id", "B", "2026-10-01T10:00:00Z", 1, "Bars")
+            testData.createExpense(project, "alice-id", "C", "2026-10-01T10:00:00Z", 1, "Other")
+
+            mockMvc
+                .post("/projects/${project.id}/tags/merge") {
+                    with(asUser("alice-id"))
+                    contentType = MediaType.APPLICATION_JSON
+                    content = """{"from":"Food","to":"Bars"}"""
+                }.andExpect { status { isNoContent() } }
+
+            mockMvc
+                .get("/projects/${project.id}/expenses") { with(asUser("alice-id")) }
+                .andExpect {
+                    jsonPath("$.items[?(@.title == 'A')].tag") { value("Bars") }
+                    jsonPath("$.items[?(@.title == 'B')].tag") { value("Bars") }
+                    jsonPath("$.items[?(@.title == 'C')].tag") { value("Other") }
+                }
+            mockMvc
+                .get("/projects/${project.id}/tags") { with(asUser("alice-id")) }
+                .andExpect {
+                    jsonPath("$.length()") { value(2) }
+                    jsonPath("$[0]") { value("Bars") }
+                    jsonPath("$[1]") { value("Other") }
+                }
+        }
+
+        @Test
+        fun `merging a tag into itself changes nothing`() {
+            val project = projectWithMember("alice-id")
+            testData.createExpense(project, "alice-id", "A", "2026-10-01T10:00:00Z", 1, "Food")
+
+            mockMvc
+                .post("/projects/${project.id}/tags/merge") {
+                    with(asUser("alice-id"))
+                    contentType = MediaType.APPLICATION_JSON
+                    content = """{"from":"Food","to":"food"}"""
+                }.andExpect { status { isNoContent() } }
+
+            mockMvc
+                .get("/projects/${project.id}/tags") { with(asUser("alice-id")) }
+                .andExpect { jsonPath("$.length()") { value(1) } }
+        }
+
+        @Test
+        fun `merging unknown tags is not found and non-members are forbidden`() {
+            val project = projectWithMember("alice-id")
+            testData.createExpense(project, "alice-id", "A", "2026-10-01T10:00:00Z", 1, "Food")
+
+            mockMvc
+                .post("/projects/${project.id}/tags/merge") {
+                    with(asUser("alice-id"))
+                    contentType = MediaType.APPLICATION_JSON
+                    content = """{"from":"Food","to":"Nope"}"""
+                }.andExpect { status { isNotFound() } }
+            mockMvc
+                .post("/projects/${project.id}/tags/merge") {
+                    with(asUser("mallory-id"))
+                    contentType = MediaType.APPLICATION_JSON
+                    content = """{"from":"Food","to":"Nope"}"""
+                }.andExpect { status { isForbidden() } }
+        }
+
+        @Test
         fun `tags are scoped to the project`() {
             val rome = projectWithMember("alice-id")
             val paris = projectWithMember("alice-id")
