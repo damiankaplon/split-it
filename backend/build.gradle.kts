@@ -23,6 +23,7 @@ repositories {
 dependencyManagement {
     imports {
         mavenBom("org.springframework.modulith:spring-modulith-bom:2.1.2")
+        mavenBom("org.springframework.ai:spring-ai-bom:2.1.0")
     }
 }
 
@@ -41,6 +42,7 @@ dependencies {
     implementation("io.github.oshai:kotlin-logging-jvm:8.0.4")
     implementation("org.springframework.modulith:spring-modulith-starter-core")
     implementation("org.springframework.modulith:spring-modulith-starter-jdbc")
+    implementation("org.springframework.ai:spring-ai-starter-model-openai")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
@@ -71,6 +73,12 @@ allOpen {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+// Developers run the app with the local profile, which reads backend/.env, unless they pick
+// other profiles with SPRING_PROFILES_ACTIVE
+tasks.bootRun {
+    environment("SPRING_PROFILES_ACTIVE", System.getenv("SPRING_PROFILES_ACTIVE") ?: "local")
 }
 
 spotless {
