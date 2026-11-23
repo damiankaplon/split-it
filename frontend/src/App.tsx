@@ -26,6 +26,7 @@ function App() {
         <Route path="/" element={<ProjectsPage currentUserId={state.userId} />} />
         <Route path="/personal" element={<PersonalExpensesPage />} />
         <Route path="/savings" element={<SavingsPage />} />
+        <Route path="/personal/ai-import" element={<AiImportPage />} />
         <Route path="/projects/:projectId/ai-import" element={<AiImportPage />} />
         <Route path="/projects/:projectId" element={<ProjectPage currentUserId={state.userId} />} />
         <Route path="/join/:projectId/:token" element={<JoinPage username={state.username} />} />

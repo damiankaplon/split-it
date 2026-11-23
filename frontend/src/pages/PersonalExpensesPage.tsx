@@ -1,6 +1,6 @@
 import {TagBadge} from '@/components/TagBadge'
 import {type ReactNode, useEffect, useState} from 'react'
-import {AlertCircle, ChevronUp, Pencil, Plus, Search, SlidersHorizontal, Trash2} from 'lucide-react'
+import {AlertCircle, ChevronUp, Pencil, Plus, Search, SlidersHorizontal, Sparkles, Trash2} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {useSearchParams} from 'react-router'
 import {
@@ -12,6 +12,7 @@ import {
   type PersonalExpense,
   type PersonalExpenseSum,
 } from '@/api/personal'
+import {AiImportDialog} from '@/components/AiImportDialog'
 import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DeletePersonalExpenseDialog} from '@/components/DeletePersonalExpenseDialog'
 import {InfiniteScrollTrigger} from '@/components/InfiniteScrollTrigger'
@@ -197,17 +198,28 @@ export function PersonalExpensesPage() {
               ` · ${t('project.totalExpenses', {amount: sums.map((s) => formatAmount(s.total, s.currency, i18n.language)).join(' + ')})}`}
           </p>
         </div>
-        <PersonalExpenseDialog
-          defaultCurrency={lastCurrency ?? DEFAULT_CURRENCY}
-          tags={tags}
-          onSaved={onCreated}
-          trigger={
-            <Button className="rounded-lg">
-              <Plus />
-              {t('personalExpenseDialog.add')}
-            </Button>
-          }
-        />
+        <div className="flex items-center gap-2">
+          <AiImportDialog
+            defaultCurrency={lastCurrency ?? DEFAULT_CURRENCY}
+            trigger={
+              <Button variant="outline" className="rounded-lg">
+                <Sparkles />
+                {t('aiImport.button')}
+              </Button>
+            }
+          />
+          <PersonalExpenseDialog
+            defaultCurrency={lastCurrency ?? DEFAULT_CURRENCY}
+            tags={tags}
+            onSaved={onCreated}
+            trigger={
+              <Button className="rounded-lg">
+                <Plus />
+                {t('personalExpenseDialog.add')}
+              </Button>
+            }
+          />
+        </div>
       </div>
 
       <Tabs

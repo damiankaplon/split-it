@@ -4,7 +4,8 @@ import {useTranslation} from 'react-i18next'
 import {Link, Navigate, useLocation, useNavigate, useParams} from 'react-router'
 import {ApiError} from '@/api/client'
 import {createExpense, listTags} from '@/api/expenses'
-import {type Currency, getProject, type Project} from '@/api/projects'
+import {createPersonalExpense, listPersonalTags} from '@/api/personal'
+import {type Currency, getProject} from '@/api/projects'
 import {type RecognizedExpense, recognizeExpenses} from '@/api/recognition'
 import {DraftExpenseDialog} from '@/components/DraftExpenseDialog'
 import {TagBadge} from '@/components/TagBadge'
@@ -13,7 +14,14 @@ import {Button} from '@/components/ui/button'
 import {Card} from '@/components/ui/card'
 import {type AiImportState, type DraftExpense, isComplete} from '@/lib/aiImport'
 import {inputValueToInstant} from '@/lib/instants'
-import {formatAmount, toMinorUnits} from '@/lib/money'
+import {currencyOf, formatAmount, toMinorUnits} from '@/lib/money'
+
+/** Where the confirmed expenses go: a project, or (without a name) the user's personal expenses. */
+interface Destination {
+  name?: string
+  /** The currency assumed when the file's was not recognized */
+  currency: Currency
+}
 
 type Recognition =
   | {status: 'loading'}
@@ -36,9 +44,9 @@ const recognizeOnce = (file: File) => {
   return promise
 }
 
-const toDraft = (recognized: RecognizedExpense, index: number, project: Project): DraftExpense => {
-  // The file's currency when it was recognized, the project's otherwise
-  const currency: Currency = recognized.currency ?? project.currency
+const toDraft = (recognized: RecognizedExpense, index: number, destination: Destination): DraftExpense => {
+  // The file's currency when it was recognized, the destination's otherwise
+  const currency: Currency = recognized.currency ?? destination.currency
   const amount = recognized.amount === null ? undefined : toMinorUnits(Number(recognized.amount), currency)
   return {
     key: `${index}`,
@@ -51,19 +59,19 @@ const toDraft = (recognized: RecognizedExpense, index: number, project: Project)
 }
 
 export function AiImportPage() {
-  const {projectId = ''} = useParams()
+  const {projectId} = useParams()
   const {state} = useLocation() as {state: Partial<AiImportState> | null}
   const file = state?.file
 
   // The file lives only in the navigation state; after a reload there is nothing to upload.
-  if (!file) return <Navigate to={`/projects/${projectId}`} replace />
-  return <AiImport projectId={projectId} file={file} />
+  if (!file) return <Navigate to={projectId === undefined ? '/personal' : `/projects/${projectId}`} replace />
+  return <AiImport projectId={projectId} currency={state?.currency} file={file} />
 }
 
-function AiImport({projectId, file}: {projectId: string; file: File}) {
+function AiImport({projectId, currency, file}: {projectId?: string; currency?: string; file: File}) {
   const {t, i18n} = useTranslation()
   const navigate = useNavigate()
-  const [project, setProject] = useState<Project | null | undefined>(undefined)
+  const [project, setProject] = useState<Destination | null | undefined>(undefined)
   const [tags, setTags] = useState<string[]>([])
   const [recognition, setRecognition] = useState<Recognition>({status: 'loading'})
   const [confirming, setConfirming] = useState(false)
@@ -72,10 +80,13 @@ function AiImport({projectId, file}: {projectId: string; file: File}) {
   useEffect(() => {
     let cancelled = false
     // Forbidden and not-found both mean the user can't use this project
-    const projectOrNull = getProject(projectId).catch((e: unknown) => {
-      if (e instanceof ApiError && (e.status === 403 || e.status === 404)) return null
-      throw e
-    })
+    const projectOrNull: Promise<Destination | null> =
+      projectId === undefined
+        ? Promise.resolve({currency: currencyOf(currency ?? 'PLN')})
+        : getProject(projectId).catch((e: unknown) => {
+            if (e instanceof ApiError && (e.status === 403 || e.status === 404)) return null
+            throw e
+          })
     Promise.all([projectOrNull, recognizeOnce(file)]).then(
       ([found, recognized]) => {
         if (cancelled) return
@@ -86,19 +97,21 @@ function AiImport({projectId, file}: {projectId: string; file: File}) {
         if (!cancelled) setRecognition({status: 'error', error})
       },
     )
-    listTags(projectId).then(setTags, () => setTags([]))
+    const loadTags = projectId === undefined ? listPersonalTags() : listTags(projectId)
+    loadTags.then(setTags, () => setTags([]))
     return () => {
       cancelled = true
     }
-  }, [file, projectId])
+  }, [file, projectId, currency])
 
+  const backPath = projectId === undefined ? '/personal' : `/projects/${projectId}`
   const back = (
     <Link
-      to={`/projects/${projectId}`}
+      to={backPath}
       className="flex w-fit items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground"
     >
       <ArrowLeft className="size-3.5" />
-      {t('aiImport.backToProject')}
+      {projectId === undefined ? t('aiImport.backToPersonal') : t('aiImport.backToProject')}
     </Link>
   )
 
@@ -151,19 +164,27 @@ function AiImport({projectId, file}: {projectId: string; file: File}) {
     // One by one, so the failed ones can stay on the list
     for (const draft of drafts) {
       try {
-        await createExpense(project.id, {
-          title: draft.title.trim(),
+        const title = draft.title.trim()
+        const date = inputValueToInstant(draft.date)
+        const tag = draft.tag.trim() || undefined
+        if (projectId === undefined) {
+          // Personal expenses keep their own currency
+          await createPersonalExpense({title, date, amount: draft.amount ?? 0, currency: draft.currency.code, tag})
+        } else {
           // The backend knows only the project's currency; there is no conversion, the number is kept
-          amount: toMinorUnits((draft.amount ?? 0) / 10 ** draft.currency.minorUnits, project.currency),
-          date: inputValueToInstant(draft.date),
-          tag: draft.tag.trim() || undefined,
-        })
+          await createExpense(projectId, {
+            title,
+            amount: toMinorUnits((draft.amount ?? 0) / 10 ** draft.currency.minorUnits, project.currency),
+            date,
+            tag,
+          })
+        }
       } catch {
         failed.push(draft)
       }
     }
     if (failed.length === 0) {
-      void navigate(`/projects/${project.id}`)
+      void navigate(backPath)
       return
     }
     setDrafts(() => failed)
@@ -178,7 +199,11 @@ function AiImport({projectId, file}: {projectId: string; file: File}) {
           <Sparkles className="size-6" />
           {t('aiImport.title')}
         </h1>
-        <p className="text-muted-foreground">{t('aiImport.subtitle', {file: file.name, project: project.name})}</p>
+        <p className="text-muted-foreground">
+          {project.name === undefined
+            ? t('aiImport.subtitlePersonal', {file: file.name})
+            : t('aiImport.subtitle', {file: file.name, project: project.name})}
+        </p>
       </div>
 
       {failedCount > 0 && (
@@ -200,7 +225,7 @@ function AiImport({projectId, file}: {projectId: string; file: File}) {
                 <DraftRow
                   key={draft.key}
                   draft={draft}
-                  project={project}
+                  currency={projectId === undefined ? undefined : project.currency}
                   tags={tags}
                   locale={i18n.language}
                   disabled={confirming}
@@ -229,7 +254,7 @@ function AiImport({projectId, file}: {projectId: string; file: File}) {
 
 function DraftRow({
   draft,
-  project,
+  currency,
   tags,
   locale,
   disabled,
@@ -237,7 +262,8 @@ function DraftRow({
   onRemove,
 }: {
   draft: DraftExpense
-  project: Project
+  /** The project's, to flag a draft in another one; none for personal expenses, which keep theirs */
+  currency?: Currency
   tags: string[]
   locale: string
   disabled: boolean
@@ -255,7 +281,7 @@ function DraftRow({
         <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
           <span>{date ?? missing}</span>
           {draft.tag && <TagBadge name={draft.tag} color={null} />}
-          {draft.currency.code !== project.currency.code && (
+          {currency && draft.currency.code !== currency.code && (
             <span className="flex items-center gap-1 text-amber-600">
               <TriangleAlert className="size-3.5" />
               {t('aiImport.otherCurrency', {currency: draft.currency.code})}

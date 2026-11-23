@@ -3,9 +3,13 @@ import type {Currency} from '@/api/projects'
 /** What the review page gets through the router: the file is uploaded there, not in the dialog. */
 export interface AiImportState {
   file: File
+  /** Personal imports only: the currency assumed when the file's was not recognized */
+  currency?: string
 }
 
-export const aiImportPath = (projectId: string) => `/projects/${projectId}/ai-import`
+/** A project's import page, or the personal one without a project. */
+export const aiImportPath = (projectId?: string) =>
+  projectId === undefined ? '/personal/ai-import' : `/projects/${projectId}/ai-import`
 
 /** A recognized expense awaiting confirmation; empty details have to be filled in before it can be added. */
 export interface DraftExpense {

@@ -17,7 +17,17 @@ import {Label} from '@/components/ui/label'
 import {aiImportPath, type AiImportState} from '@/lib/aiImport'
 
 /** Picks a file and hands it to the review page, which waits for the recognition. */
-export function AiImportDialog({projectId, trigger}: {projectId: string; trigger: ReactNode}) {
+export function AiImportDialog({
+  projectId,
+  defaultCurrency,
+  trigger,
+}: {
+  /** Without it the expenses are imported as personal ones. */
+  projectId?: string
+  /** Personal imports: the currency assumed when the file's was not recognized. */
+  defaultCurrency?: string
+  trigger: ReactNode
+}) {
   const {t} = useTranslation()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -30,7 +40,7 @@ export function AiImportDialog({projectId, trigger}: {projectId: string; trigger
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()
-    if (file) void navigate(aiImportPath(projectId), {state: {file} satisfies AiImportState})
+    if (file) void navigate(aiImportPath(projectId), {state: {file, currency: defaultCurrency} satisfies AiImportState})
   }
 
   return (
