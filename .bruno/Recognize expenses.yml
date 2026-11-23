@@ -1,0 +1,22 @@
+info:
+  name: Recognize expenses
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{backend_base_url}}/api/recognition"
+  body:
+    type: multipart-form
+    data:
+      - name: file
+        type: file
+        value:
+          - C:\Users\kaplo\Downloads\Account statement nov 2026 trade republic.pdf
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

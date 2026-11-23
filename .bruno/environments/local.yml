@@ -1,0 +1,12 @@
+name: local
+variables:
+  - name: backend_base_url
+    value: http://localhost:8080
+  - name: oauth2_callback_url
+    value: http://localhost:5173/
+  - name: oauth2_auth_url
+    value: http://localhost:8180/realms/split_it/protocol/openid-connect/auth
+  - name: oauth2_access_token_url
+    value: http://localhost:8180/realms/split_it/protocol/openid-connect/token
+  - name: oauth2_client_id
+    value: localhost
