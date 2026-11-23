@@ -30,6 +30,31 @@ class ProjectMembersEndpointIntegrationTest : RollbackIntegrationTest() {
     }
 
     @Test
+    fun `project details endpoint returns the project to a member`() {
+        val project = testData.createProject("alice-id", name = "Trip", ownerName = "alice")
+        testData.addMember(project, "bob-id", "bob")
+
+        mockMvc
+            .get("/projects/${project.id}/details") { with(asUser("bob-id")) }
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.id") { value(project.id.toString()) }
+                jsonPath("$.name") { value("Trip") }
+                jsonPath("$.ownerId") { value("alice-id") }
+                jsonPath("$.currency.code") { exists() }
+            }
+    }
+
+    @Test
+    fun `project details endpoint is forbidden for non-members`() {
+        val project = testData.createProject("alice-id", ownerName = "alice")
+
+        mockMvc
+            .get("/projects/${project.id}/details") { with(asUser("stranger-id")) }
+            .andExpect { status { isForbidden() } }
+    }
+
+    @Test
     fun `project list contains only projects the user is a member of`() {
         val joined = testData.createProject("alice-id", name = "Joined", ownerName = "alice")
         testData.createProject("alice-id", name = "Other", ownerName = "alice")

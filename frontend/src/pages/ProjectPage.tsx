@@ -1,11 +1,12 @@
 import {TagBadge} from '@/components/TagBadge'
 import {type ReactNode, useEffect, useState} from 'react'
-import {AlertCircle, ArrowLeft, ChevronUp, Pencil, Plus, Search, SlidersHorizontal} from 'lucide-react'
+import {AlertCircle, ArrowLeft, ChevronUp, Pencil, Plus, Search, SlidersHorizontal, Sparkles} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {Link, useParams, useSearchParams} from 'react-router'
 import {ApiError} from '@/api/client'
 import {type Expense, getExpensesTotal, getTotalsByTag, listExpenses, listTags, mergeTags} from '@/api/expenses'
 import {type Currency, listMembers, listProjects, type Project, type ProjectMember} from '@/api/projects'
+import {AiImportDialog} from '@/components/AiImportDialog'
 import {DateRangeFilter} from '@/components/DateRangeFilter'
 import {DebtsPanel} from '@/components/DebtsPanel'
 import {ExpenseDialog} from '@/components/ExpenseDialog'
@@ -261,6 +262,15 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
         </div>
         <div className="flex items-center gap-2">
           {isOwner && <InviteDialog project={project} currentUserId={currentUserId} />}
+          <AiImportDialog
+            projectId={project.id}
+            trigger={
+              <Button variant="outline" className="rounded-lg">
+                <Sparkles />
+                {t('aiImport.button')}
+              </Button>
+            }
+          />
           <ExpenseDialog
             projectId={project.id}
             currency={project.currency}

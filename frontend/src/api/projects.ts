@@ -50,3 +50,6 @@ export const acceptInvitation = (invitation: Invitation) =>
 
 /** Frontend URL that lands an invitee on the join page. */
 export const invitationUrl = ({projectId, token}: Invitation) => `${window.location.origin}/join/${projectId}/${token}`
+
+/** Forbidden for non-members, not found for an unknown id. */
+export const getProject = (projectId: string) => apiFetch<Project>(`/projects/${projectId}/details`)

@@ -82,6 +82,17 @@ class ProjectController(
             .findByMemberUserId(jwt.subjectOrThrow())
             .mapTo(linkedSetOf()) { it.toResponse() }
 
+    @GetMapping("/projects/{projectId}/details")
+    @Transactional(readOnly = true)
+    fun get(
+        @PathVariable projectId: UUID,
+        @AuthenticationPrincipal jwt: Jwt,
+    ): ProjectResponse {
+        val project = projects.findByIdOrThrow(projectId)
+        if (project.hasMember(jwt.subjectOrThrow())) return project.toResponse()
+        throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not project=${project.id} member")
+    }
+
     @GetMapping("/projects/{projectId}")
     @Transactional(readOnly = true)
     fun listMembers(

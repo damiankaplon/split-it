@@ -1,6 +1,7 @@
 import {Navigate, Route, Routes} from 'react-router'
 import {useAuth} from '@/auth/AuthContext'
 import {AppHeader} from '@/components/AppHeader'
+import {AiImportPage} from '@/pages/AiImportPage'
 import {JoinPage} from '@/pages/JoinPage'
 import {PersonalExpensesPage} from '@/pages/PersonalExpensesPage'
 import {ProjectPage} from '@/pages/ProjectPage'
@@ -25,6 +26,7 @@ function App() {
         <Route path="/" element={<ProjectsPage currentUserId={state.userId} />} />
         <Route path="/personal" element={<PersonalExpensesPage />} />
         <Route path="/savings" element={<SavingsPage />} />
+        <Route path="/projects/:projectId/ai-import" element={<AiImportPage />} />
         <Route path="/projects/:projectId" element={<ProjectPage currentUserId={state.userId} />} />
         <Route path="/join/:projectId/:token" element={<JoinPage username={state.username} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
