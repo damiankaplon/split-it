@@ -409,8 +409,13 @@ function PersonalExpenseRow({
         <span className="truncate text-[15px] font-medium">{expense.title}</span>
         <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
           <span>{date}</span>
-          {expense.tag && <TagBadge name={expense.tag} color={expense.tagColor} />}
         </span>
+        {/* Own line under the date, flush left; a flex wrapper keeps the chip from stretching across the column */}
+        {expense.tag && (
+          <div className="flex pt-0.5">
+            <TagBadge name={expense.tag} color={expense.tagColor} />
+          </div>
+        )}
       </div>
       <span className="shrink-0 font-mono text-[15px] font-medium tracking-[-0.01em] tabular-nums">
         {formatAmount(expense.amount, expense.currency, locale)}

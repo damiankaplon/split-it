@@ -516,8 +516,13 @@ function ExpenseRow({
           <span>{isMine ? t('project.addedByYou') : t('project.addedBy', {name: author})}</span>
           <span aria-hidden>·</span>
           <span>{date}</span>
-          {expense.tag && <TagBadge name={expense.tag} color={expense.tagColor} />}
         </span>
+        {/* Own line under the author, flush left; a flex wrapper keeps the chip from stretching across the column */}
+        {expense.tag && (
+          <div className="flex pt-0.5">
+            <TagBadge name={expense.tag} color={expense.tagColor} />
+          </div>
+        )}
       </div>
       <span className="shrink-0 font-mono text-[15px] font-medium tracking-[-0.01em] tabular-nums">
         {formatAmount(expense.amount, currency, locale)}
