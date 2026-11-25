@@ -92,10 +92,10 @@ export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[480px]">
+      <DialogContent className="gap-5 sm:max-w-[480px]">
         <form onSubmit={(e) => void onSubmit(e)} className="contents">
           <DialogHeader className="gap-1.5">
-            <DialogTitle className="text-lg">
+            <DialogTitle>
               {editing ? t('personalExpenseDialog.editTitle') : t('personalExpenseDialog.addTitle')}
             </DialogTitle>
             <DialogDescription>{t('personalExpenseDialog.description')}</DialogDescription>
@@ -107,7 +107,7 @@ export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, 
               <Input
                 id="personal-expense-title"
                 placeholder={t('personalExpenseDialog.titlePlaceholder')}
-                className="h-10 rounded-lg"
+                className="h-11 rounded-lg"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 autoFocus
@@ -123,7 +123,7 @@ export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, 
                   customInput={Input}
                   id="personal-expense-amount"
                   placeholder={zeroAmount(currency, i18n.language)}
-                  className="h-10 rounded-lg tabular-nums"
+                  className="h-11 rounded-lg tabular-nums"
                   decimalSeparator={decimalSeparator(i18n.language)}
                   allowedDecimalSeparators={[',', '.']}
                   decimalScale={currency.minorUnits}
@@ -138,7 +138,7 @@ export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, 
                 <Label htmlFor="personal-expense-currency">{t('personalExpenseDialog.currencyLabel')}</Label>
                 <select
                   id="personal-expense-currency"
-                  className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+                  className="h-11 w-full rounded-lg border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20 md:text-sm dark:bg-input/30"
                   value={currencyCode}
                   onChange={(e) => setCurrencyCode(e.target.value)}
                 >
@@ -156,7 +156,7 @@ export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, 
               <Input
                 id="personal-expense-date"
                 type="datetime-local"
-                className="h-10 rounded-lg"
+                className="h-11 rounded-lg"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
@@ -172,7 +172,7 @@ export function PersonalExpenseDialog({defaultCurrency, tags, expense, trigger, 
                 id="personal-expense-tag"
                 list="personal-expense-tag-options"
                 placeholder={t('personalExpenseDialog.tagPlaceholder')}
-                className="h-10 rounded-lg"
+                className="h-11 rounded-lg"
                 value={tag}
                 onChange={(e) => setTag(e.target.value)}
                 autoComplete="off"

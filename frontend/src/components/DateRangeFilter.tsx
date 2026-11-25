@@ -11,7 +11,7 @@ export function DateRangeFilter({value, onChange}: {value: DateRange; onChange: 
       <Input
         type="date"
         aria-label={t('project.dateFrom')}
-        className="h-10 rounded-lg bg-card"
+        className="h-11 rounded-lg bg-card"
         value={value.from}
         max={value.to || undefined}
         onChange={(e) => onChange({...value, from: e.target.value})}
@@ -22,7 +22,7 @@ export function DateRangeFilter({value, onChange}: {value: DateRange; onChange: 
       <Input
         type="date"
         aria-label={t('project.dateTo')}
-        className="h-10 rounded-lg bg-card"
+        className="h-11 rounded-lg bg-card"
         value={value.to}
         min={value.from || undefined}
         onChange={(e) => onChange({...value, to: e.target.value})}

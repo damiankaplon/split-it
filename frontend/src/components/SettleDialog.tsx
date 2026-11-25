@@ -76,10 +76,10 @@ export function SettleDialog({projectId, currency, debt, creditorName, trigger, 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[420px]">
+      <DialogContent className="gap-5 sm:max-w-[420px]">
         <form onSubmit={(e) => void onSubmit(e)} className="contents">
           <DialogHeader className="gap-1.5">
-            <DialogTitle className="text-lg">{t('settle.title', {name: creditorName})}</DialogTitle>
+            <DialogTitle>{t('settle.title', {name: creditorName})}</DialogTitle>
             <DialogDescription>{t('settle.description', {name: creditorName, amount: fullAmount})}</DialogDescription>
           </DialogHeader>
 
@@ -89,7 +89,7 @@ export function SettleDialog({projectId, currency, debt, creditorName, trigger, 
               customInput={Input}
               id="settle-amount"
               placeholder={zeroAmount(currency, i18n.language)}
-              className="h-10 rounded-lg tabular-nums"
+              className="h-11 rounded-lg tabular-nums"
               decimalSeparator={decimalSeparator(i18n.language)}
               allowedDecimalSeparators={[',', '.']}
               decimalScale={currency.minorUnits}

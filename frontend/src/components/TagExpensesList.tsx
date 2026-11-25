@@ -94,14 +94,14 @@ export function TagExpensesList<T extends {id: string; date: string}>({
       )}
 
       {state.status === 'loaded' && state.items.length === 0 && (
-        <Card className="items-center px-6 py-12 text-center shadow-xs">
+        <Card className="items-center px-6 py-12 text-center">
           <span className="font-medium">{t('project.noMatches')}</span>
         </Card>
       )}
 
       {state.status === 'loaded' && state.items.length > 0 && (
         <div className="flex flex-col gap-5">
-          <Card className="gap-0 py-0 shadow-xs">
+          <Card className="gap-0 py-0">
             <MonthGroupedList items={state.items} locale={i18n.language} renderItem={renderItem} />
           </Card>
           {state.hasNext && <InfiniteScrollTrigger loading={loadingMore} onLoadMore={() => void loadMore()} />}

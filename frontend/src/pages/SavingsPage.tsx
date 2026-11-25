@@ -83,7 +83,7 @@ export function SavingsPage() {
     <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-6 pt-7 pb-12">
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-[26px] font-semibold tracking-[-0.02em]">{t('savings.title')}</h1>
+          <h1 className="text-[28px] leading-[34px] font-semibold tracking-[-0.025em]">{t('savings.title')}</h1>
           <IncomeDialog
             defaultCurrency={lastCurrency ?? DEFAULT_CURRENCY}
             onSaved={onCreated}
@@ -124,7 +124,7 @@ export function SavingsPage() {
         {savings.status === 'error' && <LoadError title={t('savings.loadError')} onRetry={reload} />}
 
         {savings.status === 'loaded' && savings.items.length === 0 && (
-          <Card className="items-center gap-2 px-6 py-12 text-center shadow-xs">
+          <Card className="items-center gap-2 px-6 py-12 text-center">
             <span className="font-medium">{t('savings.empty')}</span>
             <span className="text-muted-foreground">{t('savings.emptyHint')}</span>
           </Card>
@@ -147,13 +147,11 @@ export function SavingsPage() {
         {incomes.status === 'error' && <LoadError title={t('savings.incomesError')} onRetry={reload} />}
 
         {incomes.status === 'loaded' && incomes.items.length === 0 && (
-          <Card className="items-center px-6 py-8 text-center text-muted-foreground shadow-xs">
-            {t('savings.noIncomes')}
-          </Card>
+          <Card className="items-center px-6 py-8 text-center text-muted-foreground">{t('savings.noIncomes')}</Card>
         )}
 
         {incomes.status === 'loaded' && incomes.items.length > 0 && (
-          <Card className="gap-0 py-0 shadow-xs">
+          <Card className="gap-0 py-0">
             <ul className="divide-y">
               {incomes.items.map((income) => (
                 <IncomeRow
@@ -225,7 +223,7 @@ function SavingsCard({period, locale}: {period: Savings; locale: string}) {
   if (period.end) params.set('to', instantToInputValue(period.end).slice(0, 10))
   return (
     <Link to={`/personal?${params}`} className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring">
-      <Card className="h-full gap-3 px-5 py-4 shadow-xs transition-colors hover:bg-accent/40">
+      <Card className="h-full gap-3 px-5 py-4 transition-colors hover:bg-accent/40">
         <div className="flex flex-col gap-0.5">
           <span className="text-[13px] text-muted-foreground">
             {formatDate(period.start, locale)} – {period.end ? formatDate(period.end, locale) : t('savings.now')}

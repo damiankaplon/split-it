@@ -169,6 +169,8 @@ const pl = {
     settledHint: 'Nikomu nic nie jesteś winien(-na) i nikt nie jest winien Tobie.',
     youOweTotal: 'Do oddania: {{amount}}',
     owedToYouTotal: 'Do odebrania: {{amount}}',
+    owedLabel: 'Do odebrania',
+    oweLabel: 'Do oddania',
     youOwe: 'Jesteś winien(-na) {{name}}',
     owesYou: '{{name}} jest Ci winien(-na)',
     settleUp: 'Rozlicz',

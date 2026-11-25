@@ -1,45 +1,115 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+@import '@fontsource-variable/sora';
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark *, [data-theme='dark'] *));
 
 /*
- * shadcn/ui theme — base Zinc, font Geist, radius 0.5rem.
- * Only the CSS variables below differ from stock; components stay stock.
+ * SplitIt! "Lumen" theme on shadcn/ui variables: frost ground, lit white surfaces, Ion blue action.
+ * Components use these role tokens only (never hex), which is what keeps the dark theme a switch, not a rewrite.
+ * The `.dark` block is a reserved draft: nothing turns it on yet.
  */
 :root {
-  --radius: 0.5rem;
-  --background: #fafafa;
-  --foreground: #18181b;
+  --radius: 1rem; /* sm 12, md 14, lg 16, xl 20, 2xl 28 */
+  --background: #f2f5fb;
+  --foreground: #0b1220;
   --card: #ffffff;
-  --card-foreground: #18181b;
+  --card-foreground: #0b1220;
   --popover: #ffffff;
-  --popover-foreground: #18181b;
-  --primary: #0f6e5a;
+  --popover-foreground: #0b1220;
+  --primary: #2457ff;
   --primary-foreground: #ffffff;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-  --muted: #f4f4f5;
-  --muted-foreground: #6b6b74;
-  --accent: #f4f4f5;
-  --accent-foreground: #18181b;
-  --destructive: #b91c1c;
-  --border: #e4e4e7;
-  --input: #e4e4e7;
-  --ring: #0f6e5a;
+  --secondary: #e8edf7;
+  --secondary-foreground: #0b1220;
+  --muted: #e8edf7;
+  --muted-foreground: #58657f;
+  --accent: #e6ecff;
+  --accent-foreground: #1a44db;
+  --destructive: #c2113f;
+  --destructive-foreground: #ffffff;
+  --border: #dce3f1;
+  --input: #7c89a5; /* field edge, 3:1 on surfaces */
+  --ring: #2457ff;
   /* App-specific */
-  --owe: #b4480f;
-  --owed: var(--primary);
-  --success-muted: #e6f2ef;
+  --owe: #b83a05; /* "you owe": orange, never red */
+  --owed: #1a44db; /* "owed to you": blue */
+  --success-muted: #e0f5eb;
+  /* Roles added by Lumen */
+  --surface-2: #f6f8fd;
+  --line-strong: #bfcadf;
+  --ink: #0b1220;
+  --on-ink: #ffffff;
+  --volt: #d6ff4d;
+  --ai-spark: #d6ff4d;
+  --hero: #0b1220;
+  --hero-foreground: #ffffff;
+  --hero-muted: #b9c4df;
+  --hero-line: #ffffff26;
+  --hero-credit: #7be4ff;
+  --hero-debt: #ff9a6b;
+  --cyan: #18c8ff;
+  --flare: #ff6b2c;
+  --aurora-a: #18c8ff38;
+  --aurora-b: #d6ff4d59;
+  --aurora-c: #2457ff1f;
+  --elev-card: inset 0 1px 0 #ffffffe6, 0 1px 2px #0b12200d, 0 12px 32px -16px #1e327a38;
+  --elev-pop: 0 2px 6px #0b12200f, 0 28px 64px -20px #14235a47;
+  --glow-primary: 0 10px 24px -10px #2457ffb3;
+  --glow-volt: 0 0 0 1px #d6ff4d80, 0 8px 28px -8px #d6ff4d99;
+}
+
+/* Draft, not shipped: every role has a dark value in the design system. */
+.dark,
+[data-theme='dark'] {
+  --background: #060a14;
+  --foreground: #ebf0ff;
+  --card: #0d1424;
+  --card-foreground: #ebf0ff;
+  --popover: #0d1424;
+  --popover-foreground: #ebf0ff;
+  --primary: #86a2ff;
+  --primary-foreground: #06122e;
+  --secondary: #03060d;
+  --secondary-foreground: #ebf0ff;
+  --muted: #03060d;
+  --muted-foreground: #96a4c5;
+  --accent: #15214c;
+  --accent-foreground: #a5baff;
+  --destructive: #ff8aa3;
+  --destructive-foreground: #2d0610;
+  --border: #1e2a47;
+  --input: #6679a6;
+  --ring: #86a2ff;
+  --owe: #ff9a6b;
+  --owed: #a5baff;
+  --success-muted: #0b2b20;
+  --surface-2: #121b30;
+  --line-strong: #33446c;
+  --ink: #ebf0ff;
+  --on-ink: #0b1220;
+  --ai-spark: #3f5200;
+  --hero: #141d33;
+  --hero-foreground: #ebf0ff;
+  --hero-muted: #b3beda;
+  --aurora-a: #18c8ff1a;
+  --aurora-b: #d6ff4d14;
+  --aurora-c: #2457ff33;
+  --elev-card: inset 0 1px 0 #ffffff0d, 0 1px 2px #00000066, 0 16px 40px -20px #000000b3;
+  --elev-pop: 0 2px 6px #00000080, 0 28px 64px -20px #000000cc;
+  --glow-primary: 0 10px 28px -10px #86a2ff66;
 }
 
 @theme inline {
   --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Sora Variable', 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 12px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -55,12 +125,31 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-owe: var(--owe);
   --color-owed: var(--owed);
   --color-success-muted: var(--success-muted);
+  --color-surface-2: var(--surface-2);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-on-ink: var(--on-ink);
+  --color-volt: var(--volt);
+  --color-ai-spark: var(--ai-spark);
+  --color-hero: var(--hero);
+  --color-hero-foreground: var(--hero-foreground);
+  --color-hero-muted: var(--hero-muted);
+  --color-hero-line: var(--hero-line);
+  --color-hero-credit: var(--hero-credit);
+  --color-hero-debt: var(--hero-debt);
+  --color-cyan: var(--cyan);
+  --color-flare: var(--flare);
+  --shadow-card: var(--elev-card);
+  --shadow-pop: var(--elev-pop);
+  --shadow-glow: var(--glow-primary);
+  --shadow-glow-volt: var(--glow-volt);
 }
 
 @layer base {
@@ -70,5 +159,46 @@
 
   body {
     @apply bg-background text-foreground font-sans text-sm/[1.45] antialiased;
+    /* Frost with a faint aurora: cyan top-left, volt top-right, Ion low. */
+    background-image:
+      radial-gradient(52% 46% at 6% -8%, var(--aurora-a), transparent 72%),
+      radial-gradient(44% 40% at 96% -4%, var(--aurora-b), transparent 70%),
+      radial-gradient(60% 38% at 50% 112%, var(--aurora-c), transparent 70%);
+    background-attachment: fixed;
+  }
+
+  h1 {
+    @apply font-display;
+  }
+
+  /* The balances hero: dark in every theme so the numbers glow. Two soft glows and a fading dot grid. */
+  .hero-panel {
+    position: relative;
+    isolation: isolate;
+    background-color: var(--hero);
+    background-image:
+      radial-gradient(70% 90% at 100% 0%, color-mix(in srgb, var(--cyan) 28%, transparent), transparent 62%),
+      radial-gradient(60% 80% at 0% 112%, color-mix(in srgb, var(--primary) 45%, transparent), transparent 64%);
+  }
+
+  .hero-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.7;
+    background-image: radial-gradient(var(--hero-line) 1px, transparent 1.2px);
+    background-size: 20px 20px;
+    mask-image: linear-gradient(120deg, transparent 20%, #000 80%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 }

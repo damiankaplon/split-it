@@ -15,13 +15,13 @@ export function SignInPage({onSignIn, keycloakUnavailable}: SignInPageProps) {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6">
-      <Card className="w-full max-w-[400px] gap-6 p-8 shadow-xs">
-        <div className="flex flex-col items-center gap-3 text-center">
+      <Card className="w-full max-w-[420px] gap-6 rounded-2xl bg-card/70 p-9 shadow-pop backdrop-blur-xl">
+        <div className="flex flex-col items-center gap-3.5 text-center">
           <LogoMark size="lg" />
-          <h1 className="text-[22px] font-semibold tracking-[-0.01em]">{t('signIn.title')}</h1>
+          <h1 className="text-[26px] leading-8 font-semibold tracking-[-0.025em]">{t('signIn.title')}</h1>
           <p className="text-muted-foreground">{t('signIn.subtitle')}</p>
         </div>
-        <Button className="h-11 rounded-lg" onClick={onSignIn}>
+        <Button size="lg" className="rounded-lg" onClick={onSignIn}>
           <Key />
           {t('signIn.button')}
         </Button>

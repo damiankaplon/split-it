@@ -101,7 +101,7 @@ export function TagTotalsCharts({
           <Input
             id="charts-from"
             type="date"
-            className="h-10 w-44 rounded-lg bg-card"
+            className="h-11 w-44 rounded-lg bg-card"
             value={from}
             max={to}
             aria-invalid={!validRange}
@@ -113,7 +113,7 @@ export function TagTotalsCharts({
           <Input
             id="charts-to"
             type="date"
-            className="h-10 w-44 rounded-lg bg-card"
+            className="h-11 w-44 rounded-lg bg-card"
             value={to}
             min={from}
             aria-invalid={!validRange}
@@ -154,7 +154,7 @@ export function TagTotalsCharts({
       )}
 
       {validRange && totals.status === 'loaded' && byCurrency.size === 0 && (
-        <Card className="items-center px-6 py-12 text-center shadow-xs">
+        <Card className="items-center px-6 py-12 text-center">
           <span className="font-medium">{t('charts.empty')}</span>
         </Card>
       )}
@@ -185,6 +185,16 @@ export function TagTotalsCharts({
   )
 }
 
+function TagDot({color}: {color: string | null | undefined}) {
+  return (
+    <span
+      aria-hidden
+      className="size-2 shrink-0 rounded-full"
+      style={{backgroundColor: color ?? 'var(--muted-foreground)'}}
+    />
+  )
+}
+
 function TagTotalsChart({
   title,
   totals,
@@ -209,6 +219,8 @@ function TagTotalsChart({
 }) {
   const {t} = useTranslation()
   const tagName = (total: TagTotal) => total.tag ?? t('charts.untagged')
+  // Untagged expenses have no colour of their own
+  const tagColor = (total: TagTotal) => total.tagColor ?? 'var(--muted-foreground)'
   // Biggest first; expense amounts are positive, so the first one is the longest bar
   const sorted = [...totals].sort((a, b) => b.total - a.total)
   const largest = sorted[0].total
@@ -216,7 +228,7 @@ function TagTotalsChart({
     mergeSource === null ? t('charts.merge.start', {tag}) : t('charts.merge.into', {tag})
 
   return (
-    <Card className="gap-4 px-4 py-5 shadow-xs sm:px-6">
+    <Card className="gap-4 px-4 py-5 sm:px-6">
       <h2 className="font-semibold">{title}</h2>
       <ul className="flex flex-col gap-2.5" aria-label={title}>
         {sorted.map((total) => {
@@ -225,7 +237,7 @@ function TagTotalsChart({
           return (
             <li
               key={total.tag ?? ''}
-              className={`grid ${onMergeTag ? 'grid-cols-[auto_minmax(4rem,7rem)_1fr_auto]' : 'grid-cols-[minmax(4rem,7rem)_1fr_auto]'} items-center gap-3 rounded-md text-sm ${selected ? 'bg-accent' : ''}`}
+              className={`grid ${onMergeTag ? 'grid-cols-[auto_minmax(4rem,7rem)_1fr_auto]' : 'grid-cols-[minmax(4rem,7rem)_1fr_auto]'} items-center gap-3 rounded-xl px-2.5 py-2 text-sm transition-colors hover:bg-surface-2 ${selected ? 'bg-accent ring-1 ring-primary/35 ring-inset hover:bg-accent' : ''}`}
             >
               {onMergeTag &&
                 (total.tag !== null ? (
@@ -233,7 +245,7 @@ function TagTotalsChart({
                     type="button"
                     aria-label={mergeLabel(total.tag)}
                     title={mergeLabel(total.tag)}
-                    className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                    className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-4 focus-visible:ring-ring/20 focus-visible:outline-none"
                     onClick={() => onMergeTag(total.tag as string)}
                   >
                     {mergeSource === null ? <ArrowRight className="size-4" /> : <ArrowLeft className="size-4" />}
@@ -247,26 +259,29 @@ function TagTotalsChart({
                   type="button"
                   aria-pressed={selected}
                   title={tagName(total)}
-                  className="truncate rounded-md text-left underline-offset-2 hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                  className="flex min-w-0 items-center gap-2 rounded-md text-left font-medium underline-offset-2 hover:underline focus-visible:ring-4 focus-visible:ring-ring/20 focus-visible:outline-none"
                   onClick={() => onSelectTag(total.tag as string)}
                 >
-                  {tagName(total)}
+                  <TagDot color={total.tagColor} />
+                  <span className="truncate">{tagName(total)}</span>
                 </button>
               ) : (
-                <span className="truncate" title={tagName(total)}>
-                  {tagName(total)}
+                <span className="flex min-w-0 items-center gap-2 font-medium" title={tagName(total)}>
+                  <TagDot color={total.tagColor} />
+                  <span className="truncate">{tagName(total)}</span>
                 </span>
               )}
-              <div className="h-5 rounded-[4px] bg-muted/50" aria-hidden>
+              <div className="h-2.5 overflow-hidden rounded-full bg-muted" aria-hidden>
                 <div
-                  className="h-full rounded-[4px]"
+                  className="h-full rounded-full"
                   style={{
                     width: `${(total.total / largest) * 100}%`,
-                    backgroundColor: total.tagColor ?? 'var(--muted-foreground)',
+                    // A light-to-full sweep of the tag's own colour
+                    background: `linear-gradient(90deg, color-mix(in srgb, ${tagColor(total)} 62%, white), ${tagColor(total)})`,
                   }}
                 />
               </div>
-              <span className="min-w-20 text-right font-medium tabular-nums">
+              <span className="min-w-20 text-right font-mono text-[15px] font-medium tracking-[-0.01em] tabular-nums">
                 {formatAmount(total.total, currency, locale)}
               </span>
             </li>

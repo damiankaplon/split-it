@@ -54,10 +54,10 @@ export function DraftExpenseDialog({draft, tags, trigger, onSaved}: DraftExpense
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[480px]">
+      <DialogContent className="gap-5 sm:max-w-[480px]">
         <form onSubmit={onSubmit} className="contents">
           <DialogHeader className="gap-1.5">
-            <DialogTitle className="text-lg">{t('aiImport.editTitle')}</DialogTitle>
+            <DialogTitle>{t('aiImport.editTitle')}</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col gap-4">
@@ -66,7 +66,7 @@ export function DraftExpenseDialog({draft, tags, trigger, onSaved}: DraftExpense
               <Input
                 id="draft-title"
                 placeholder={t('expenseDialog.titlePlaceholder')}
-                className="h-10 rounded-lg"
+                className="h-11 rounded-lg"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 autoFocus
@@ -81,7 +81,7 @@ export function DraftExpenseDialog({draft, tags, trigger, onSaved}: DraftExpense
                   customInput={Input}
                   id="draft-amount"
                   placeholder={zeroAmount(currency, i18n.language)}
-                  className="h-10 rounded-lg tabular-nums"
+                  className="h-11 rounded-lg tabular-nums"
                   decimalSeparator={decimalSeparator(i18n.language)}
                   allowedDecimalSeparators={[',', '.']}
                   decimalScale={currency.minorUnits}
@@ -97,7 +97,7 @@ export function DraftExpenseDialog({draft, tags, trigger, onSaved}: DraftExpense
                 <Input
                   id="draft-date"
                   type="datetime-local"
-                  className="h-10 rounded-lg"
+                  className="h-11 rounded-lg"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   required
@@ -114,7 +114,7 @@ export function DraftExpenseDialog({draft, tags, trigger, onSaved}: DraftExpense
                 id="draft-tag"
                 list="draft-tag-options"
                 placeholder={t('expenseDialog.tagPlaceholder')}
-                className="h-10 rounded-lg"
+                className="h-11 rounded-lg"
                 value={tag}
                 onChange={(e) => setTag(e.target.value)}
                 autoComplete="off"

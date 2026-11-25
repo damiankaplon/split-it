@@ -171,6 +171,8 @@ const en: Translations = {
     settledHint: "You don't owe anyone and nobody owes you.",
     youOweTotal: 'You owe {{amount}}',
     owedToYouTotal: "You're owed {{amount}}",
+    owedLabel: "You're owed",
+    oweLabel: 'You owe',
     youOwe: 'You owe {{name}}',
     owesYou: '{{name}} owes you',
     settleUp: 'Settle up',

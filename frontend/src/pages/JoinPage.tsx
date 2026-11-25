@@ -35,13 +35,15 @@ export function JoinPage({username}: {username: string}) {
 
   return (
     <div className="flex grow items-center justify-center p-6">
-      <Card className="w-full max-w-[440px] gap-6 p-8 shadow-xs">
+      <Card className="w-full max-w-[440px] gap-6 p-8">
         {preview.status === 'loading' && <p className="text-muted-foreground">{t('join.checking')}</p>}
 
         {preview.status === 'invalid' && (
           <>
             <div className="flex flex-col gap-2">
-              <h1 className="text-[26px] font-semibold tracking-[-0.02em]">{t('join.unavailableTitle')}</h1>
+              <h1 className="text-[28px] leading-[34px] font-semibold tracking-[-0.025em]">
+                {t('join.unavailableTitle')}
+              </h1>
               <p className="text-muted-foreground">
                 {t('join.invalid')} {t('join.askOwner')}
               </p>
@@ -58,7 +60,7 @@ export function JoinPage({username}: {username: string}) {
           <>
             <div className="flex flex-col gap-2">
               <span className="text-[13px] text-muted-foreground">{t('join.invitedTo')}</span>
-              <h1 className="text-[26px] font-semibold tracking-[-0.02em]">{preview.projectName}</h1>
+              <h1 className="text-[28px] leading-[34px] font-semibold tracking-[-0.025em]">{preview.projectName}</h1>
             </div>
             <p className="text-[13px] text-muted-foreground">{t('join.signedInInfo', {username})}</p>
             {joinFailed && (

@@ -48,9 +48,9 @@ export function DeletePersonalExpenseDialog({expense, trigger, onDeleted}: Delet
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[420px]">
+      <DialogContent className="gap-5 sm:max-w-[420px]">
         <DialogHeader className="gap-1.5">
-          <DialogTitle className="text-lg">{t('personalDeleteDialog.title')}</DialogTitle>
+          <DialogTitle>{t('personalDeleteDialog.title')}</DialogTitle>
           <DialogDescription>{t('personalDeleteDialog.description', {title: expense.title})}</DialogDescription>
         </DialogHeader>
         {error && (

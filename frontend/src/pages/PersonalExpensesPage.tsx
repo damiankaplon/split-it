@@ -189,7 +189,7 @@ export function PersonalExpensesPage() {
     <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-6 pt-7 pb-12">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-[26px] font-semibold tracking-[-0.02em]">{t('personal.title')}</h1>
+          <h1 className="text-[28px] leading-[34px] font-semibold tracking-[-0.025em]">{t('personal.title')}</h1>
           <p className="text-muted-foreground">
             {t('personal.subtitle')}
             {expenses.status === 'loaded' && !filtered && ` · ${t('project.expenseCount', {count: expenses.total})}`}
@@ -202,7 +202,7 @@ export function PersonalExpensesPage() {
           <AiImportDialog
             defaultCurrency={lastCurrency ?? DEFAULT_CURRENCY}
             trigger={
-              <Button variant="outline" className="rounded-lg">
+              <Button variant="ai" className="rounded-lg">
                 <Sparkles />
                 {t('aiImport.button')}
               </Button>
@@ -262,12 +262,12 @@ export function PersonalExpensesPage() {
           <div className="flex flex-col gap-3">
             <div className="flex max-w-sm items-center gap-2">
               <div className="relative grow">
-                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   type="search"
                   aria-label={t('project.search')}
                   placeholder={t('project.search')}
-                  className="h-10 rounded-lg bg-card pl-9"
+                  className="rounded-full pl-10"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                 />
@@ -275,7 +275,7 @@ export function PersonalExpensesPage() {
               <Button
                 variant="outline"
                 size="icon"
-                className="size-10 shrink-0 rounded-lg bg-card"
+                className="size-11 shrink-0 rounded-full"
                 aria-expanded={filtersOpen}
                 aria-label={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
                 title={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
@@ -289,7 +289,7 @@ export function PersonalExpensesPage() {
                 {tags.length > 0 && (
                   <select
                     aria-label={t('project.filterByTag')}
-                    className="h-10 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm"
+                    className="h-11 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20 md:text-sm"
                     value={tag ?? ''}
                     onChange={(e) => setTag(e.target.value === '' ? null : e.target.value)}
                   >
@@ -325,7 +325,7 @@ export function PersonalExpensesPage() {
           )}
 
           {expenses.status === 'loaded' && expenses.items.length === 0 && (
-            <Card className="items-center gap-2 px-6 py-12 text-center shadow-xs">
+            <Card className="items-center gap-2 px-6 py-12 text-center">
               <span className="font-medium">{filtered ? t('project.noMatches') : t('project.noExpenses')}</span>
               {!filtered && <span className="text-muted-foreground">{t('personal.noExpensesHint')}</span>}
             </Card>
@@ -333,7 +333,7 @@ export function PersonalExpensesPage() {
 
           {expenses.status === 'loaded' && expenses.items.length > 0 && (
             <div className="flex flex-col gap-5">
-              <Card className="gap-0 py-0 shadow-xs">
+              <Card className="gap-0 py-0">
                 <MonthGroupedList
                   items={expenses.items}
                   locale={i18n.language}
@@ -404,18 +404,21 @@ function PersonalExpenseRow({
     timeStyle: 'short',
   })
   return (
-    <li className="flex items-center gap-3 px-4 py-3">
+    <li className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-surface-2">
       <div className="flex min-w-0 grow flex-col gap-0.5">
-        <span className="truncate font-medium">{expense.title}</span>
+        <span className="truncate text-[15px] font-medium">{expense.title}</span>
         <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
           <span>{date}</span>
           {expense.tag && <TagBadge name={expense.tag} color={expense.tagColor} />}
         </span>
       </div>
-      <span className="shrink-0 font-semibold tabular-nums">
+      <span className="shrink-0 font-mono text-[15px] font-medium tracking-[-0.01em] tabular-nums">
         {formatAmount(expense.amount, expense.currency, locale)}
       </span>
-      <div className="flex shrink-0 items-center">{actions}</div>
+      {/* Row actions show on hover and focus, and always on touch screens */}
+      <div className="flex shrink-0 items-center opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100">
+        {actions}
+      </div>
     </li>
   )
 }

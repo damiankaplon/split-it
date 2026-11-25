@@ -46,10 +46,10 @@ export function AiImportDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[480px]">
+      <DialogContent className="gap-5 sm:max-w-[480px]">
         <form onSubmit={onSubmit} className="contents">
           <DialogHeader className="gap-1.5">
-            <DialogTitle className="text-lg">{t('aiImport.dialogTitle')}</DialogTitle>
+            <DialogTitle>{t('aiImport.dialogTitle')}</DialogTitle>
             <DialogDescription>{t('aiImport.dialogDescription')}</DialogDescription>
           </DialogHeader>
 
@@ -59,7 +59,7 @@ export function AiImportDialog({
               id="ai-import-file"
               type="file"
               accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.pdf,text/csv,.csv"
-              className="h-10 rounded-lg"
+              className="h-11 rounded-lg"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               required
             />

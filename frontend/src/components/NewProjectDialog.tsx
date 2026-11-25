@@ -63,10 +63,10 @@ export function NewProjectDialog({onCreated}: NewProjectDialogProps) {
           {t('newProject.button')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[480px]">
+      <DialogContent className="gap-5 sm:max-w-[480px]">
         <form onSubmit={(e) => void onSubmit(e)} className="contents">
           <DialogHeader className="gap-1.5">
-            <DialogTitle className="text-lg">{t('newProject.title')}</DialogTitle>
+            <DialogTitle>{t('newProject.title')}</DialogTitle>
             <DialogDescription>{t('newProject.description')}</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2">
@@ -74,7 +74,7 @@ export function NewProjectDialog({onCreated}: NewProjectDialogProps) {
             <Input
               id="new-project-name"
               placeholder={t('newProject.namePlaceholder')}
-              className="h-10 rounded-lg"
+              className="h-11 rounded-lg"
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
@@ -85,7 +85,7 @@ export function NewProjectDialog({onCreated}: NewProjectDialogProps) {
             <Label htmlFor="new-project-currency">{t('newProject.currencyLabel')}</Label>
             <select
               id="new-project-currency"
-              className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+              className="h-11 w-full rounded-lg border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20 md:text-sm dark:bg-input/30"
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
             >

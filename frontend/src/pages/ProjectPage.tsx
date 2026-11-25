@@ -24,6 +24,7 @@ import {initials} from '@/lib/initials'
 import {type DateRange, dateRangeQuery, EMPTY_DATE_RANGE, isDateRangeSet} from '@/lib/dateRange'
 import {formatInstant} from '@/lib/instants'
 import {formatAmount} from '@/lib/money'
+import {cn} from '@/lib/utils'
 
 const PAGE_SIZE = 20
 const SEARCH_DEBOUNCE_MS = 300
@@ -252,7 +253,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
     <PageShell>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-[26px] font-semibold tracking-[-0.02em]">{project.name}</h1>
+          <h1 className="text-[28px] leading-[34px] font-semibold tracking-[-0.025em]">{project.name}</h1>
           <p className="text-muted-foreground">
             {t('project.memberCount', {count: members.length})}
             {expenses.status === 'loaded' && !filtered && ` · ${t('project.expenseCount', {count: expenses.total})}`}
@@ -265,7 +266,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
           <AiImportDialog
             projectId={project.id}
             trigger={
-              <Button variant="outline" className="rounded-lg">
+              <Button variant="ai" className="rounded-lg">
                 <Sparkles />
                 {t('aiImport.button')}
               </Button>
@@ -346,12 +347,12 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
           <div className="flex flex-col gap-3">
             <div className="flex max-w-sm items-center gap-2">
               <div className="relative grow">
-                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   type="search"
                   aria-label={t('project.search')}
                   placeholder={t('project.search')}
-                  className="h-10 rounded-lg bg-card pl-9"
+                  className="rounded-full pl-10"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                 />
@@ -359,7 +360,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
               <Button
                 variant="outline"
                 size="icon"
-                className="size-10 shrink-0 rounded-lg bg-card"
+                className="size-11 shrink-0 rounded-full"
                 aria-expanded={filtersOpen}
                 aria-label={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
                 title={filtersOpen ? t('project.hideFilters') : t('project.showFilters')}
@@ -373,7 +374,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
                 {tags.length > 0 && (
                   <select
                     aria-label={t('project.filterByTag')}
-                    className="h-10 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm"
+                    className="h-11 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20 md:text-sm"
                     value={tag ?? ''}
                     onChange={(e) => setTag(e.target.value === '' ? null : e.target.value)}
                   >
@@ -388,7 +389,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
                 {members.length > 1 && (
                   <select
                     aria-label={t('project.filterByCreator')}
-                    className="h-10 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm"
+                    className="h-11 max-w-sm rounded-lg border border-input bg-card px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20 md:text-sm"
                     value={creator ?? ''}
                     onChange={(e) => setCreator(e.target.value === '' ? null : e.target.value)}
                   >
@@ -424,7 +425,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
           )}
 
           {expenses.status === 'loaded' && expenses.items.length === 0 && (
-            <Card className="items-center gap-2 px-6 py-12 text-center shadow-xs">
+            <Card className="items-center gap-2 px-6 py-12 text-center">
               <span className="font-medium">{filtered ? t('project.noMatches') : t('project.noExpenses')}</span>
               {!filtered && <span className="text-muted-foreground">{t('project.noExpensesHint')}</span>}
             </Card>
@@ -432,7 +433,7 @@ function ProjectExpenses({project, members, currentUserId, tags, onTagsChanged}:
 
           {expenses.status === 'loaded' && expenses.items.length > 0 && (
             <div className="flex flex-col gap-5">
-              <Card className="gap-0 py-0 shadow-xs">
+              <Card className="gap-0 py-0">
                 <MonthGroupedList
                   items={expenses.items}
                   locale={i18n.language}
@@ -498,15 +499,19 @@ function ExpenseRow({
     timeStyle: 'short',
   })
   return (
-    <li className="flex items-center gap-3 px-4 py-3">
+    <li className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-surface-2">
       <span
-        className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold"
+        className={cn(
+          'inline-flex size-8 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold',
+          // "You" is ink; everyone else is Ion-tinted
+          isMine ? 'bg-ink text-on-ink' : 'bg-accent text-accent-foreground',
+        )}
         title={author}
       >
         {initials(author)}
       </span>
       <div className="flex min-w-0 grow flex-col gap-0.5">
-        <span className="truncate font-medium">{expense.title}</span>
+        <span className="truncate text-[15px] font-medium">{expense.title}</span>
         <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
           <span>{isMine ? t('project.addedByYou') : t('project.addedBy', {name: author})}</span>
           <span aria-hidden>·</span>
@@ -514,8 +519,15 @@ function ExpenseRow({
           {expense.tag && <TagBadge name={expense.tag} color={expense.tagColor} />}
         </span>
       </div>
-      <span className="shrink-0 font-semibold tabular-nums">{formatAmount(expense.amount, currency, locale)}</span>
-      {action}
+      <span className="shrink-0 font-mono text-[15px] font-medium tracking-[-0.01em] tabular-nums">
+        {formatAmount(expense.amount, currency, locale)}
+      </span>
+      {/* Edit shows on hover and focus, and always on touch screens */}
+      {action && (
+        <span className="shrink-0 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100">
+          {action}
+        </span>
+      )}
     </li>
   )
 }

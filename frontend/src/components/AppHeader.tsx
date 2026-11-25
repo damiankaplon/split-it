@@ -18,7 +18,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {LogoMark} from '@/components/Logo'
+import {LogoMark, Wordmark} from '@/components/Logo'
 import {changeLanguage, currentLanguage, type Language, LANGUAGES} from '@/i18n'
 import {initials} from '@/lib/initials'
 import {cn} from '@/lib/utils'
@@ -37,14 +37,15 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   return (
-    <header className="border-b bg-card">
-      <div className="mx-auto flex h-[60px] max-w-[1200px] items-center gap-3 px-6">
+    // A floating glass capsule, 12px from the top, rather than a full-width bar
+    <header className="sticky top-3 z-30 mt-3 px-4">
+      <div className="mx-auto flex h-14 max-w-[1200px] items-center gap-3 rounded-full border bg-card/70 pr-2 pl-3 shadow-card backdrop-blur-xl">
         <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
           <DialogTrigger asChild>
             <button
               type="button"
               aria-label={t('header.openMenu')}
-              className="-ml-2 cursor-pointer rounded-lg p-2 outline-none hover:bg-secondary focus-visible:ring-[3px] focus-visible:ring-ring/50 md:hidden"
+              className="-ml-2 cursor-pointer rounded-lg p-2 outline-none hover:bg-secondary focus-visible:ring-4 focus-visible:ring-ring/20 md:hidden"
             >
               <Menu className="size-5" />
             </button>
@@ -53,17 +54,17 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
             <DialogOverlay className="md:hidden" />
             <DialogPrimitive.Content
               aria-describedby={undefined}
-              className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col gap-4 border-r bg-background p-4 shadow-lg outline-none duration-200 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:animate-in data-[state=open]:slide-in-from-left md:hidden"
+              className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col gap-4 border-r bg-card p-4 shadow-pop outline-none duration-200 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:animate-in data-[state=open]:slide-in-from-left md:hidden"
             >
               <DialogPrimitive.Title className="sr-only">{t('header.navigation')}</DialogPrimitive.Title>
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-[15px] font-semibold">
+                <span className="flex items-center gap-2.5">
                   <LogoMark />
-                  SplitIt!
+                  <Wordmark />
                 </span>
                 <DialogPrimitive.Close
                   aria-label={t('header.closeMenu')}
-                  className="cursor-pointer rounded-lg p-2 outline-none hover:bg-secondary focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  className="cursor-pointer rounded-lg p-2 outline-none hover:bg-secondary focus-visible:ring-4 focus-visible:ring-ring/20"
                 >
                   <X className="size-5" />
                 </DialogPrimitive.Close>
@@ -92,9 +93,12 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
             </DialogPrimitive.Content>
           </DialogPortal>
         </Dialog>
-        <Link to="/" className="flex items-center gap-2 text-[15px] font-semibold">
+        <Link
+          to="/"
+          className="flex items-center gap-2.5 rounded-lg outline-none focus-visible:ring-4 focus-visible:ring-ring/20"
+        >
           <LogoMark />
-          SplitIt!
+          <Wordmark />
         </Link>
         <nav aria-label={t('header.navigation')} className="ml-4 hidden items-center gap-1 md:flex">
           <HeaderTab to="/" active={!isPersonal && !isSavings}>
@@ -111,10 +115,10 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
         <DropdownMenu>
           <DropdownMenuTrigger
             aria-label={t('header.accountMenu')}
-            className="cursor-pointer rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            className="cursor-pointer rounded-full outline-none focus-visible:ring-4 focus-visible:ring-ring/20"
           >
-            <Avatar className="size-9 border">
-              <AvatarFallback className="bg-secondary text-[13px] font-semibold text-foreground">
+            <Avatar className="size-10">
+              <AvatarFallback className="bg-ink text-[13px] font-semibold text-on-ink">
                 {initials(username)}
               </AvatarFallback>
             </Avatar>
@@ -173,8 +177,8 @@ function HeaderTab({
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'rounded-lg px-3 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50',
-        active ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground',
+        'rounded-full px-4 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-4 focus-visible:ring-ring/20',
+        active ? 'bg-ink text-on-ink' : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground',
         className,
       )}
     >

@@ -16,15 +16,31 @@ export const currencyOf = (code: string): Currency => ({
     }).resolvedOptions().maximumFractionDigits ?? 2,
 })
 
-/** Formats minor units in the locale's number style, labelled with the currency code (e.g. "120,50 PLN"). */
-export function formatAmount(minorUnits: number, currency: Currency, locale: string): string {
-  return new Intl.NumberFormat(locale, {
+const amountFormat = (currency: Currency, locale: string) =>
+  new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: currency.code,
     currencyDisplay: 'code',
     minimumFractionDigits: currency.minorUnits,
     maximumFractionDigits: currency.minorUnits,
-  }).format(minorUnits / 10 ** currency.minorUnits)
+  })
+
+/** Formats minor units in the locale's number style, labelled with the currency code (e.g. "120,50 PLN"). */
+export function formatAmount(minorUnits: number, currency: Currency, locale: string): string {
+  return amountFormat(currency, locale).format(minorUnits / 10 ** currency.minorUnits)
+}
+
+/** The same amount in parts, so the decimals and the currency code can be styled apart (e.g. "1 065" ",76" "PLN"). */
+export function amountParts(minorUnits: number, currency: Currency, locale: string) {
+  let whole = ''
+  let fraction = ''
+  let code = ''
+  for (const part of amountFormat(currency, locale).formatToParts(minorUnits / 10 ** currency.minorUnits)) {
+    if (part.type === 'currency') code = part.value
+    else if (part.type === 'decimal' || part.type === 'fraction') fraction += part.value
+    else if (part.type === 'integer' || part.type === 'group' || part.type === 'minusSign') whole += part.value
+  }
+  return {whole, fraction, code}
 }
 
 /** A zero amount in the locale's number style, for input placeholders (e.g. "0,00"). */

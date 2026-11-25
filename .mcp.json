@@ -1,9 +1,5 @@
 {
   "mcpServers": {
-    "idea": {
-      "url": "http://127.0.0.1:64342/stream",
-      "type": "http"
-    },
     "postgres-local": {
       "command": "npx",
       "args": [
@@ -18,6 +14,23 @@
         "POSTGRES_DATABASE": "splitit",
         "POSTGRES_USER": "splitit",
         "POSTGRES_PASSWORD": "splitit"
+      }
+    },
+    "brave-devtools": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "brave-mcp@latest",
+        "--autoConnect"
+      ],
+      "env": {}
+    },
+    "idea": {
+      "url": "http://127.0.0.1:64463/stream",
+      "type": "http",
+      "headers": {
+        "IJ_MCP_LAUNCH_ORIGIN": "${IJ_MCP_LAUNCH_ORIGIN:-}"
       }
     }
   }

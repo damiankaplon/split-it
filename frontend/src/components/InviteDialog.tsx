@@ -59,9 +59,9 @@ export function InviteDialog({project, currentUserId}: InviteDialogProps) {
           {t('invite.button')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[480px]">
+      <DialogContent className="gap-5 sm:max-w-[480px]">
         <DialogHeader className="gap-1.5">
-          <DialogTitle className="text-lg">{t('invite.title', {project: project.name})}</DialogTitle>
+          <DialogTitle>{t('invite.title', {project: project.name})}</DialogTitle>
           <DialogDescription>{t('invite.description')}</DialogDescription>
         </DialogHeader>
 
@@ -71,7 +71,7 @@ export function InviteDialog({project, currentUserId}: InviteDialogProps) {
             <Input
               id="invite-link"
               readOnly
-              className="h-10 grow rounded-lg bg-background text-zinc-700"
+              className="h-10 grow rounded-lg bg-background text-foreground"
               value={link.status === 'ready' ? link.url : link.status === 'loading' ? t('invite.creating') : ''}
               onFocus={(e) => e.currentTarget.select()}
             />

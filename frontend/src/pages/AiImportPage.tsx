@@ -124,7 +124,7 @@ function AiImport({projectId, currency, file}: {projectId?: string; currency?: s
 
   if (recognition.status === 'loading') {
     return shell(
-      <Card className="items-center gap-4 px-6 py-16 text-center shadow-xs" role="status">
+      <Card className="items-center gap-4 px-6 py-16 text-center" role="status">
         <Loader2 className="size-8 animate-spin text-muted-foreground" />
         <span className="text-lg font-medium">{t('aiImport.waiting')}</span>
       </Card>,
@@ -195,7 +195,7 @@ function AiImport({projectId, currency, file}: {projectId?: string; currency?: s
   return shell(
     <>
       <div className="flex flex-col gap-1">
-        <h1 className="flex items-center gap-2 text-[26px] font-semibold tracking-[-0.02em]">
+        <h1 className="flex items-center gap-2 text-[28px] leading-[34px] font-semibold tracking-[-0.025em]">
           <Sparkles className="size-6" />
           {t('aiImport.title')}
         </h1>
@@ -214,12 +214,12 @@ function AiImport({projectId, currency, file}: {projectId?: string; currency?: s
       )}
 
       {drafts.length === 0 ? (
-        <Card className="items-center gap-2 px-6 py-12 text-center shadow-xs">
+        <Card className="items-center gap-2 px-6 py-12 text-center">
           <span className="font-medium">{t('aiImport.empty')}</span>
         </Card>
       ) : (
         <>
-          <Card className="gap-0 py-0 shadow-xs">
+          <Card className="gap-0 py-0">
             <ul className="divide-y">
               {drafts.map((draft) => (
                 <DraftRow

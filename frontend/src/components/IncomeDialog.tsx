@@ -29,7 +29,7 @@ interface IncomeDialogProps {
 }
 
 const SELECT_CLASS =
-  'h-10 w-full rounded-lg border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30'
+  'h-11 w-full rounded-lg border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20 md:text-sm dark:bg-input/30'
 
 export function IncomeDialog({defaultCurrency, income, trigger, onSaved}: IncomeDialogProps) {
   const {t, i18n} = useTranslation()
@@ -93,12 +93,10 @@ export function IncomeDialog({defaultCurrency, income, trigger, onSaved}: Income
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[480px]">
+      <DialogContent className="gap-5 sm:max-w-[480px]">
         <form onSubmit={(e) => void onSubmit(e)} className="contents">
           <DialogHeader className="gap-1.5">
-            <DialogTitle className="text-lg">
-              {editing ? t('incomeDialog.editTitle') : t('incomeDialog.addTitle')}
-            </DialogTitle>
+            <DialogTitle>{editing ? t('incomeDialog.editTitle') : t('incomeDialog.addTitle')}</DialogTitle>
             <DialogDescription>{t('incomeDialog.description')}</DialogDescription>
           </DialogHeader>
 
@@ -108,7 +106,7 @@ export function IncomeDialog({defaultCurrency, income, trigger, onSaved}: Income
               <Input
                 id="income-title"
                 placeholder={t('incomeDialog.titlePlaceholder')}
-                className="h-10 rounded-lg"
+                className="h-11 rounded-lg"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 autoFocus
@@ -123,7 +121,7 @@ export function IncomeDialog({defaultCurrency, income, trigger, onSaved}: Income
                   customInput={Input}
                   id="income-amount"
                   placeholder={zeroAmount(currency, i18n.language)}
-                  className="h-10 rounded-lg tabular-nums"
+                  className="h-11 rounded-lg tabular-nums"
                   decimalSeparator={decimalSeparator(i18n.language)}
                   allowedDecimalSeparators={[',', '.']}
                   decimalScale={currency.minorUnits}
@@ -156,7 +154,7 @@ export function IncomeDialog({defaultCurrency, income, trigger, onSaved}: Income
               <Input
                 id="income-date"
                 type="datetime-local"
-                className="h-10 rounded-lg"
+                className="h-11 rounded-lg"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required

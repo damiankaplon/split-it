@@ -79,12 +79,10 @@ export function ExpenseDialog({projectId, currency, tags, expense, trigger, onSa
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="gap-5 rounded-xl bg-card shadow-[0_10px_30px_rgba(0,0,0,0.18)] sm:max-w-[480px]">
+      <DialogContent className="gap-5 sm:max-w-[480px]">
         <form onSubmit={(e) => void onSubmit(e)} className="contents">
           <DialogHeader className="gap-1.5">
-            <DialogTitle className="text-lg">
-              {editing ? t('expenseDialog.editTitle') : t('expenseDialog.addTitle')}
-            </DialogTitle>
+            <DialogTitle>{editing ? t('expenseDialog.editTitle') : t('expenseDialog.addTitle')}</DialogTitle>
             <DialogDescription>{t('expenseDialog.description')}</DialogDescription>
           </DialogHeader>
 
@@ -94,7 +92,7 @@ export function ExpenseDialog({projectId, currency, tags, expense, trigger, onSa
               <Input
                 id="expense-title"
                 placeholder={t('expenseDialog.titlePlaceholder')}
-                className="h-10 rounded-lg"
+                className="h-11 rounded-lg"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 autoFocus
@@ -110,7 +108,7 @@ export function ExpenseDialog({projectId, currency, tags, expense, trigger, onSa
                   customInput={Input}
                   id="expense-amount"
                   placeholder={zeroAmount(currency, i18n.language)}
-                  className="h-10 rounded-lg tabular-nums"
+                  className="h-11 rounded-lg tabular-nums"
                   decimalSeparator={decimalSeparator(i18n.language)}
                   allowedDecimalSeparators={[',', '.']}
                   decimalScale={currency.minorUnits}
@@ -126,7 +124,7 @@ export function ExpenseDialog({projectId, currency, tags, expense, trigger, onSa
                 <Input
                   id="expense-date"
                   type="datetime-local"
-                  className="h-10 rounded-lg"
+                  className="h-11 rounded-lg"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   required
@@ -143,7 +141,7 @@ export function ExpenseDialog({projectId, currency, tags, expense, trigger, onSa
                 id="expense-tag"
                 list="expense-tag-options"
                 placeholder={t('expenseDialog.tagPlaceholder')}
-                className="h-10 rounded-lg"
+                className="h-11 rounded-lg"
                 value={tag}
                 onChange={(e) => setTag(e.target.value)}
                 autoComplete="off"

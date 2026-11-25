@@ -9,7 +9,13 @@ export function LanguageSwitcher({className}: {className?: string}) {
   const active = currentLanguage()
 
   return (
-    <nav aria-label={t('language.label')} className={cn('flex items-center gap-1', className)}>
+    <nav
+      aria-label={t('language.label')}
+      className={cn(
+        'inline-flex items-center gap-0.5 rounded-full bg-muted p-1 shadow-[inset_0_1px_2px_rgb(0_0_0/0.06)]',
+        className,
+      )}
+    >
       {LANGUAGES.map((language) => (
         <Button
           key={language}
@@ -17,7 +23,7 @@ export function LanguageSwitcher({className}: {className?: string}) {
           size="sm"
           lang={language}
           aria-current={language === active}
-          className="h-8 px-2 text-[13px] text-muted-foreground aria-[current=true]:font-semibold aria-[current=true]:text-foreground"
+          className="h-8 rounded-full px-4 text-[13px] text-muted-foreground hover:bg-transparent hover:text-foreground aria-[current=true]:bg-card aria-[current=true]:text-foreground aria-[current=true]:shadow-card"
           onClick={() => void changeLanguage(language)}
         >
           {t(`language.${language}`)}
