@@ -30,7 +30,7 @@ interface TagTotalsChartsProps {
   onMergeTags?: (from: string, to: string) => Promise<void>
 }
 
-/** Bar charts of the expense sums per tag in a date range, one per currency; the last month by default. */
+/** Pie charts of the expense sums per tag in a date range, one per currency; the last month by default. */
 export function TagTotalsCharts({
   load,
   reloadKey,
@@ -195,6 +195,77 @@ function TagDot({color}: {color: string | null | undefined}) {
   )
 }
 
+const PIE_SIZE = 200
+const PIE_RADIUS = 88
+// How far the selected slice slides out; the radius leaves it room inside the viewBox
+const PIE_POP = 8
+
+/** The point `radius` away from the centre; angles run clockwise from 12 o'clock, in radians. */
+const pieAt = (angle: number, radius: number) => ({
+  x: PIE_SIZE / 2 + radius * Math.sin(angle),
+  y: PIE_SIZE / 2 - radius * Math.cos(angle),
+})
+
+interface PieSlice {
+  key: string
+  color: string
+  /** Both in radians. */
+  start: number
+  end: number
+  selected: boolean
+  /** Shown on hover. */
+  label: string
+}
+
+/** Decorative: the legend next to it is the accessible version of the same data. */
+function TagPie({slices}: {slices: PieSlice[]}) {
+  // Everything else fades while one tag is selected
+  const hasSelection = slices.some((slice) => slice.selected)
+  return (
+    <svg viewBox={`0 0 ${PIE_SIZE} ${PIE_SIZE}`} aria-hidden className="size-56 shrink-0">
+      {slices.map((slice) => {
+        const middle = (slice.start + slice.end) / 2
+        const pop = slice.selected && slices.length > 1 ? PIE_POP : 0
+        const className =
+          'stroke-card stroke-2 transition-[transform,opacity] duration-200 motion-reduce:transition-none'
+        const style = {
+          fill: slice.color,
+          opacity: hasSelection && !slice.selected ? 0.45 : 1,
+          transform: `translate(${pop * Math.sin(middle)}px, ${-pop * Math.cos(middle)}px)`,
+        }
+        if (slices.length === 1) {
+          // A single slice is a whole circle, which an arc can not draw
+          return (
+            <circle
+              key={slice.key}
+              cx={PIE_SIZE / 2}
+              cy={PIE_SIZE / 2}
+              r={PIE_RADIUS}
+              className={className}
+              style={style}
+            >
+              <title>{slice.label}</title>
+            </circle>
+          )
+        }
+        const from = pieAt(slice.start, PIE_RADIUS)
+        const to = pieAt(slice.end, PIE_RADIUS)
+        const largeArc = slice.end - slice.start > Math.PI ? 1 : 0
+        return (
+          <path
+            key={slice.key}
+            d={`M ${PIE_SIZE / 2} ${PIE_SIZE / 2} L ${from.x} ${from.y} A ${PIE_RADIUS} ${PIE_RADIUS} 0 ${largeArc} 1 ${to.x} ${to.y} Z`}
+            className={className}
+            style={style}
+          >
+            <title>{slice.label}</title>
+          </path>
+        )
+      })}
+    </svg>
+  )
+}
+
 function TagTotalsChart({
   title,
   totals,
@@ -221,73 +292,94 @@ function TagTotalsChart({
   const tagName = (total: TagTotal) => total.tag ?? t('charts.untagged')
   // Untagged expenses have no colour of their own
   const tagColor = (total: TagTotal) => total.tagColor ?? 'var(--muted-foreground)'
-  // Biggest first; expense amounts are positive, so the first one is the longest bar
+  // Biggest first, running clockwise from the top; expense amounts are positive, so the sum is too
   const sorted = [...totals].sort((a, b) => b.total - a.total)
-  const largest = sorted[0].total
+  const sum = sorted.reduce((acc, total) => acc + total.total, 0)
+  const percent = new Intl.NumberFormat(locale, {style: 'percent', maximumFractionDigits: 1})
   const mergeLabel = (tag: string) =>
     mergeSource === null ? t('charts.merge.start', {tag}) : t('charts.merge.into', {tag})
+
+  const slices: PieSlice[] = []
+  let angle = 0
+  for (const total of sorted) {
+    const end = angle + (total.total / sum) * 2 * Math.PI
+    slices.push({
+      key: total.tag ?? '',
+      color: tagColor(total),
+      start: angle,
+      end,
+      selected: total.tag !== null && total.tag === selectedTag,
+      label: `${tagName(total)}: ${formatAmount(total.total, currency, locale)} (${percent.format(total.total / sum)})`,
+    })
+    angle = end
+  }
 
   return (
     <Card className="gap-4 px-4 py-5 sm:px-6">
       <h2 className="font-semibold">{title}</h2>
-      <ul className="flex flex-col gap-2.5" aria-label={title}>
-        {sorted.map((total) => {
-          const selectable = onSelectTag !== undefined && total.tag !== null
-          const selected = total.tag !== null && total.tag === selectedTag
-          return (
-            <li
-              key={total.tag ?? ''}
-              className={`grid ${onMergeTag ? 'grid-cols-[auto_minmax(4rem,7rem)_1fr_auto]' : 'grid-cols-[minmax(4rem,7rem)_1fr_auto]'} items-center gap-3 rounded-xl px-2.5 py-2 text-sm transition-colors hover:bg-surface-2 ${selected ? 'bg-accent ring-1 ring-primary/35 ring-inset hover:bg-accent' : ''}`}
-            >
-              {onMergeTag &&
-                (total.tag !== null ? (
+      <div className="flex flex-col items-center gap-6 md:flex-row md:gap-10">
+        <TagPie slices={slices} />
+        {/* The legend: the columns are shared by all rows, so the amounts and shares line up. On narrow screens the share moves under the amount, leaving the names room. */}
+        <ul
+          className={`grid w-full min-w-0 flex-1 gap-x-3 gap-y-1 ${onMergeTag ? 'grid-cols-[auto_minmax(0,1fr)_auto] sm:grid-cols-[auto_minmax(0,1fr)_auto_auto]' : 'grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_auto_auto]'}`}
+          aria-label={title}
+        >
+          {sorted.map((total, index) => {
+            const selectable = onSelectTag !== undefined && total.tag !== null
+            const selected = slices[index].selected
+            return (
+              <li
+                key={total.tag ?? ''}
+                className={`grid ${onMergeTag ? 'col-span-3 sm:col-span-4' : 'col-span-2 sm:col-span-3'} grid-cols-subgrid items-center rounded-xl px-2.5 py-2 text-sm transition-colors hover:bg-surface-2 ${selected ? 'bg-accent ring-1 ring-primary/35 ring-inset hover:bg-accent' : ''}`}
+              >
+                {onMergeTag &&
+                  (total.tag !== null ? (
+                    <button
+                      type="button"
+                      aria-label={mergeLabel(total.tag)}
+                      title={mergeLabel(total.tag)}
+                      className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-4 focus-visible:ring-ring/20 focus-visible:outline-none"
+                      onClick={() => onMergeTag(total.tag as string)}
+                    >
+                      {mergeSource === null ? <ArrowRight className="size-4" /> : <ArrowLeft className="size-4" />}
+                    </button>
+                  ) : (
+                    // Takes the button's place, as an empty cell would shift the name into the button's column
+                    <span aria-hidden />
+                  ))}
+                {selectable ? (
                   <button
                     type="button"
-                    aria-label={mergeLabel(total.tag)}
-                    title={mergeLabel(total.tag)}
-                    className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-4 focus-visible:ring-ring/20 focus-visible:outline-none"
-                    onClick={() => onMergeTag(total.tag as string)}
+                    aria-pressed={selected}
+                    title={tagName(total)}
+                    className="flex min-w-0 items-center gap-2 rounded-md text-left font-medium underline-offset-2 hover:underline focus-visible:ring-4 focus-visible:ring-ring/20 focus-visible:outline-none"
+                    onClick={() => onSelectTag(total.tag as string)}
                   >
-                    {mergeSource === null ? <ArrowRight className="size-4" /> : <ArrowLeft className="size-4" />}
+                    <TagDot color={total.tagColor} />
+                    <span className="truncate">{tagName(total)}</span>
                   </button>
                 ) : (
-                  // Same size as the button, as every row is its own grid and an empty cell would collapse
-                  <span aria-hidden className="size-6" />
-                ))}
-              {selectable ? (
-                <button
-                  type="button"
-                  aria-pressed={selected}
-                  title={tagName(total)}
-                  className="flex min-w-0 items-center gap-2 rounded-md text-left font-medium underline-offset-2 hover:underline focus-visible:ring-4 focus-visible:ring-ring/20 focus-visible:outline-none"
-                  onClick={() => onSelectTag(total.tag as string)}
-                >
-                  <TagDot color={total.tagColor} />
-                  <span className="truncate">{tagName(total)}</span>
-                </button>
-              ) : (
-                <span className="flex min-w-0 items-center gap-2 font-medium" title={tagName(total)}>
-                  <TagDot color={total.tagColor} />
-                  <span className="truncate">{tagName(total)}</span>
+                  <span className="flex min-w-0 items-center gap-2 font-medium" title={tagName(total)}>
+                    <TagDot color={total.tagColor} />
+                    <span className="truncate">{tagName(total)}</span>
+                  </span>
+                )}
+                <span className="flex flex-col items-end">
+                  <span className="font-mono text-[15px] font-medium tracking-[-0.01em] tabular-nums">
+                    {formatAmount(total.total, currency, locale)}
+                  </span>
+                  <span className="text-xs text-muted-foreground tabular-nums sm:hidden">
+                    {percent.format(total.total / sum)}
+                  </span>
                 </span>
-              )}
-              <div className="h-2.5 overflow-hidden rounded-full bg-muted" aria-hidden>
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${(total.total / largest) * 100}%`,
-                    // A light-to-full sweep of the tag's own colour
-                    background: `linear-gradient(90deg, color-mix(in srgb, ${tagColor(total)} 62%, white), ${tagColor(total)})`,
-                  }}
-                />
-              </div>
-              <span className="min-w-20 text-right font-mono text-[15px] font-medium tracking-[-0.01em] tabular-nums">
-                {formatAmount(total.total, currency, locale)}
-              </span>
-            </li>
-          )
-        })}
-      </ul>
+                <span className="hidden min-w-12 text-right text-muted-foreground tabular-nums sm:block">
+                  {percent.format(total.total / sum)}
+                </span>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
     </Card>
   )
 }
