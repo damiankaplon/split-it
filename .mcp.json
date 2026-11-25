@@ -3,6 +3,22 @@
     "idea": {
       "url": "http://127.0.0.1:64342/stream",
       "type": "http"
+    },
+    "postgres-local": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@toolbox-sdk/server",
+        "--prebuilt=postgres",
+        "--stdio"
+      ],
+      "env": {
+        "POSTGRES_HOST": "localhost",
+        "POSTGRES_PORT": "5432",
+        "POSTGRES_DATABASE": "splitit",
+        "POSTGRES_USER": "splitit",
+        "POSTGRES_PASSWORD": "splitit"
+      }
     }
   }
 }
