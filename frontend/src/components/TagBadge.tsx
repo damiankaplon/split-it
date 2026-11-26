@@ -13,8 +13,10 @@ interface TagBadgeProps {
 export function TagBadge({name, color}: TagBadgeProps) {
   return (
     <span
+      // One line always; a name longer than the space it gets is cut short, the full text stays in the tooltip
+      title={name}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border px-2 py-px text-xs font-medium',
+        'inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border px-2 py-px text-xs font-medium',
         !color && 'bg-muted text-muted-foreground',
       )}
       style={
@@ -27,8 +29,8 @@ export function TagBadge({name, color}: TagBadgeProps) {
           : undefined
       }
     >
-      <span aria-hidden className="size-1.5 rounded-full" style={{backgroundColor: color ?? 'currentColor'}} />
-      {name}
+      <span aria-hidden className="size-1.5 shrink-0 rounded-full" style={{backgroundColor: color ?? 'currentColor'}} />
+      <span className="truncate">{name}</span>
     </span>
   )
 }

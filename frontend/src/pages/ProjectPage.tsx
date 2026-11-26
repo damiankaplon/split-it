@@ -499,39 +499,41 @@ function ExpenseRow({
     timeStyle: 'short',
   })
   return (
-    <li className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-surface-2">
-      <span
-        className={cn(
-          'inline-flex size-8 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold',
-          // "You" is ink; everyone else is Ion-tinted
-          isMine ? 'bg-ink text-on-ink' : 'bg-accent text-accent-foreground',
-        )}
-        title={author}
-      >
-        {initials(author)}
-      </span>
-      <div className="flex min-w-0 grow flex-col gap-0.5">
-        <span className="truncate text-[15px] font-medium">{expense.title}</span>
-        <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
-          <span>{isMine ? t('project.addedByYou') : t('project.addedBy', {name: author})}</span>
-          <span aria-hidden>·</span>
-          <span>{date}</span>
+    <li className="group rounded-xl px-3 py-2.5 transition-colors hover:bg-surface-2">
+      <div className="flex items-center gap-3">
+        <span
+          className={cn(
+            'inline-flex size-8 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold',
+            // "You" is ink; everyone else is Ion-tinted
+            isMine ? 'bg-ink text-on-ink' : 'bg-accent text-accent-foreground',
+          )}
+          title={author}
+        >
+          {initials(author)}
         </span>
-        {/* Own line under the author, flush left; a flex wrapper keeps the chip from stretching across the column */}
-        {expense.tag && (
-          <div className="flex pt-0.5">
-            <TagBadge name={expense.tag} color={expense.tagColor} />
-          </div>
+        <div className="flex min-w-0 grow flex-col gap-0.5">
+          <span className="truncate text-[15px] font-medium">{expense.title}</span>
+          <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
+            <span>{isMine ? t('project.addedByYou') : t('project.addedBy', {name: author})}</span>
+            <span aria-hidden>·</span>
+            <span>{date}</span>
+          </span>
+        </div>
+        <span className="shrink-0 font-mono text-[15px] font-medium tracking-[-0.01em] tabular-nums">
+          {formatAmount(expense.amount, currency, locale)}
+        </span>
+        {/* Edit shows on hover and focus, and always on touch screens */}
+        {action && (
+          <span className="shrink-0 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100">
+            {action}
+          </span>
         )}
       </div>
-      <span className="shrink-0 font-mono text-[15px] font-medium tracking-[-0.01em] tabular-nums">
-        {formatAmount(expense.amount, currency, locale)}
-      </span>
-      {/* Edit shows on hover and focus, and always on touch screens */}
-      {action && (
-        <span className="shrink-0 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100">
-          {action}
-        </span>
+      {/* Row of its own below the amount, so a long tag gets the card's full width; pl-11 = avatar (size-8) + gap-3, to line up with the title */}
+      {expense.tag && (
+        <div className="flex pt-1.5 pl-11">
+          <TagBadge name={expense.tag} color={expense.tagColor} />
+        </div>
       )}
     </li>
   )

@@ -404,26 +404,28 @@ function PersonalExpenseRow({
     timeStyle: 'short',
   })
   return (
-    <li className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-surface-2">
-      <div className="flex min-w-0 grow flex-col gap-0.5">
-        <span className="truncate text-[15px] font-medium">{expense.title}</span>
-        <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
-          <span>{date}</span>
+    <li className="group rounded-xl px-3 py-2.5 transition-colors hover:bg-surface-2">
+      <div className="flex items-center gap-3">
+        <div className="flex min-w-0 grow flex-col gap-0.5">
+          <span className="truncate text-[15px] font-medium">{expense.title}</span>
+          <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-muted-foreground">
+            <span>{date}</span>
+          </span>
+        </div>
+        <span className="shrink-0 font-mono text-[15px] font-medium tracking-[-0.01em] tabular-nums">
+          {formatAmount(expense.amount, expense.currency, locale)}
         </span>
-        {/* Own line under the date, flush left; a flex wrapper keeps the chip from stretching across the column */}
-        {expense.tag && (
-          <div className="flex pt-0.5">
-            <TagBadge name={expense.tag} color={expense.tagColor} />
-          </div>
-        )}
+        {/* Row actions show on hover and focus, and always on touch screens */}
+        <div className="flex shrink-0 items-center opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100">
+          {actions}
+        </div>
       </div>
-      <span className="shrink-0 font-mono text-[15px] font-medium tracking-[-0.01em] tabular-nums">
-        {formatAmount(expense.amount, expense.currency, locale)}
-      </span>
-      {/* Row actions show on hover and focus, and always on touch screens */}
-      <div className="flex shrink-0 items-center opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100">
-        {actions}
-      </div>
+      {/* Row of its own below the amount, so a long tag gets the card's full width */}
+      {expense.tag && (
+        <div className="flex pt-1.5">
+          <TagBadge name={expense.tag} color={expense.tagColor} />
+        </div>
+      )}
     </li>
   )
 }
