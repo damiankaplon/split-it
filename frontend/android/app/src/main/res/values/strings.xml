@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SplitIt!</string>
+    <string name="title_activity_main">SplitIt!</string>
+    <string name="package_name">pl.damiankaplon.splitit</string>
+    <string name="custom_url_scheme">pl.damiankaplon.splitit</string>
+</resources>
