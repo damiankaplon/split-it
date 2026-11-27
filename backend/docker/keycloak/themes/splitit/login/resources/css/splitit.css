@@ -90,13 +90,20 @@
 
 /* Page */
 
-.login-pf body {
-  /* Frost with a faint aurora, as in the app */
+/* Painted on <html> so the layers cover the whole canvas and never tile when the card is taller than the viewport */
+html.login-pf {
   background:
-    radial-gradient(52% 46% at 6% -8%, rgb(24 200 255 / 0.22), transparent 72%),
-    radial-gradient(44% 40% at 96% -4%, rgb(214 255 77 / 0.35), transparent 70%),
-    radial-gradient(60% 38% at 50% 112%, rgb(36 87 255 / 0.12), transparent 70%),
-    var(--splitit-background) fixed;
+    radial-gradient(52% 46% at 6% -8%, rgb(24 200 255 / 0.22), transparent 72%) fixed no-repeat,
+    radial-gradient(44% 40% at 96% -4%, rgb(214 255 77 / 0.35), transparent 70%) fixed no-repeat,
+    radial-gradient(60% 38% at 50% 112%, rgb(36 87 255 / 0.12), transparent 70%) fixed no-repeat,
+    var(--splitit-background);
+  min-height: 100%;
+}
+
+.login-pf body {
+  background: none;
+  height: auto;
+  min-height: 100vh;
   color: var(--splitit-foreground);
   font-family: var(--splitit-font), sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -104,6 +111,10 @@
 }
 
 .pf-v5-c-login {
+  --pf-v5-c-login--PaddingTop: 1.5rem;
+  --pf-v5-c-login--PaddingBottom: 1.5rem;
+  --pf-v5-c-login__header--xl--MarginBottom: 1.25rem;
+  --pf-v5-c-login__header--xl--MarginTop: 0;
   /* 26.25rem card (frontend SignInPage max-w-[420px]) + side padding */
   --pf-v5-c-login__container--MaxWidth: 29.25rem;
   --pf-v5-c-login__container--PaddingLeft: 1.5rem;
@@ -161,6 +172,13 @@
 
 .pf-v5-c-login__main-body {
   padding-bottom: 2rem;
+}
+
+/* Identity-provider buttons (Google, ...): a <ul> that reuses the body class */
+#kc-social-providers > ul {
+  list-style: none;
+  margin: 0;
+  padding-block: 0 1.5rem;
 }
 
 .pf-v5-c-login__main-body > .pf-v5-c-login__main-footer {
