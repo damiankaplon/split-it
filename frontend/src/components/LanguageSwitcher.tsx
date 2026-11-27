@@ -1,12 +1,12 @@
 import {useTranslation} from 'react-i18next'
-import {changeLanguage, currentLanguage, LANGUAGES} from '@/i18n'
+import {changeLanguage, LANGUAGES, useCurrentLanguage} from '@/i18n'
 import {Button} from '@/components/ui/button'
 import {cn} from '@/lib/utils'
 
 /** Inline "Polski · English" toggle for screens without the account menu. */
 export function LanguageSwitcher({className}: {className?: string}) {
   const {t} = useTranslation()
-  const active = currentLanguage()
+  const active = useCurrentLanguage()
 
   return (
     <nav

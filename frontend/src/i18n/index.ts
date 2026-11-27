@@ -1,5 +1,6 @@
 import i18n from 'i18next'
 import {initReactI18next} from 'react-i18next'
+import {useSyncExternalStore} from 'react'
 import en from './locales/en'
 import pl from './locales/pl'
 
@@ -49,6 +50,19 @@ i18n.on('languageChanged', (language) => {
 
 export function currentLanguage(): Language {
   return isLanguage(i18n.language) ? i18n.language : DEFAULT_LANGUAGE
+}
+
+function subscribeToLanguage(onChange: () => void) {
+  i18n.on('languageChanged', onChange)
+  return () => i18n.off('languageChanged', onChange)
+}
+
+/**
+ * Re-renders on every language change. useTranslation alone doesn't guarantee that for
+ * components whose translated text is identical in every language (e.g. the language toggle).
+ */
+export function useCurrentLanguage(): Language {
+  return useSyncExternalStore(subscribeToLanguage, currentLanguage)
 }
 
 export function changeLanguage(language: Language) {

@@ -9,7 +9,7 @@ const en: Translations = {
   signIn: {
     title: 'Sign in to SplitIt!',
     subtitle: 'Track shared expenses and see who owes what.',
-    button: 'Continue with Keycloak',
+    button: 'Login or Register',
     hint: "You'll be redirected to the sign-in page and brought back here.",
     keycloakUnavailable: 'Could not reach Keycloak. Is it running?',
   },

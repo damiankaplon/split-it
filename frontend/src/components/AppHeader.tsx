@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {LogoMark, Wordmark} from '@/components/Logo'
-import {changeLanguage, currentLanguage, type Language, LANGUAGES} from '@/i18n'
+import {changeLanguage, type Language, LANGUAGES, useCurrentLanguage} from '@/i18n'
 import {initials} from '@/lib/initials'
 import {cn} from '@/lib/utils'
 
@@ -30,6 +30,7 @@ interface AppHeaderProps {
 
 export function AppHeader({username, onSignOut}: AppHeaderProps) {
   const {t} = useTranslation()
+  const language = useCurrentLanguage()
   // Project pages belong to the Projects tab too
   const {pathname} = useLocation()
   const isPersonal = pathname.startsWith('/personal')
@@ -136,7 +137,7 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
                 <DropdownMenuRadioGroup
-                  value={currentLanguage()}
+                  value={language}
                   onValueChange={(language) => void changeLanguage(language as Language)}
                 >
                   {LANGUAGES.map((language) => (

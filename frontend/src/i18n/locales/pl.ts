@@ -8,7 +8,7 @@ const pl = {
   signIn: {
     title: 'Zaloguj się do SplitIt!',
     subtitle: 'Śledź wspólne wydatki i sprawdzaj, kto ile komu jest winien.',
-    button: 'Kontynuuj przez Keycloak',
+    button: 'Zaloguj lub Zarejestruj się',
     hint: 'Przekierujemy Cię na stronę logowania, a potem z powrotem tutaj.',
     keycloakUnavailable: 'Nie można połączyć się z Keycloak. Czy jest uruchomiony?',
   },
