@@ -128,7 +128,7 @@ export function TagTotalsCharts({
         // Floating popup: clicking it dismisses it, and picking any tag closes it too
         <Alert
           role="alert"
-          className="fixed inset-x-4 bottom-4 z-50 mx-auto w-auto max-w-md cursor-pointer shadow-lg"
+          className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)_+_1rem)] z-50 mx-auto w-auto max-w-md cursor-pointer shadow-lg"
           onClick={() => setMergeHintDismissed(true)}
         >
           <Info />

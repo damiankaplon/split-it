@@ -1,5 +1,8 @@
 dist
 node_modules
+# Capacitor native projects (Gradle / Xcode files, plus a copy of dist/)
+android
+ios
 package-lock.json
 # shadcn/ui components are generated
 src/components/ui

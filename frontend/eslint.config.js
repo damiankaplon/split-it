@@ -7,7 +7,8 @@ import prettier from 'eslint-config-prettier'
 import {defineConfig, globalIgnores} from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // android/ and ios/ are the Capacitor native projects; they hold a copy of dist/
+  globalIgnores(['dist', 'android', 'ios']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

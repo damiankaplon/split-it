@@ -48,8 +48,11 @@ export const previewInvitation = (invitation: Invitation) =>
 export const acceptInvitation = (invitation: Invitation) =>
   apiFetch<void>(`/invitations?${invitationQuery(invitation)}`, {method: 'POST'})
 
+// The mobile app runs on https://localhost or capacitor://localhost, so it links to the web app instead
+const WEB_URL = import.meta.env.VITE_WEB_URL ?? window.location.origin
+
 /** Frontend URL that lands an invitee on the join page. */
-export const invitationUrl = ({projectId, token}: Invitation) => `${window.location.origin}/join/${projectId}/${token}`
+export const invitationUrl = ({projectId, token}: Invitation) => `${WEB_URL}/join/${projectId}/${token}`
 
 /** Forbidden for non-members, not found for an unknown id. */
 export const getProject = (projectId: string) => apiFetch<Project>(`/projects/${projectId}/details`)

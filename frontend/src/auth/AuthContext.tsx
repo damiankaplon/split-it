@@ -1,5 +1,5 @@
 import {createContext, type ReactNode, use, useEffect, useState} from 'react'
-import {initKeycloak, keycloak} from './keycloak'
+import {initKeycloak, keycloak, rememberSession} from './keycloak'
 import {currentLanguage} from '@/i18n'
 
 type AuthState =
@@ -26,12 +26,21 @@ export function AuthProvider({children}: {children: ReactNode}) {
   const [state, setState] = useState<AuthState>({status: 'loading'})
 
   useEffect(() => {
-    keycloak.onAuthSuccess = () => setState(currentState())
-    keycloak.onAuthLogout = () => setState({status: 'anonymous'})
-    keycloak.onAuthRefreshError = () => setState({status: 'anonymous'})
+    keycloak.onAuthSuccess = () => {
+      rememberSession()
+      setState(currentState())
+    }
+    keycloak.onAuthRefreshSuccess = rememberSession
+    keycloak.onAuthLogout = () => {
+      rememberSession()
+      setState({status: 'anonymous'})
+    }
+    // A rejected refresh token signs the user out (onAuthLogout). Other failures, e.g. a phone that is
+    // briefly offline, keep the session: the next API call refreshes the token again.
+    keycloak.onAuthRefreshError = () => setState(currentState())
     // Refresh proactively so the session survives idle periods, not just API calls.
     keycloak.onTokenExpired = () => {
-      keycloak.updateToken(30).catch(() => setState({status: 'anonymous'}))
+      keycloak.updateToken(30).catch(() => setState(currentState()))
     }
 
     initKeycloak()

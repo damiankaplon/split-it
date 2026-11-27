@@ -167,6 +167,13 @@
     background-attachment: fixed;
   }
 
+  /* Frosted strip behind a phone's status bar, so scrolled content does not run under the clock and icons.
+     Its height is the safe-area inset, so it has no size in desktop browsers. */
+  body::before {
+    @apply pointer-events-none fixed inset-x-0 top-0 z-40 h-[env(safe-area-inset-top)] bg-background/80 backdrop-blur-xl;
+    content: '';
+  }
+
   h1 {
     @apply font-display;
   }

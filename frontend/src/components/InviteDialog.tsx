@@ -1,4 +1,5 @@
 import {useEffect, useState} from 'react'
+import {Clipboard} from '@capacitor/clipboard'
 import {Check, Copy, UserPlus} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {createInvitation, invitationUrl, listMembers, type Project, type ProjectMember} from '@/api/projects'
@@ -47,7 +48,8 @@ export function InviteDialog({project, currentUserId}: InviteDialogProps) {
   }
 
   const copy = async (url: string) => {
-    await navigator.clipboard.writeText(url)
+    // navigator.clipboard is refused in the Android WebView; the plugin uses it on the web
+    await Clipboard.write({string: url})
     setCopied(true)
   }
 

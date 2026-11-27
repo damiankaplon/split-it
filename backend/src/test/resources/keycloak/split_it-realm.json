@@ -41,6 +41,29 @@
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "http://localhost:5173/*"
       }
+    },
+    {
+      "clientId": "splitit-mobile",
+      "name": "SplitIt! mobile",
+      "description": "SplitIt Android and iOS apps (public client, Authorization Code + PKCE, redirect to the app's URL scheme)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "redirectUris": [
+        "pl.damiankaplon.splitit://auth"
+      ],
+      "webOrigins": [
+        "https://localhost",
+        "capacitor://localhost"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
     }
   ]
 }

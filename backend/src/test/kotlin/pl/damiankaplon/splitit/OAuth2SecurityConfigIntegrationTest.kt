@@ -8,6 +8,8 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import dasniko.testcontainers.keycloak.KeycloakContainer
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestComponent
@@ -17,6 +19,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.security.core.Authentication
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.options
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
@@ -70,6 +73,29 @@ class OAuth2SecurityConfigIntegrationTest
             mockMvc
                 .get(TEST_ENDPOINT) { header(HttpHeaders.AUTHORIZATION, "Bearer $forged") }
                 .andExpect { status { isUnauthorized() } }
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = ["https://localhost", "capacitor://localhost"])
+        fun `answers cors preflight from the mobile apps without a token`(origin: String) {
+            mockMvc
+                .options(TEST_ENDPOINT) {
+                    header(HttpHeaders.ORIGIN, origin)
+                    header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
+                    header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "authorization")
+                }.andExpect {
+                    status { isOk() }
+                    header { string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, origin) }
+                }
+        }
+
+        @Test
+        fun `rejects cors preflight from an unknown origin`() {
+            mockMvc
+                .options(TEST_ENDPOINT) {
+                    header(HttpHeaders.ORIGIN, "https://evil.example")
+                    header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
+                }.andExpect { status { isForbidden() } }
         }
 
         private fun forgedToken(issuer: String): String {

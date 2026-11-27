@@ -37,8 +37,8 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   return (
-    // A floating glass capsule, 12px from the top, rather than a full-width bar
-    <header className="sticky top-3 z-30 mt-3 px-4">
+    // A floating glass capsule, 12px below the top (or the phone's status bar), rather than a full-width bar
+    <header className="sticky top-[calc(env(safe-area-inset-top)_+_0.75rem)] z-30 mt-[calc(env(safe-area-inset-top)_+_0.75rem)] px-4">
       <div className="mx-auto flex h-14 max-w-[1200px] items-center gap-3 rounded-full border bg-card/70 pr-2 pl-3 shadow-card backdrop-blur-xl">
         <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
           <DialogTrigger asChild>
@@ -54,7 +54,7 @@ export function AppHeader({username, onSignOut}: AppHeaderProps) {
             <DialogOverlay className="md:hidden" />
             <DialogPrimitive.Content
               aria-describedby={undefined}
-              className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col gap-4 border-r bg-card p-4 shadow-pop outline-none duration-200 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:animate-in data-[state=open]:slide-in-from-left md:hidden"
+              className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col gap-4 border-r bg-card p-4 pt-[calc(env(safe-area-inset-top)_+_1rem)] pb-[calc(env(safe-area-inset-bottom)_+_1rem)] pl-[calc(env(safe-area-inset-left)_+_1rem)] shadow-pop outline-none duration-200 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:animate-in data-[state=open]:slide-in-from-left md:hidden"
             >
               <DialogPrimitive.Title className="sr-only">{t('header.navigation')}</DialogPrimitive.Title>
               <div className="flex items-center justify-between">

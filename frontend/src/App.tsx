@@ -20,7 +20,8 @@ function App() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    // Safe-area insets keep content clear of a phone's notch and home indicator (0 on desktop); the header handles the top
+    <div className="flex min-h-screen flex-col pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]">
       <AppHeader username={state.username} onSignOut={() => void logout()} />
       <Routes>
         <Route path="/" element={<ProjectsPage currentUserId={state.userId} />} />
